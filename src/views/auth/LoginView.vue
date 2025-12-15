@@ -1,521 +1,242 @@
 <template>
-<div class="div">
-  <div class="container">
-    <div class="container2">
-      <div class="container3">
-        <img class="icon" src="@\assets\Icon-3.svg"/>
+  <div class="login-page">
+    <!-- 로고 영역 -->
+    <div class="brand">
+      <div class="brand-icon">
+        <img src="@/assets/Icon-3.svg" alt="logo" />
       </div>
-      <div class="heading-1">
-        <div class="div2">렌탈 브레인</div>
-      </div>
-      <div class="paragraph">
-        <div class="div3">렌탈 중개업체 전용 통합 비즈니스 솔루션</div>
-      </div>
+      <h1>렌탈 브레인</h1>
+      <p>렌탈 중개업체 전용 통합 비즈니스 솔루션</p>
     </div>
-    <div class="container4">
-      <div class="container5">
-        <div class="heading-2">
-          <div class="div4">로그인</div>
-        </div>
-        <div class="paragraph2">
-          <div class="erp-crm">ERP·CRM 통합 관리 시스템</div>
-        </div>
-      </div>
-      <div class="form">
-        <div class="container6">
-          <div class="label">
-            <div class="div5">사원 ID</div>
-          </div>
-          <div class="container7">
-            <div class="email-input">
-              <div class="div6">사원ID를 입력하세요</div>
-            </div>
-            <div class="container8">
-              <img class="icon2" src="@\assets\Icon-2.svg" />
-            </div>
+
+    <!-- 로그인 카드 -->
+    <div class="login-card">
+      <header>
+        <h2>로그인</h2>
+        <span>ERP·CRM 통합 관리 시스템</span>
+      </header>
+
+      <form class="login-form">
+        <div class="form-group">
+          <label>사원 ID</label>
+          <div class="input-box">
+            <img src="@/assets/Icon-2.svg" />
+            <input v-model="empId" type="text" @keyup.enter.stop="login" placeholder="사원 ID를 입력하세요"/>
           </div>
         </div>
-        <div class="container6">
-          <div class="label">
-            <div class="div5">비밀번호</div>
-          </div>
-          <div class="container7">
-            <div class="password-input">
-              <div class="div6">비밀번호를 입력하세요</div>
-            </div>
-            <div class="container8">
-              <img class="icon3" src="@\assets\Icon-1.svg" />
-            </div>
+
+        <div class="form-group">
+          <label>비밀번호</label>
+          <div class="input-box">
+            <img src="@/assets/Icon-1.svg" />
+            <input v-model="pwd" type="password" @keyup.enter.stop="login" placeholder="비밀번호를 입력하세요"/>
           </div>
         </div>
-        <div class="container9">
-          <div class="checkbox"></div>
-          <div class="label2">
-            <div class="div5">로그인 상태 유지</div>
-          </div>
-        </div>
-        <div class="button">
-          <div class="div7">로그인</div>
-        </div>
-      </div>
+
+        <!-- <div class="remember">
+          <input type="checkbox" />
+          <span>로그인 상태 유지</span>
+        </div> -->
+
+        <button type="button" class="login-btn" @click.stop="login">
+          로그인
+        </button>
+      </form>
     </div>
-    <div class="container10">
-      <img class="icon4" src="@\assets\Icon.svg" />
-      <div class="text">
-        <div class="div8">보안 연결로 안전하게 보호됩니다</div>
-      </div>
+
+    <!-- 하단 -->
+    <div class="security">
+      <img src="@/assets/Icon.svg" />
+      <span>보안 연결로 안전하게 보호됩니다</span>
     </div>
-    <div class="container11">
-      <div class="paragraph3">
-        <div class="_2024-all-rights-reserved">
-          © 2024 렌탈 브레인. All rights reserved.
-        </div>
-      </div>
-      <div class="paragraph3">
-        <div class="b-2-b-erp-crm">B2B 렌탈 전문 ERP·CRM 통합 솔루션</div>
-      </div>
-    </div>
+
+    <footer>
+      <p>© 2024 렌탈 브레인. All rights reserved.</p>
+      <p>B2B 렌탈 전문 ERP·CRM 통합 솔루션</p>
+    </footer>
   </div>
-</div>
 </template>
 
 <script setup>
+import { useAuthStore } from '@/store/auth.store';
+import { useToastStore } from '@/store/useToast';
+import axios from 'axios';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+
 const empId = ref('');
 const pwd = ref('');
+const toastStore = useToastStore();
+const authStore = useAuthStore();
+const router = useRouter();
 
+const login = async () => {
+  if (!empId.value || !pwd.value) {
+        toastStore.showToast('아이디와 비밀번호를 입력하세요');
+    return;
+  }
+  console.log(empId.value, pwd.value);
+
+  try{
+    const response = await axios.post(`http://localhost:8080/login`,{
+    empId:empId.value,
+    pwd:pwd.value
+    })
+    console.log("response: ",response);
+    const data = response.data;
+    
+    authStore.setUserInfo(
+      data.id,
+      data.employeeCode,
+      data.empId,
+      data.name,
+      data.roles,
+      response.headers.token
+    );
+    toastStore.showToast('로그인 되었습니다 :' + ' ' + authStore.employeeCode + ' ' + authStore.name);
+    router.push("/");
+    
+  }
+  catch (e){
+    console.log('로그인 실패',e);
+    toastStore.showToast(e);
+  }
+};
 </script>
 
 <style>
-.div,
-.div * {
-  box-sizing: border-box;
-}
-.div {
-  background: linear-gradient(
-      135deg,
-      rgba(239, 246, 255, 1) 0%,
-      rgba(255, 255, 255, 1) 50%,
-      rgba(238, 242, 255, 1) 100%
-    ),
-    linear-gradient(to left, #ffffff, #ffffff);
-  padding: 0px 0.01px 0px 0px;
+.login-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff);
   display: flex;
-  flex-direction: row;
-  gap: 0px;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  height: 1146px;
-  position: relative;
 }
-.container {
-  flex-shrink: 0;
-  width: 414.69px;
-  height: 645.19px;
-  position: relative;
-}
-.container2 {
-  width: 414.69px;
-  height: 129.56px;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-}
-.container3 {
-  background: linear-gradient(
-    135deg,
-    rgba(51, 102, 204, 1) 0%,
-    rgba(20, 71, 230, 1) 100%
-  );
-  border-radius: 14.81px;
-  width: 59.24px;
-  height: 59.24px;
-  position: absolute;
-  left: 177.72px;
-  top: 0px;
-  box-shadow: 0px 4px 6px -4px rgba(0, 0, 0, 0.1),
-    0px 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-.icon {
-  width: 33.31px;
-  height: 33.31px;
-  position: absolute;
-  left: 12.96px;
-  top: 12.96px;
-  overflow: visible;
-}
-.heading-1 {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 414.69px;
-  height: 29.61px;
-  position: absolute;
-  left: 0px;
-  top: 74.04px;
-}
-.div2 {
-  color: #101828;
+
+/* 브랜드 */
+.brand {
   text-align: center;
-  font-family: "Arial-Bold", sans-serif;
-  font-size: 22.215599060058594px;
-  line-height: 29.62px;
+  margin-bottom: 32px;
+}
+
+.brand-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #3366cc, #1447e6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px;
+  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+}
+
+.brand h1 {
+  font-size: 22px;
   font-weight: 700;
-  position: relative;
-  flex: 1;
 }
-.paragraph {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 414.69px;
-  height: 18.51px;
-  position: absolute;
-  left: 0px;
-  top: 111.05px;
+
+.brand p {
+  font-size: 13px;
+  color: #666;
 }
-.div3 {
-  color: #4a5565;
-  text-align: center;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 12.959099769592285px;
-  line-height: 18.51px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
+
+/* 카드 */
+.login-card {
+  width: 380px;
+  background: #fff;
+  border-radius: 16px;
+  padding: 28px;
+  box-shadow: 0 20px 40px rgba(0,0,0,.1);
 }
-.container4 {
-  background: #ffffff;
-  border-radius: 14.81px;
-  border-style: solid;
-  border-color: #e5e7eb;
-  border-width: 0.8px;
-  padding: 30.41px 30.41px 0.8px 30.41px;
-  display: flex;
-  flex-direction: column;
-  gap: 22.21px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 414.69px;
-  height: 386.05px;
-  position: absolute;
-  left: 0px;
-  top: 159.18px;
-  box-shadow: 0px 8px 10px -6px rgba(0, 0, 0, 0.1),
-    0px 20px 25px -5px rgba(0, 0, 0, 0.1);
+
+.login-card header {
+  margin-bottom: 20px;
 }
-.container5 {
-  display: flex;
-  flex-direction: column;
-  gap: 3.7px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 48.13px;
-  position: relative;
-}
-.heading-2 {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 25.91px;
-  position: relative;
-}
-.div4 {
-  color: #101828;
-  text-align: left;
-  font-family: "Arial-Bold", sans-serif;
-  font-size: 18.51300048828125px;
-  line-height: 25.92px;
+
+.login-card h2 {
+  font-size: 18px;
   font-weight: 700;
-  position: relative;
-  flex: 1;
 }
-.paragraph2 {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 18.51px;
-  position: relative;
-}
-.erp-crm {
+
+.login-card span {
+  font-size: 13px;
   color: #6a7282;
-  text-align: left;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 12.959099769592285px;
-  line-height: 18.51px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
 }
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 18.51px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 254.89px;
-  position: relative;
+
+/* 폼 */
+.form-group {
+  margin-bottom: 16px;
 }
-.container6 {
-  display: flex;
-  flex-direction: column;
-  gap: 7.4px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 68.21px;
-  position: relative;
-}
-.label {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 18.51px;
-  position: relative;
-}
-.div5 {
+
+.form-group label {
+  font-size: 13px;
   color: #364153;
-  text-align: left;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 12.959099769592285px;
-  line-height: 18.51px;
-  font-weight: 400;
-  position: relative;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.input-box {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d1d5dc;
+  border-radius: 12px;
+  padding: 0 12px;
+  height: 44px;
+}
+
+.input-box img {
+  width: 18px;
+  margin-right: 8px;
+}
+
+.input-box input {
+  border: none;
+  outline: none;
   flex: 1;
+  font-size: 14px;
 }
-.container7 {
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 42.3px;
-  position: relative;
-}
-.email-input {
-  border-radius: 13.26px;
-  border-style: solid;
-  border-color: #d1d5dc;
-  border-width: 0.8px;
-  padding: 11.11px 11.11px 11.11px 37.03px;
+
+/* 옵션 */
+.remember {
   display: flex;
-  flex-direction: row;
-  gap: 0px;
   align-items: center;
-  justify-content: flex-start;
-  width: 353.86px;
-  height: 42.3px;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  overflow: hidden;
+  gap: 8px;
+  font-size: 13px;
+  color: #364153;
+  margin-bottom: 16px;
 }
-.div6 {
-  color: rgba(10, 10, 10, 0.5);
-  text-align: left;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 12.959099769592285px;
-  font-weight: 400;
-  position: relative;
+
+/* 버튼 */
+.login-btn {
+  width: 100%;
+  height: 44px;
+  border: none;
+  border-radius: 12px;
+  background: linear-gradient(90deg, #3366cc, #1447e6);
+  color: #fff;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(20,71,230,.35);
 }
-.container8 {
-  padding: 0px 0px 0px 11.1px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: flex-start;
-  width: 29.61px;
-  height: 42.3px;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-}
-.icon2 {
-  flex-shrink: 0;
-  width: 18.51px;
-  height: 18.51px;
-  position: relative;
-  overflow: visible;
-}
-.password-input {
-  border-radius: 13.26px;
-  border-style: solid;
-  border-color: #d1d5dc;
-  border-width: 0.8px;
-  padding: 11.11px 11.11px 11.11px 37.03px;
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: center;
-  justify-content: flex-start;
-  width: 353.86px;
-  height: 42.3px;
-  position: absolute;
-  left: 0px;
-  top: 0px;
-  overflow: hidden;
-}
-.icon3 {
-  flex-shrink: 0;
-  width: 18.51px;
-  height: 18.51px;
-  position: relative;
-  overflow: visible;
-}
-.container9 {
-  display: flex;
-  flex-direction: row;
-  gap: 7.4px;
-  align-items: center;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 18.51px;
-  position: relative;
-}
-.checkbox {
-  flex-shrink: 0;
-  width: 14.8px;
-  height: 14.8px;
-  position: relative;
-}
-.label2 {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  width: 99.78px;
-  height: 18.51px;
-  position: relative;
-}
-.button {
-  background: linear-gradient(
-    90deg,
-    rgba(51, 102, 204, 1) 0%,
-    rgba(20, 71, 230, 1) 100%
-  );
-  border-radius: 13.26px;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 44.41px;
-  position: relative;
-  box-shadow: 0px 2px 4px -2px rgba(0, 0, 0, 0.1),
-    0px 4px 6px -1px rgba(0, 0, 0, 0.1);
-}
-.div7 {
-  color: #ffffff;
-  text-align: center;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 14.810400009155273px;
-  line-height: 22.22px;
-  font-weight: 400;
-  position: absolute;
-  left: 156.71px;
-  top: 9.9px;
-}
-.container10 {
-  padding: 0px 0.01px 0px 0px;
-  display: flex;
-  flex-direction: row;
-  gap: 7.4px;
-  align-items: center;
-  justify-content: center;
-  width: 414.69px;
-  height: 14.81px;
-  position: absolute;
-  left: 0px;
-  top: 567.44px;
-}
-.icon4 {
-  flex-shrink: 0;
-  width: 14.8px;
-  height: 14.8px;
-  position: relative;
-  overflow: visible;
-}
-.text {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  flex-shrink: 0;
-  width: 167.18px;
-  height: 14.81px;
-  position: relative;
-}
-.div8 {
+
+/* 하단 */
+.security {
+  margin-top: 18px;
+  font-size: 12px;
   color: #6a7282;
-  text-align: center;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 11.107799530029297px;
-  line-height: 14.81px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
-}
-.container11 {
   display: flex;
-  flex-direction: column;
-  gap: 3.7px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  width: 414.69px;
-  height: 33.33px;
-  position: absolute;
-  left: 0px;
-  top: 611.86px;
+  align-items: center;
+  gap: 6px;
 }
-.paragraph3 {
-  display: flex;
-  flex-direction: row;
-  gap: 0px;
-  align-items: flex-start;
-  justify-content: flex-start;
-  align-self: stretch;
-  flex-shrink: 0;
-  height: 14.81px;
-  position: relative;
-}
-._2024-all-rights-reserved {
-  color: #99a1af;
+
+footer {
+  margin-top: 12px;
   text-align: center;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 11.107799530029297px;
-  line-height: 14.81px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
-}
-.b-2-b-erp-crm {
+  font-size: 11px;
   color: #99a1af;
-  text-align: center;
-  font-family: "Arial-Regular", sans-serif;
-  font-size: 11.107799530029297px;
-  line-height: 14.81px;
-  font-weight: 400;
-  position: relative;
-  flex: 1;
 }
 
 </style>
