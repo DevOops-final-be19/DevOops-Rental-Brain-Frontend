@@ -21,7 +21,7 @@
           <label>사원 ID</label>
           <div class="input-box">
             <img src="@/assets/Icon-2.svg" />
-            <input v-model="empId" type="text" @keyup.enter.stop="login" placeholder="사원 ID를 입력하세요"/>
+            <input v-model="empId" type="text" @keyup.enter.stop="login" placeholder="사원 ID를 입력하세요" />
           </div>
         </div>
 
@@ -29,7 +29,7 @@
           <label>비밀번호</label>
           <div class="input-box">
             <img src="@/assets/Icon-1.svg" />
-            <input v-model="pwd" type="password" @keyup.enter.stop="login" placeholder="비밀번호를 입력하세요"/>
+            <input v-model="pwd" type="password" @keyup.enter.stop="login" placeholder="비밀번호를 입력하세요" />
           </div>
         </div>
 
@@ -40,6 +40,9 @@
 
         <button type="button" class="login-btn" @click.stop="login">
           로그인
+        </button>
+        <button type="button" class="login-btn" @click.stop="logintest">
+          테스트버튼
         </button>
       </form>
     </div>
@@ -58,6 +61,7 @@
 </template>
 
 <script setup>
+import api from '@/api/axios';
 import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/useToast';
 import axios from 'axios';
@@ -72,36 +76,45 @@ const router = useRouter();
 
 const login = async () => {
   if (!empId.value || !pwd.value) {
-        toastStore.showToast('아이디와 비밀번호를 입력하세요');
+    toastStore.showToast('아이디와 비밀번호를 입력하세요');
     return;
   }
   console.log(empId.value, pwd.value);
 
-  try{
-    const response = await axios.post(`http://localhost:8080/login`,{
-    empId:empId.value,
-    pwd:pwd.value
+  try {
+    const response = await api.post(`/login`, {
+      empId: empId.value,
+      pwd: pwd.value
     })
-    console.log("response: ",response);
+    console.log("response: ", response);
     const data = response.data;
-    
+
     authStore.setUserInfo(
       data.id,
       data.employeeCode,
       data.empId,
       data.name,
       data.roles,
-      response.headers.token
+      data.accessToken
     );
     toastStore.showToast('로그인 되었습니다 :' + ' ' + authStore.employeeCode + ' ' + authStore.name);
     router.push("/");
-    
+
   }
-  catch (e){
-    console.log('로그인 실패',e);
+  catch (e) {
+    console.log('로그인 실패', e);
     toastStore.showToast(e);
   }
 };
+
+const logintest = async () => {
+  console.log('토큰:', authStore.token);
+
+  const response = await api.get('/emp/health');
+  const data = response.data;
+  console.log(data);
+  toastStore.showToast(data);
+}
 </script>
 
 <style>
@@ -129,7 +142,7 @@ const login = async () => {
   align-items: center;
   justify-content: center;
   margin: 0 auto 12px;
-  box-shadow: 0 8px 20px rgba(0,0,0,.15);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .15);
 }
 
 .brand h1 {
@@ -148,7 +161,7 @@ const login = async () => {
   background: #fff;
   border-radius: 16px;
   padding: 28px;
-  box-shadow: 0 20px 40px rgba(0,0,0,.1);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, .1);
 }
 
 .login-card header {
@@ -219,7 +232,7 @@ const login = async () => {
   font-size: 15px;
   font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 8px 20px rgba(20,71,230,.35);
+  box-shadow: 0 8px 20px rgba(20, 71, 230, .35);
 }
 
 /* 하단 */
@@ -238,5 +251,4 @@ footer {
   font-size: 11px;
   color: #99a1af;
 }
-
 </style>
