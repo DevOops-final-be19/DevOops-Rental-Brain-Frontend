@@ -2,7 +2,7 @@ import { defineStore } from "pinia";
 import { ref, computed } from 'vue'
 
 export const useAuthStore = defineStore(
-  "auth", ()=>{
+  "auth", () => {
     const id = ref('');
     const employeeCode = ref('');
     const empId = ref('');
@@ -10,7 +10,7 @@ export const useAuthStore = defineStore(
     const token = ref('');
     const name = ref('');
 
-    const setUserInfo = (getId,getEmployeeCode,getEmpId,getName,getAuth,getToken)=>{
+    const setUserInfo = (getId, getEmployeeCode, getEmpId, getName, getAuth, getToken) => {
       id.value = getId
       employeeCode.value = getEmployeeCode
       empId.value = getEmpId
@@ -18,9 +18,18 @@ export const useAuthStore = defineStore(
       auth.value = getAuth
       token.value = getToken
     }
-    return {id,employeeCode,empId,name,auth,token,setUserInfo};
-},
-{
+
+    const logout = () => {
+      id.value = ''
+      employeeCode.value = ''
+      empId.value = ''
+      name.value = ''
+      auth.value = []
+      token.value = ''
+    }
+    return { id, employeeCode, empId, name, auth, token, setUserInfo, logout };
+  },
+  {
     persist: {
       enabled: true, //storage 저장유무
       storage: sessionStorage

@@ -41,9 +41,6 @@
         <button type="button" class="login-btn" @click.stop="login">
           로그인
         </button>
-        <button type="button" class="login-btn" @click.stop="logintest">
-          테스트버튼
-        </button>
       </form>
     </div>
 
@@ -107,14 +104,6 @@ const login = async () => {
   }
 };
 
-const logintest = async () => {
-  console.log('토큰:', authStore.token);
-
-  const response = await api.get('/emp/health');
-  const data = response.data;
-  console.log(data);
-  toastStore.showToast(data);
-}
 </script>
 
 <style>
