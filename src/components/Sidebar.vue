@@ -13,6 +13,9 @@
       <div class="user-info">
         <span class="name">DevOops</span>
         <span class="role">시스템 관리자</span>
+            <button type="button" @click.stop="logout">
+          로그아웃
+        </button>
       </div>
 
       <!-- 알림 -->
@@ -150,10 +153,14 @@
       </el-menu-item>
 
     </el-menu>
+
   </div>
 </template>
 
 <script setup>
+import api from "@/api/axios";
+import { useAuthStore } from "@/store/auth.store";
+import { useToastStore } from "@/store/useToast";
 import {
   Bell,
   Grid,
@@ -171,6 +178,28 @@ import {
   Tools,
   CreditCard
 } from "@element-plus/icons-vue";
+import { useRouter } from "vue-router";
+
+const authStore = useAuthStore();
+const toastStore = useToastStore();
+const router = useRouter();
+
+const logout = async ()=>{
+  console.log('empId:',authStore.empId);
+  authStore.logout();
+  try{
+    const response = await api.post('/emp/logout',{
+      empId:authStore.empId
+    })
+    console.log(response.data);
+  }catch(e){
+    console.log('로그아웃 통신 fail');
+  }
+  console.log('empId:',authStore.empId);
+  toastStore.showToast('로그아웃' + authStore.empId);
+  router.push('/login');
+}
+
 </script>
 
 <style scoped>
