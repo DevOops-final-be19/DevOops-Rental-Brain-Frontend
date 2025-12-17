@@ -74,7 +74,7 @@
       <el-sub-menu index="customer">
         <template #title>
           <el-icon><UserFilled /></el-icon>
-          <span>고객관리</span>
+          <span>고객 관리</span>
         </template>
 
         <el-menu-item index="/customers">
@@ -82,10 +82,20 @@
           고객 목록
         </el-menu-item>
 
-        <el-menu-item index="/cs">
-          <el-icon><ChatDotRound /></el-icon>
-          고객응대
-        </el-menu-item>
+        <el-sub-menu index="cs">
+          <template #title>
+            <el-icon><ChatDotRound /></el-icon>
+            <span>고객 응대</span>
+          </template>
+          
+          <el-menu-item index="/cs/supports">
+            <el-icon><QuestionFilled /></el-icon> 문의 관리
+          </el-menu-item>
+          
+          <el-menu-item index="/cs/feedbacks">
+            <el-icon><Star /></el-icon> 피드백 관리
+          </el-menu-item>
+        </el-sub-menu>
 
         <el-menu-item index="/analysis/overview">
           <el-icon><TrendCharts /></el-icon>
@@ -103,7 +113,7 @@
       <el-sub-menu index="business">
         <template #title>
           <el-icon><Briefcase /></el-icon>
-          <span>영업관리</span>
+          <span>영업 관리</span>
         </template>
 
         <el-menu-item index="/quotes">
@@ -126,7 +136,7 @@
       <el-sub-menu index="product">
         <template #title>
           <el-icon><Box /></el-icon>
-          <span>제품관리</span>
+          <span>제품 관리</span>
         </template>
 
         <el-menu-item index="/assets">
@@ -136,14 +146,14 @@
 
         <el-menu-item index="/as">
           <el-icon><Tools /></el-icon>
-          AS/정기점검
+          AS / 정기점검
         </el-menu-item>
       </el-sub-menu>
 
       <!-- 결재관리 -->
       <el-menu-item index="/approvals">
         <el-icon><Notebook /></el-icon>
-        전자결재
+        전자 결재
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
@@ -176,7 +186,9 @@ import {
   Box,
   Setting,
   Tools,
-  CreditCard
+  CreditCard,
+  QuestionFilled, // 문의 관리 아이콘
+  Star            // 피드백 관리 아이콘
 } from "@element-plus/icons-vue";
 import { useRouter } from "vue-router";
 
