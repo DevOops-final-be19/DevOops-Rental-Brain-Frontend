@@ -19,28 +19,39 @@
             title="예정된 점검"
             :value="summary.thisMonthScheduleCount"
             sub="이번 달"
-            />
+            type="SCHEDULED"
+            :active="activeSummaryType === 'SCHEDULED'"
+            @click="onSummaryClick" />
         </el-col>
+
         <el-col :span="6">
             <SummaryCard
             title="점검 임박"
             :value="summary.imminent72hCount"
             sub="72시간 이내"
-            />
+            type="IMMINENT"
+            :active="activeSummaryType === 'IMMINENT'"
+            @click="onSummaryClick" />
         </el-col>
+
         <el-col :span="6">
             <SummaryCard
             title="완료"
             :value="summary.thisMonthCompletedCount"
             sub="이번 달"
-            />
+            type="COMPLETED"
+            :active="activeSummaryType === 'COMPLETED'"
+            @click="onSummaryClick" />
         </el-col>
+
         <el-col :span="6">
             <SummaryCard
             title="AS 진행 중"
             :value="summary.todayInProgressCount"
             sub="처리 중"
-            />
+            type="IN_PROGRESS"
+            :active="activeSummaryType === 'IN_PROGRESS'"
+            @click="onSummaryClick" />
         </el-col>
     </el-row>
 
@@ -71,9 +82,9 @@
             />
             </el-form-item>
 
-            <el-button type="primary" @click="fetchList">
-            검색
-            </el-button>
+            <el-button type="primary" @click="fetchList"> 검색 </el-button>
+
+            <el-button @click="resetSearch"> 초기화 </el-button>
 
         </el-form>
     </el-card>
@@ -165,11 +176,13 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import axios from '@/api/axios'
+import dayjs from 'dayjs'
 import SummaryCard from '@/components/product/SummaryCard.vue'
 
 // 상태
 const summary = ref({})
-const list = ref([])
+const list = ref([])        // 화면에 보여줄 목록
+const rawList = ref([])     // 백엔드에서 받은 원본 목록
 const total = ref(0)
 
 const page = ref({
@@ -180,11 +193,14 @@ const page = ref({
 const search = ref({
     type: '',
     status: '',
-    keyword: ''
+    keyword: '',
+    summaryType: null
 })
 
 const nextWeekList = ref([])
 const nextWeekCount = ref(0)
+
+const activeSummaryType = ref(null)
 
 // API
 const fetchSummary = async () => {
@@ -194,17 +210,19 @@ const fetchSummary = async () => {
 
 const fetchList = async () => {
     const { data } = await axios.get('/as', {
-        params: {
+    params: {
         page: page.value.current,
         size: page.value.size,
         type: search.value.type,
         status: search.value.status,
-        keyword: search.value.keyword
+        keyword: search.value.keyword,
+        summaryType: activeSummaryType.value
         }
     })
 
     list.value = data.content
     total.value = data.totalCount
+
 }
 
 const fetchNextWeek = async () => {
@@ -213,6 +231,43 @@ const fetchNextWeek = async () => {
 
     nextWeekList.value = list
     nextWeekCount.value = count
+}
+
+// SummaryCard 클릭
+const onSummaryClick = (type) => {
+    activeSummaryType.value = type
+    search.value.summaryType = type
+    page.value.current = 1
+
+    // 백엔드 1차 필터
+    search.value.type = ''
+    search.value.keyword = ''
+
+    if (type === 'COMPLETED') {
+        search.value.status = 'C'
+    } else {
+        search.value.status = 'P'
+    }
+
+    fetchList()
+}
+
+const resetSearch = () => {
+  // 검색 조건 초기화
+    search.value.type = ''
+    search.value.status = ''
+    search.value.keyword = ''
+    search.value.summaryType = null
+
+    // SummaryCard 선택 해제
+    activeSummaryType.value = null
+    page.value.current = 1
+
+    // 페이지 초기화
+    page.value.current = 1
+
+    // 목록 재조회
+    fetchList()
 }
 
 // 이벤트
@@ -230,129 +285,53 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.as-page {
-    padding: 24px;
-}
-
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 20px;
-}
-
-.desc {
-    color: #888;
-}
-
-.summary-row {
-    margin-bottom: 20px;
-}
-
-.search-card {
-    margin-bottom: 16px;
-}
-
-.pagination {
-    display: flex;
-    justify-content: center;
-    margin-top: 16px;
-}
-
-.bottom-row {
-    margin-top: 20px;
-}
-
-.info-card ul {
-    padding-left: 18px;
-}
+.as-page { padding: 24px; }
+.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.desc { color: #888; }
+.summary-row { margin-bottom: 20px; }
+.search-card { margin-bottom: 16px; }
+.pagination { display: flex; justify-content: center; margin-top: 16px; }
+.bottom-row { margin-top: 20px; }
+.info-card ul { padding-left: 18px; }
 
 /* el-select 선택값 텍스트 */
-:deep(.el-select .el-input__inner) {
-    color: #333;
-}
+:deep(.el-select .el-input__inner) { color: #333; }
 
 /* 드롭다운 옵션 텍스트 */
-:deep(.el-select-dropdown__item) {
-    color: #333;
-}
+:deep(.el-select-dropdown__item) { color: #333; }
 
 /* inline form 아이템 정렬 */
-:deep(.el-form--inline .el-form-item) {
-    margin-bottom: 0;
-    vertical-align: middle;
-}
+:deep(.el-form--inline .el-form-item) { margin-bottom: 0; vertical-align: middle; }
 
 /* 버튼 높이 통일 */
-:deep(.el-button) {
-    height: 32px;
-    line-height: 32px;
-    padding: 0 16px;
-}
+:deep(.el-button) { height: 32px; line-height: 32px; padding: 0 16px; }
 
 :deep(.el-input__wrapper),
-:deep(.el-select__wrapper) {
-    height: 32px;
-    align-items: center;
-}
+:deep(.el-select__wrapper) { height: 32px; align-items: center; }
 
 /* el-input / el-select 내부 텍스트 정렬 보정 */
-:deep(.el-input__inner) {
-    height: 32px;
-    line-height: 32px;
-    padding-top: 0;
-    padding-bottom: 0;
-    display: flex;
-    align-items: center;
-}
+:deep(.el-input__inner) { height: 32px; line-height: 32px; padding-top: 0; padding-bottom: 0; display: flex; align-items: center; }
 
 /* select 화살표 아이콘 정렬 */
-:deep(.el-select__caret) {
-    line-height: 32px;
-}
+:deep(.el-select__caret) { line-height: 32px; }
 
 /* el-select / el-input 높이 완전 강제 리셋 */
-:deep(.el-input__wrapper) {
-    height: 36px !important;
-    min-height: 36px !important;
-    padding: 0 11px !important;
-    align-items: center !important;
-    overflow: visible !important;
-}
+:deep(.el-input__wrapper) { height: 36px !important; min-height: 36px !important; padding: 0 11px !important; align-items: center !important; overflow: visible !important; }
 
 /* 실제 텍스트 영역 */
-:deep(.el-input__inner) {
-    height: 36px !important;
-    line-height: 36px !important;
-    padding: 0 !important;
-    display: flex;
-    align-items: center;
-}
+:deep(.el-input__inner) { height: 36px !important; line-height: 36px !important; padding: 0 !important; display: flex; align-items: center; }
 
 /* select caret(화살표) */
-:deep(.el-select__caret) {
-    line-height: 36px !important;
-}
+:deep(.el-select__caret) { line-height: 36px !important; }
 
 /* clear 아이콘 정렬 */
 :deep(.el-input__suffix),
-:deep(.el-input__prefix) {
-    height: 36px;
-    display: flex;
-    align-items: center;
-}
+:deep(.el-input__prefix) { height: 36px; display: flex; align-items: center; }
 
 /* 버튼도 동일 높이 */
-:deep(.el-button) {
-    height: 36px !important;
-    line-height: 36px !important;
-}
+:deep(.el-button) { height: 36px !important; line-height: 36px !important; }
 
-:deep(.el-select) {
-    width: 140px;
-}
+:deep(.el-select) { width: 140px; }
 
-:deep(.select-type) {
-    width: 140px;
-}
+:deep(.select-type) { width: 140px; }
 </style>
