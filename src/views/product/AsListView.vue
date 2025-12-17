@@ -91,7 +91,7 @@
 
     <!-- 목록 테이블 -->
     <el-card>
-        <el-table :data="list" stripe>
+        <el-table :data="list" @row-click="openDetail">
             <el-table-column prop="after_service_code" label="점검 ID" width="120" />
             <el-table-column prop="customerName" label="기업명" />
             <el-table-column prop="customerManager" label="담당자" />
@@ -132,44 +132,45 @@
     </el-card>
 
     <!-- 하단 영역 -->
-    <el-row :gutter="16" class="bottom-row">
+    <el-row :gutter="16" class="bottom-row equal-height-row">
 
         <!-- 다음 주 점검 -->
         <el-col :span="12">
-            <el-card>
+            <el-card class="equal-height-card">
             <h4>다음 주 점검 예정 ({{ nextWeekCount }}건)</h4>
 
             <el-timeline>
                 <el-timeline-item
                 v-for="n in nextWeekList"
                 :key="n.scheduleDate"
-                type="primary"
-                >
+                type="primary" >
                 <strong>
                     {{ n.scheduleDate }} ({{ n.dayOfWeek }})
                 </strong>
                 <p>{{ n.summary }}</p>
                 </el-timeline-item>
             </el-timeline>
-
             </el-card>
         </el-col>
 
         <!-- 설명 영역 -->
         <el-col :span="12">
-            <el-card class="info-card">
+            <el-card class="info-card equal-height-card">
             <h4>AS / 정기점검 관리 안내</h4>
             <ul>
                 <li>기업별 렌탈 자산에 대한 정기 점검 및 AS 이력을 관리합니다.</li>
                 <li>점검 유형, 상태, 키워드 기반 검색을 지원합니다.</li>
                 <li>점검 예정·완료 현황을 한 눈에 확인할 수 있습니다.</li>
                 <li>다음 주 예정 점검을 미리 파악하여 운영 대응이 가능합니다.</li>
+                <li>제품목록에서 점검일 추가하면 점검주기가 자동으로 생성됩니다.</li>
             </ul>
             </el-card>
         </el-col>
-
     </el-row>
 
+    <AsDetailModal
+    v-model="showDetail"
+    :as-id="selectedAsId" />
     </div>
 </template>
 
@@ -178,6 +179,7 @@ import { ref, onMounted } from 'vue'
 import axios from '@/api/axios'
 import dayjs from 'dayjs'
 import SummaryCard from '@/components/product/SummaryCard.vue'
+import AsDetailModal from '@/components/product/AsDetailModal.vue'
 
 // 상태
 const summary = ref({})
@@ -270,6 +272,14 @@ const resetSearch = () => {
     fetchList()
 }
 
+const showDetail = ref(false)
+const selectedAsId = ref(null)
+
+const openDetail = (row) => {
+    selectedAsId.value = row.id
+    showDetail.value = true
+}
+
 // 이벤트
 const changePage = (p) => {
     page.value.current = p
@@ -334,4 +344,13 @@ onMounted(() => {
 :deep(.el-select) { width: 140px; }
 
 :deep(.select-type) { width: 140px; }
+
+/* 하단 row를 flex로 */
+.bottom-row.equal-height-row { display: flex; }
+
+.bottom-row.equal-height-row > .el-col { display: flex; }
+
+/* 카드가 부모 높이를 100% 따라가게 */
+.equal-height-card { flex: 1; display: flex; flex-direction: column; }
+
 </style>
