@@ -7,7 +7,7 @@
             <h2>정기 점검 (AS)</h2>
             <p class="desc">B2B 기업 자산 AS / 정기 점검 일정 관리 및 조회</p>
         </div>
-        <el-button type="primary" icon="Calendar">
+        <el-button type="primary" icon="Calendar" @click="showCreate = true">
             점검 일정 추가
         </el-button>
     </div>
@@ -171,6 +171,10 @@
     <AsDetailModal
     v-model="showDetail"
     :as-id="selectedAsId" />
+
+    <AsCreateModal
+    v-model="showCreate"
+    @created="onCreated" />
     </div>
 </template>
 
@@ -180,12 +184,14 @@ import axios from '@/api/axios'
 import dayjs from 'dayjs'
 import SummaryCard from '@/components/product/SummaryCard.vue'
 import AsDetailModal from '@/components/product/AsDetailModal.vue'
+import AsCreateModal from '@/components/product/AsCreateModal.vue'
 
 // 상태
 const summary = ref({})
 const list = ref([])        // 화면에 보여줄 목록
 const rawList = ref([])     // 백엔드에서 받은 원본 목록
 const total = ref(0)
+const showCreate = ref(false)
 
 const page = ref({
     current: 1,
@@ -278,6 +284,12 @@ const selectedAsId = ref(null)
 const openDetail = (row) => {
     selectedAsId.value = row.id
     showDetail.value = true
+}
+
+const onCreated = () => {
+    fetchSummary()
+    fetchList()
+    fetchNextWeek()
 }
 
 // 이벤트
