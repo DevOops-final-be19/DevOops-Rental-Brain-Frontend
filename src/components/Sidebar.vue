@@ -13,111 +13,150 @@
       <div class="user-info">
         <span class="name">DevOops</span>
         <span class="role">시스템 관리자</span>
-            <button type="button" @click.stop="logout">
+        <button type="button" @click.stop="logout">
           로그아웃
         </button>
       </div>
 
       <!-- 알림 -->
-      <el-popover
-        placement="right-start"
-        width="260"
-        trigger="click"
-      >
+      <el-popover placement="right-start" width="400" trigger="manual" popper-class="notification-popover" v-model:visible="vis">
         <template #reference>
-          <div class="alert-icon">
-            <el-badge :value="unreadCount" class="badge-dot">
-              <el-icon><Bell /></el-icon>
+          <div class="alert-icon" @click="vis = !vis">
+            <el-badge :value="unreadCount" type="danger">
+              <el-icon>
+                <Bell />
+              </el-icon>
             </el-badge>
           </div>
         </template>
 
-        <!-- 알림 목록 -->
-        <div class="noti-list">
-
-          <div
-            v-for="item in notifications"
-            :key="item.id"
-            class="noti-item"
-            @click="goToNotificationCenter"
-          >
-            <div class="noti-title">{{ item.title }}</div>
-            <div class="noti-time">{{ item.time }}</div>
+        <div class="noti-wrapper">
+          <!-- 헤더 -->
+          <div class="noti-header">
+            <div class="title">
+              <el-icon>
+                <Bell />
+              </el-icon>
+              알림
+              <span class="count">{{ notifications.length <= 0 ? 0 : notifications.length }}</span>
+            </div>
+            <el-icon class="close" @click.stop="vis = false">
+              <Close />
+            </el-icon>
           </div>
 
-          <!-- 더보기 -->
-          <div class="noti-more" @click="goToNotificationCenter">
-            전체 알림 보기 →
+          <!-- 리스트 -->
+          <div class="noti-list">
+            <template v-if="isExist">
+              <div v-for="item in notifications" :key="item.id" class="noti-item" @click.stop="goToNotificationCenter">
+                <!-- 아이콘 -->
+                <div class="icon" :class="item.notice.type">
+                  <el-icon>
+                    <component :is="getIcon(item.notice.type)" />
+                  </el-icon>
+                </div>
+
+                <!-- 내용 -->
+                <div class="content">
+                  <div class="title">{{ item.notice.title }}</div>
+                  <div class="message">{{ item.notice.message }}</div>
+                  <div class="time">{{ timeAgo(item.createdAt) }}</div>
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              알림이 없습니다.
+            </template>
           </div>
 
+
+          <!-- 푸터 -->
+          <div class="noti-footer" @click="goToNotificationCenter">
+            모든 알림 보기
+          </div>
         </div>
       </el-popover>
+
 
     </div>
 
     <!-- 메뉴 시작 -->
-    <el-menu
-      class="menu"
-      :default-active="$route.path"
-      router
-      background-color="transparent"
-      text-color="#333"
-      active-text-color="#4F46E5"
-    >
+    <el-menu class="menu" :default-active="$route.path" router background-color="transparent" text-color="#333"
+      active-text-color="#4F46E5">
       <!-- 대시보드 -->
       <el-menu-item index="/">
-        <el-icon><Grid /></el-icon>
+        <el-icon>
+          <Grid />
+        </el-icon>
         <span>대시보드</span>
       </el-menu-item>
 
       <!-- 고객 -->
       <el-sub-menu index="customer">
         <template #title>
-          <el-icon><UserFilled /></el-icon>
+          <el-icon>
+            <UserFilled />
+          </el-icon>
           <span>고객관리</span>
         </template>
 
         <el-menu-item index="/customers">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
           고객 목록
         </el-menu-item>
 
         <el-menu-item index="/cs">
-          <el-icon><ChatDotRound /></el-icon>
+          <el-icon>
+            <ChatDotRound />
+          </el-icon>
           고객응대
         </el-menu-item>
 
         <el-menu-item index="/analysis/overview">
-          <el-icon><TrendCharts /></el-icon>
+          <el-icon>
+            <TrendCharts />
+          </el-icon>
           고객 분석
         </el-menu-item>
 
         <el-menu-item index="/customer/risk">
-          <el-icon><WarningFilled /></el-icon>
+          <el-icon>
+            <WarningFilled />
+          </el-icon>
           연체 관리
-          
+
         </el-menu-item>
       </el-sub-menu>
 
       <!-- 영업관리 (견적/계약/캠페인) -->
       <el-sub-menu index="business">
         <template #title>
-          <el-icon><Briefcase /></el-icon>
+          <el-icon>
+            <Briefcase />
+          </el-icon>
           <span>영업관리</span>
         </template>
 
         <el-menu-item index="/quotes">
-          <el-icon><Document /></el-icon>
+          <el-icon>
+            <Document />
+          </el-icon>
           견적(상담)
         </el-menu-item>
 
         <el-menu-item index="/contracts">
-          <el-icon><Notebook /></el-icon>
+          <el-icon>
+            <Notebook />
+          </el-icon>
           계약(결재)
         </el-menu-item>
 
         <el-menu-item index="/campaign/promotions">
-          <el-icon><Promotion /></el-icon>
+          <el-icon>
+            <Promotion />
+          </el-icon>
           캠페인
         </el-menu-item>
       </el-sub-menu>
@@ -125,30 +164,40 @@
       <!-- 자산운영 -->
       <el-sub-menu index="product">
         <template #title>
-          <el-icon><Box /></el-icon>
+          <el-icon>
+            <Box />
+          </el-icon>
           <span>제품관리</span>
         </template>
 
         <el-menu-item index="/assets">
-          <el-icon><Setting /></el-icon>
+          <el-icon>
+            <Setting />
+          </el-icon>
           제품 목록
         </el-menu-item>
 
         <el-menu-item index="/as">
-          <el-icon><Tools /></el-icon>
+          <el-icon>
+            <Tools />
+          </el-icon>
           AS/정기점검
         </el-menu-item>
       </el-sub-menu>
 
       <!-- 결재관리 -->
       <el-menu-item index="/approvals">
-        <el-icon><Notebook /></el-icon>
+        <el-icon>
+          <Notebook />
+        </el-icon>
         전자결재
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
       <el-menu-item index="/admin/menus">
-        <el-icon><Setting /></el-icon>
+        <el-icon>
+          <Setting />
+        </el-icon>
         관리자 메뉴
       </el-menu-item>
 
@@ -163,7 +212,11 @@ import { useAuthStore } from "@/store/auth.store";
 import { useToastStore } from "@/store/useToast";
 import {
   Bell,
+  Check,
+  Calendar,
+  Close,
   Grid,
+  DocumentCopy,
   User,
   UserFilled,
   ChatDotRound,
@@ -178,28 +231,85 @@ import {
   Tools,
   CreditCard
 } from "@element-plus/icons-vue";
+import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
+import dayjs from "dayjs";
 
 const authStore = useAuthStore();
 const toastStore = useToastStore();
 const router = useRouter();
+const notifications = ref([]);
+const vis = ref(false)
+const isExist = ref(false);
 
-const logout = async ()=>{
-  console.log('empId:',authStore.empId);
+const logout = async () => {
+  console.log('empId:', authStore.empId);
   authStore.logout();
-  try{
-    const response = await api.post('/emp/logout',{
-      empId:authStore.empId
+  try {
+    const response = await api.post('/emp/logout', {
+      empId: authStore.empId
     })
     console.log(response.data);
-  }catch(e){
+  } catch (e) {
     console.log('로그아웃 통신 fail');
   }
-  console.log('empId:',authStore.empId);
+  console.log('empId:', authStore.empId);
   toastStore.showToast('로그아웃' + authStore.empId);
   router.push('/login');
 }
+const goToNotificationCenter = ()=>{
+  vis.value = false;
+  router.push("/notifications");
+}
 
+onMounted(async () => {
+  try {
+    const response = await api.get(`/notice/list/new/${authStore.id}`)
+    const data = response.data;
+    console.log(data);
+    notifications.value = data;
+    if(notifications.value.length>0)isExist.value=true;
+    else isExist.value=false;
+  } catch (e) {
+
+  }
+})
+
+const timeAgo = (date) => {
+ const now = dayjs();
+  const target = dayjs(date);
+
+  const diffSec = now.diff(target, "second");
+  const diffMin = now.diff(target, "minute");
+  const diffHour = now.diff(target, "hour");
+  const diffDay = now.diff(target, "day");
+  const diffWeek = now.diff(target, "week");
+  const diffMonth = now.diff(target, "month");
+  const diffYear = now.diff(target, "year");
+
+  if (diffSec < 60) return "방금 전";
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  if (diffDay < 7) return `${diffDay}일 전`;
+  if (diffWeek < 4) return `${diffWeek}주 전`;
+  if (diffMonth < 12) return `${diffMonth}개월 전`;
+  return `${diffYear}년 전`;
+};
+
+const getIcon = (type) => {
+  switch (type) {
+    case "APPROVAL":
+      return Check;
+    case "AS_DUE":
+      return WarningFilled;
+    case "CONTRACT_EXPIRE":
+      return Calendar;
+    case "QUOTE_INSERT":
+      return DocumentCopy;
+    default:
+      return Bell;
+  }
+};
 </script>
 
 <style scoped>
@@ -261,5 +371,149 @@ const logout = async ()=>{
 
 .badge {
   margin-left: 6px;
+}
+
+/* popover 전체 */
+.notification-popover {
+  padding: 0;
+  border-radius: 12px;
+}
+
+/* 래퍼 */
+.noti-wrapper {
+  display: flex;
+  flex-direction: column;
+  max-height: 500px;
+}
+
+/* 헤더 */
+.noti-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+  border-bottom: 1px solid #eee;
+  background: #f3f6fb;
+}
+
+.noti-header .close {
+  transition-duration: 0.1s;
+  color: #606060;
+  transform: scale(1.0);
+}
+
+.noti-header .close:hover {
+  transition-duration: 0.1s;
+  cursor: pointer;
+  color: #191919;
+  transform: scale(1.1);
+}
+
+.noti-header .title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+}
+
+.noti-header .count {
+  background: #ef4444;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+/* 리스트 */
+.noti-list {
+  overflow-y: auto;
+  padding: 10px;
+}
+
+/* 아이템 */
+.noti-item {
+  transition-duration: 0.2s;
+  display: flex;
+  gap: 12px;
+  padding: 14px;
+  cursor: pointer;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.noti-item:hover {
+  transition-duration: 0.2s;
+  background: #f9fafb;
+}
+
+/* 아이콘 */
+.noti-item .icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon.approval {
+  background: #e6f4ea;
+  color: #22c55e;
+}
+
+.icon.schedule {
+  background: #fff7ed;
+  color: #f97316;
+}
+
+.icon.contract {
+  background: #eff6ff;
+  color: #3b82f6;
+}
+
+.icon.reject {
+  background: #fee2e2;
+  color: #ef4444;
+}
+
+/* 내용 */
+.noti-item .content {
+  flex: 1;
+}
+
+.noti-item .title {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.noti-item .message {
+  font-size: 13px;
+  color: #555;
+  margin: 2px 0;
+}
+
+.noti-item .time {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* 푸터 */
+.noti-footer {
+  transition-duration: 0.2s;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #2563eb;
+  cursor: pointer;
+}
+
+.noti-footer:hover {
+  transition-duration: 0.2s;
+  text-align: center;
+  padding: 12px;
+  font-size: 13px;
+  font-weight: 610;
+  background-color: #f2f6ff;
+  cursor: pointer;
 }
 </style>
