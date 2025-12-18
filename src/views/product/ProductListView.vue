@@ -129,7 +129,8 @@
     <!-- 상세/수정/삭제 모달 -->
     <ProductDetailModal
       v-if="isDetailModalOpen"
-      :item="selectedItem"
+      :item-name="selectedItemName"
+      :item-categoryName="selectedCategoryName"
       @close="closeDetailModal"
       @updated="reloadList"
       @deleted="reloadList"
@@ -138,15 +139,14 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue'
-    import api from '@/api/axios'   
+    import { ref, onMounted } from 'vue';
+    import api from '@/api/axios';
     import ProductCreateModal from './ProductCreateModal.vue';
 import ProductDetailModal from './ProductDetailModal.vue';
 
 const kpi = ref({
   totalCount: 0,
-  rentedCount: 0,
-  rentRate: 0,
+  rentalCount: 0,
   repairCount: 0,
 });
 
@@ -158,7 +158,8 @@ const categoryOptions = ref([]); // 필요 시 백엔드에서 따로 가져오�
 
 const isCreateModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
-const selectedItem = ref(null);
+const selectedItemName = ref('');
+const selectedCategoryName = ref('');
 
 // 1. KPI 조회
 async function fetchKpi() {
@@ -178,6 +179,7 @@ async function fetchItemList() {
     const res = await api.get('/item/read-groupby-name');
     console.log('기본 목록 조회 결과:', res.data);
     console.log('기본 목록 조회 결과:', res.data.contents);
+    
     itemList.value = res.data.contents;
     buildCategoryOptions();
   } catch (err) {
@@ -227,7 +229,7 @@ async function fetchCategory() {
   }
 }
 
-// 카테고리 select 옵션 구성 (단순 예시)
+// 카테고리 select 옵션 구성
 function buildCategoryOptions() {
   const set = new Set();
   itemList.value.forEach((item) => set.add(item.categoryName));
@@ -240,13 +242,18 @@ function openCreateModal() {
 }
 
 function openDetailModal(item) {
-  selectedItem.value = item; // itemName, itemId 등 포함
+  // item 객체 안에 있는 필드 이름은 실제 응답에 맞게 사용
+  selectedItemName.value = item.itemName;
+  selectedCategoryName.value = item.categoryName;
+  console.log('제품 카테고리:', item.categoryName);
+  console.log('제품명:', item.itemName);
   isDetailModalOpen.value = true;
 }
 
 function closeDetailModal() {
   isDetailModalOpen.value = false;
-  selectedItem.value = null;
+  selectedItemName.value = '';
+  selectedCategoryName.value = item.categoryName;
 }
 
 // 목록 리로드 (모달에서 성공 이벤트 발생 시 사용)
@@ -428,7 +435,7 @@ onMounted(async () => {
 }
 
 .primary-btn {
-  background: #ff6b00;
+  background: #248efff2;
   color: #fff;
   border: none;
   padding: 8px 16px;
@@ -439,7 +446,7 @@ onMounted(async () => {
 .link-btn {
   background: none;
   border: none;
-  color: #ff6b00;
+  color: #248efff2;
   cursor: pointer;
 }
 </style>
