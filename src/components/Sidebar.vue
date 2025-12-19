@@ -11,8 +11,8 @@
     <div class="user-section">
       <el-avatar size="large" src="https://via.placeholder.com/80" />
       <div class="user-info">
-        <span class="name">DevOops</span>
-        <span class="role">시스템 관리자</span>
+        <span class="name">{{ authStore.name }}</span>
+        <span class="role">{{ authStore.dept }}</span>
         <el-button type="primary" class="button" @click.stop="logout">
           로그아웃
         </el-button>

@@ -10,6 +10,7 @@ export const useNotificationStore = defineStore("notification", {
     paging: {},
     unreadCount: 0,
     selectedIds: new Set(),
+    loading: false,
   }),
 
   getters: {
@@ -19,13 +20,18 @@ export const useNotificationStore = defineStore("notification", {
 
   actions: {
     async fetchPage({ empId, size, page, type }) {
-      const res = await api.get("/notice/list", {
-        params: { empId, size, page, type }
-      });
+      this.loading = true;
+      try {
+        const res = await api.get("/notice/list", {
+          params: { empId, page, size, type }
+        });
 
-      this.contents = res.data.contents;
-      this.totalCount = res.data.totalCount;
-      this.paging = res.data.paging;
+        this.contents = res.data.contents;
+        this.totalCount = res.data.totalCount;
+        this.paging = res.data.paging;
+      } finally {
+        this.loading = false;
+      }
     },
 
     async fetchUnread(empId) {
