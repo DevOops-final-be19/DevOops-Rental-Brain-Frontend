@@ -19,7 +19,7 @@
 
     <!-- 선택 툴바 -->
     <div class="select-toolbar">
-      <el-checkbox v-model="allChecked">전체 선택</el-checkbox>
+      <el-checkbox class="noti-check" v-model="allChecked">전체 선택</el-checkbox>
 
       <div class="selected-info" v-if="selectedCount > 0">
         선택됨 {{ selectedCount }}개
@@ -39,9 +39,11 @@
     </div>
 
     <!-- 알림 리스트 -->
-    <div class="noti-list">
+    <div class="noti-list" v-loading="noticeStore.loading" element-loading-text="알림을 불러오는 중입니다"
+      element-loading-background="rgba(255, 255, 255, 0.6)">
       <div v-for="item in notifications" :key="item.id" class="noti-card">
-        <el-checkbox :model-value="noticeStore.isSelected(item.id)" @change="() => noticeStore.toggleSelect(item.id)" />
+        <el-checkbox class="noti-check" :model-value="noticeStore.isSelected(item.id)"
+          @change="() => noticeStore.toggleSelect(item.id)" />
 
         <div class="icon" :class="item.notice.type">
           <el-icon>
@@ -61,10 +63,37 @@
     </div>
 
     <!-- 페이징 -->
-    <div class="pagination">
-      <el-pagination background layout="prev, pager, next" :page-size="size" :current-page="page" :total="totalCount"
-        @current-change="onPageChange" />
-    </div>
+    <!-- 페이징 -->
+<div class="pagination-bar">
+  <!-- 페이지 크기 선택 -->
+  <div class="page-size">
+    <el-select
+      v-model="size"
+      size="small"
+      style="width: 110px"
+      :disabled="noticeStore.loading"
+      @change="onSizeChange"
+    >
+      <el-option
+        v-for="s in pageSizeOptions"
+        :key="s"
+        :label="`${s}개씩`"
+        :value="s"
+      />
+    </el-select>
+  </div>
+
+  <!-- 페이지 이동 -->
+  <el-pagination
+    background
+    layout="prev, pager, next"
+    :page-size="size"
+    :current-page="page"
+    :total="totalCount"
+    :disabled="noticeStore.loading"
+    @current-change="onPageChange"
+  />
+</div>
 
     <div class="footer">
       <el-button round type="primary" @click="router.back()">뒤로 가기</el-button>
@@ -91,6 +120,7 @@ const page = ref(1);
 const size = ref(10);
 const activeTab = ref("ALL");
 const selectedIds = ref([]);
+const pageSizeOptions = [10, 20, 50, 100];
 
 /* store data */
 const notifications = computed(() => noticeStore.contents);
@@ -99,6 +129,11 @@ const unreadCount = computed(() =>
   noticeStore.unreadCount > 99 ? "99+" : noticeStore.unreadCount
 );
 const selectedCount = computed(() => noticeStore.selectedCount);
+const onSizeChange = (newSize) => {
+  page.value = 1;              // 🔥 무조건 1페이지
+  noticeStore.clearSelected(); // 선택 초기화 (추천 UX)
+  fetchPage();
+};
 
 /* fetch */
 const fetchPage = () => {
@@ -358,7 +393,7 @@ const getIcon = (type) => {
 }
 
 :deep(.noti-check) {
-  transform: scale(1.5);
+  transform: scale(1.2);
   /* 0.8 ~ 1.2 */
   transform-origin: left center;
 }
@@ -426,11 +461,34 @@ const getIcon = (type) => {
 .action.disabled {
   color: #9ca3af !important;
   cursor: not-allowed !important;
-  pointer-events: none;   /* ✅ 클릭/호버 완전 차단 */
+  pointer-events: none;
+  /* ✅ 클릭/호버 완전 차단 */
   opacity: 0.7;
 }
 
 .action.disabled:hover {
-  opacity: 0.7;          /* hover로 바뀌지 않게 */
+  opacity: 0.7;
+  /* hover로 바뀌지 않게 */
+}
+
+.pagination-bar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  background: #fff;
+  border-top: 1px solid #e5e7eb;
+}
+
+/* 왼쪽: 페이지 사이즈 */
+.page-size {
+  z-index: 1;
+}
+
+/* 가운데: 페이지 버튼 */
+.pagination-bar .el-pagination {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
 }
 </style>
