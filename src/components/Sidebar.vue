@@ -2,7 +2,7 @@
   <div class="sidebar">
 
     <!-- 로고 영역 -->
-    <div class="logo">
+    <div class="logo" @click.stop="goToMain">
       <h1>Rental Brain</h1>
       <p>CRM · ERP Platform</p>
     </div>
@@ -13,16 +13,16 @@
       <div class="user-info">
         <span class="name">DevOops</span>
         <span class="role">시스템 관리자</span>
-        <button type="button" @click.stop="logout">
+        <el-button type="primary" class="button" @click.stop="logout">
           로그아웃
-        </button>
+        </el-button>
       </div>
 
       <!-- 알림 -->
       <el-popover placement="right-start" width="400" trigger="manual" popper-class="notification-popover" v-model:visible="vis">
         <template #reference>
           <div class="alert-icon" @click="vis = !vis">
-            <el-badge :value="unreadCount" type="danger">
+            <el-badge :value="unreadCount" :show-zero="false" :max="99" type="danger">
               <el-icon>
                 <Bell />
               </el-icon>
@@ -38,7 +38,7 @@
                 <Bell />
               </el-icon>
               알림
-              <span class="count">{{ notifications.length <= 0 ? 0 : notifications.length }}</span>
+              <span class="count">{{ unreadCount > 99 ? "99+" : unreadCount }}</span>
             </div>
             <el-icon class="close" @click.stop="vis = false">
               <Close />
@@ -231,16 +231,23 @@ import {
   Tools,
   CreditCard
 } from "@element-plus/icons-vue";
-import { onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import dayjs from "dayjs";
+import { useNotificationStore } from "@/store/useNotice";
 
 const authStore = useAuthStore();
 const toastStore = useToastStore();
+const noticeStore = useNotificationStore();
 const router = useRouter();
-const notifications = ref([]);
+const notifications = computed(()=>noticeStore.unread);
+const unreadCount = computed(() => noticeStore.unreadCount);
 const vis = ref(false)
-const isExist = ref(false);
+const isExist = computed(() => notifications.value.length > 0);
+
+const goToMain = ()=>{
+  router.push('/')
+}
 
 const logout = async () => {
   console.log('empId:', authStore.empId);
@@ -263,22 +270,17 @@ const goToNotificationCenter = ()=>{
 }
 
 onMounted(async () => {
-  try {
-    const response = await api.get(`/notice/list/new/${authStore.id}`)
-    const data = response.data;
-    console.log(data);
-    notifications.value = data;
-    if(notifications.value.length>0)isExist.value=true;
-    else isExist.value=false;
-  } catch (e) {
-
-  }
+  noticeStore.fetchUnread(authStore.id);
 })
 
-const timeAgo = (date) => {
- const now = dayjs();
-  const target = dayjs(date);
+watch(vis, (open) => {
+  if (open) {
+    noticeStore.fetchUnread(authStore.id);
+  }
+});
 
+const timeAgo = (date) => { const now = dayjs();
+  const target = dayjs(date);
   const diffSec = now.diff(target, "second");
   const diffMin = now.diff(target, "minute");
   const diffHour = now.diff(target, "hour");
@@ -286,7 +288,6 @@ const timeAgo = (date) => {
   const diffWeek = now.diff(target, "week");
   const diffMonth = now.diff(target, "month");
   const diffYear = now.diff(target, "year");
-
   if (diffSec < 60) return "방금 전";
   if (diffMin < 60) return `${diffMin}분 전`;
   if (diffHour < 24) return `${diffHour}시간 전`;
@@ -294,7 +295,7 @@ const timeAgo = (date) => {
   if (diffWeek < 4) return `${diffWeek}주 전`;
   if (diffMonth < 12) return `${diffMonth}개월 전`;
   return `${diffYear}년 전`;
-};
+}
 
 const getIcon = (type) => {
   switch (type) {
@@ -322,17 +323,44 @@ const getIcon = (type) => {
   padding: 20px;
 }
 
+:deep(.button.el-button--primary) {
+  transition-duration: 0.2s;
+  height: 25px;
+  background: #22aac5;
+  border-color: #ffffff;
+  border-radius: 12px;
+  font-weight: 700;
+}
+:deep(.button.el-button--primary:hover) {
+  transition-duration: 0.2s;
+  background: #8ad3e1;
+  border-color: #ffffff;
+} 
+
+.logo{
+  transition-duration: 0.2s;
+  color: #0F172A;
+}
+
+.logo:hover{
+  transition-duration: 0.2s;
+  color: #1E3A8A;
+  cursor: pointer;
+}
+
 /* 로고 */
 .logo h1 {
+  font-family: 'Adamina',serif;
   font-size: 22px;
   margin: 0;
-  color: #374151;
   font-weight: 700;
+  cursor: pointer;
 }
 
 .logo p {
+  transition-duration: 0.2s;
   margin-top: 2px;
-  color: #6b7280;
+  cursor: pointer;
 }
 
 /* 사용자 박스 */
