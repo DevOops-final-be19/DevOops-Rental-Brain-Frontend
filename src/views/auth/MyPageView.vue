@@ -10,12 +10,21 @@
                 뒤로 가기
             </el-button>
 
+            <div class="header-actions">
             <el-button type="primary" round @click="onEdit">
                 <el-icon>
                     <Edit />
                 </el-icon>
                 정보 수정
             </el-button>
+
+            <el-button type="warning" plain round @click="onPwdChange" color="#ed1818">
+                <el-icon>
+                    <Lock />
+                </el-icon>
+                비밀번호 수정
+            </el-button>
+            </div>
         </div>
 
         <!-- 타이틀 -->
@@ -115,7 +124,8 @@ import { useRouter } from "vue-router";
 import {
     ArrowLeft,
     Edit,
-    User
+    User,
+    Lock
 } from "@element-plus/icons-vue";
 import api from "@/api/axios";
 import dayjs from "dayjs";
@@ -140,6 +150,10 @@ const dateFormatter = (date) => {
 const onEdit = () => {
     router.push("/modifyinfo");
 };
+
+const onPwdChange = () => {
+    router.push("/modifypwd");
+};
 </script>
 
 <style scoped>
@@ -154,6 +168,11 @@ const onEdit = () => {
     display: flex;
     justify-content: space-between;
     align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 10px;
 }
 
 /* 타이틀 */

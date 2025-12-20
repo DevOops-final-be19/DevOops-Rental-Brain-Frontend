@@ -137,6 +137,11 @@ const routes = [
         name: 'modify-info-page',
         component: () => import('@/views/auth/ModifyInfoPageView.vue'),
       },
+      {
+        path: 'modifypwd',
+        name: 'modify-pwd-page',
+        component: () => import('@/views/auth/ModifyPwdView.vue'),
+      },
     ],
   },
 

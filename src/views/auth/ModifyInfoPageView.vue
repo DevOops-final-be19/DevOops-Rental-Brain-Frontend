@@ -249,6 +249,12 @@ watch(() => form.value.phone, (val) => {
   gap: 20px;
 }
 
+.tags {
+    margin-top: 6px;
+    display: flex;
+    gap: 8px;
+}
+
 .avatar {
   background: #2563eb;
   color: #fff;
