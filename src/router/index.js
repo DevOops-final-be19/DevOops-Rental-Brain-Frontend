@@ -132,6 +132,11 @@ const routes = [
         name: 'my-page',
         component: () => import('@/views/auth/MyPageView.vue'),
       },
+      {
+        path: 'modifyinfo',
+        name: 'modify-info-page',
+        component: () => import('@/views/auth/ModifyInfoPageView.vue'),
+      },
     ],
   },
 
