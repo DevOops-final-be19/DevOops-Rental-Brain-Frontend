@@ -100,7 +100,7 @@
         <!-- 안내사항 -->
         <el-alert type="info" show-icon :closable="false" class="notice">
             <ul class="notice-list">
-                <li>사번번호, 부서, 직급, 입사일은 관리자만 변경할 수 있습니다.</li>
+                <li>사번번호, 부서, 직급은 관리자만 변경할 수 있습니다.</li>
                 <li>개인정보 변경 시 즉시 시스템에 반영됩니다.</li>
                 <li>연락처 및 이메일은 중요 알림 수신에 사용됩니다.</li>
             </ul>

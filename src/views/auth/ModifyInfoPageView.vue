@@ -4,7 +4,9 @@
     <!-- 헤더 -->
     <div class="header">
       <el-button text @click="router.back()">
-        <el-icon><ArrowLeft /></el-icon>
+        <el-icon>
+          <ArrowLeft />
+        </el-icon>
         뒤로 가기
       </el-button>
 
@@ -24,14 +26,16 @@
     <el-card shadow="never" class="profile-card">
       <div class="profile-box">
         <el-avatar :size="72" class="avatar">
-          <el-icon><User /></el-icon>
+          <el-icon>
+            <User />
+          </el-icon>
         </el-avatar>
 
         <div class="profile-meta">
-          <div class="name">{{ form.name }}</div>
+          <div class="name">{{ profile.name }}</div>
           <div class="tags">
-            <el-tag type="success" size="small">{{ form.dept }}</el-tag>
-            <el-tag type="info" size="small">{{ form.position.position_name }}</el-tag>
+            <el-tag type="success" size="small">{{ profile.dept }}</el-tag>
+            <el-tag type="info" size="small">{{ profile.position.position_name }}</el-tag>
           </div>
         </div>
       </div>
@@ -39,13 +43,7 @@
 
     <!-- 수정 폼 -->
     <el-card shadow="never" class="info-card">
-      <el-form
-        ref="formRef"
-        :model="form"
-        :rules="rules"
-        label-width="120px"
-        label-position="left"
-      >
+      <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" label-position="left">
         <el-row :gutter="20">
           <el-col :span="12">
             <el-form-item label="사번번호">
@@ -67,10 +65,7 @@
 
           <el-col :span="12">
             <el-form-item label="직급">
-              <el-input
-                :model-value="form.position?.position_name"
-                disabled
-              />
+              <el-input :model-value="form.position?.position_name" disabled />
             </el-form-item>
           </el-col>
 
@@ -82,32 +77,21 @@
 
           <el-col :span="12">
             <el-form-item label="입사일">
-              <el-date-picker
-                v-model="form.hire_date"
-                type="date"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-                disabled
-                style="width: 100%"
-              />
+              <el-date-picker v-model="form.hire_date" type="date" format="YYYY-MM-DD" value-format="YYYY-MM-DD"
+                disabled style="width: 100%" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
             <el-form-item label="이메일" prop="email">
-              <el-input v-model="form.email" />
+              <el-input v-model="form.email" @input="form.email = form.email.replace(/[ㄱ-ㅎㅏ-ㅣ가-힣]/g, '')" />
             </el-form-item>
           </el-col>
 
           <el-col :span="12">
             <el-form-item label="생년월일">
-              <el-date-picker
-                v-model="form.birthday"
-                type="date"
-                format="YYYY-MM-DD"
-                value-format="YYYY-MM-DD"
-                style="width: 100%"
-              />
+              <el-date-picker v-model="form.birthday" type="date" format="YYYY-MM-DD" value-format="YYYY-MM-DD"
+                style="width: 100%" disabled />
             </el-form-item>
           </el-col>
 
@@ -119,9 +103,8 @@
 
           <el-col :span="12">
             <el-form-item label="성별">
-              <el-radio-group v-model="form.gender">
-                <el-radio label="남성">남성</el-radio>
-                <el-radio label="여성">여성</el-radio>
+              <el-radio-group v-model="form.gender" disabled>
+                <el-radio>{{ form.gender === 'M' ? "남성" : "여성" }}</el-radio>
               </el-radio-group>
             </el-form-item>
           </el-col>
@@ -130,20 +113,15 @@
     </el-card>
 
     <!-- 안내 -->
-    <el-alert
-      type="warning"
-      show-icon
-      :closable="false"
-      class="notice"
-    >
-      사번번호, 부서, 직급, 입사일은 관리자만 변경할 수 있습니다.
+    <el-alert type="warning" show-icon :closable="false" class="notice">
+      사번번호, 부서, 직급은 관리자만 변경할 수 있습니다.
     </el-alert>
 
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue";
+import { ref, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
 import { ArrowLeft, User } from "@element-plus/icons-vue";
 import { ElMessage } from "element-plus";
@@ -153,6 +131,12 @@ import { useAuthStore } from "@/store/auth.store";
 const router = useRouter();
 const formRef = ref();
 const authStore = useAuthStore();
+
+const profile = ref({
+  name: "",
+  dept: "",
+  position: {}
+});
 
 const form = ref({
   employeeCode: "",
@@ -168,26 +152,44 @@ const form = ref({
 });
 
 const rules = {
-  name: [{ required: true, message: "이름을 입력하세요", trigger: "blur" }],
-  phone: [{ required: true, message: "연락처를 입력하세요", trigger: "blur" }],
+  name: [
+    { required: true, message: "이름을 입력하세요", trigger: "blur" }
+  ],
+
+  phone: [
+    { required: true, message: "연락처를 입력하세요", trigger: "blur" },
+    {
+      pattern: /^01[0-9]-?\d{3,4}-?\d{4}$/,
+      message: "연락처 형식이 올바르지 않습니다 (010-1234-5678)",
+      trigger: "blur"
+    }
+  ],
+
   email: [
     { required: true, message: "이메일을 입력하세요", trigger: "blur" },
-    { type: "email", message: "이메일 형식이 아닙니다", trigger: "blur" },
-  ],
+    {
+      pattern: /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/,
+      message: "이메일 형식이 올바르지 않습니다",
+      trigger: "blur"
+    }
+  ]
 };
 
 onMounted(async () => {
   const res = await api.get("/emp/mypage");
   form.value = res.data;
+  profile.value.name = form.value.name;
+  profile.value.dept = form.value.dept;
+  profile.value.position = form.value.position;
 });
 
 const onSave = async () => {
   await formRef.value.validate();
 
-  await api.put("/emp/mypage", {
+  await api.put("/emp/modify", {
     empId: authStore.empId,
     name: form.value.name,
-    phone: form.value.phone,
+    phone: form.value.phone.replace(/-/g, ""),
     email: form.value.email,
     addr: form.value.addr,
   });
@@ -195,6 +197,13 @@ const onSave = async () => {
   ElMessage.success("정보가 수정되었습니다");
   router.back();
 };
+
+watch(() => form.value.phone, (val) => {
+  if (!val) return;
+  form.value.phone = val
+    .replace(/[^0-9]/g, "")
+    .replace(/^(\d{3})(\d{3,4})(\d{4})$/, "$1-$2-$3");
+});
 </script>
 
 <style scoped>
