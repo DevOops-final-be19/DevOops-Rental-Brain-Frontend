@@ -98,6 +98,7 @@ const login = async () => {
       data.name,
       data.roles,
       data.dept,
+      data.positionId,
       data.accessToken
     );
 

@@ -193,6 +193,19 @@ const selectedItem = computed(() =>
 const addItem = () => {
   if (!selectedItem.value) return
 
+  // 수량 검증
+  if (selectedQuantity.value > selectedItem.value.possibleAmount) {
+    alert(
+      `렌탈 가능 수량은 최대 ${selectedItem.value.possibleAmount}대입니다.`
+    )
+    return
+  }
+
+  if (selectedQuantity.value <= 0) {
+    alert('수량은 1 이상이어야 합니다.')
+    return
+  }
+
   const exists = selectedItems.value.find(
     i => i.itemName === selectedItem.value.itemName
   )
@@ -211,6 +224,18 @@ const addItem = () => {
 const removeItem = name => {
   selectedItems.value = selectedItems.value.filter(i => i.itemName !== name)
 }
+
+watch(selectedQuantity, (val) => {
+  if (!selectedItem.value) return
+
+  if (val > selectedItem.value.possibleAmount) {
+    selectedQuantity.value = selectedItem.value.possibleAmount
+  }
+
+  if (val < 1) {
+    selectedQuantity.value = 1
+  }
+})
 
 /* 월 납입금 */
 const totalMonthlyPrice = computed(() =>
