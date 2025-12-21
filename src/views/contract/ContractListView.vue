@@ -95,7 +95,7 @@
               </span>
             </td>
             <td>
-              <button class="link-btn">
+              <button class="link-btn" @click="goToDetail(c.id)">
                 상세보기
               </button>
             </td>
@@ -187,6 +187,13 @@
     fetchList();
   }
   
+  const goToDetail = (id) => {
+  router.push({
+    name: 'contract-detail',
+    params: { id }
+  })
+  }
+
   function formatDate(date) {
     return new Date(date).toLocaleDateString();
   }

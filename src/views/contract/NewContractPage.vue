@@ -1,5 +1,6 @@
 <script setup>
   import { ref } from 'vue'
+  import api from '@/api/axios';
   
   import Step1Customer from './Step1Customer.vue'
   import Step2ContractProduct from './Step2ContractProduct.vue'
@@ -7,45 +8,115 @@
   import Step4Approval from './Step4Approval.vue'
   import Step5Review from './Step5Review.vue'
   
-  /* 현재 단계 */
+/* =========================
+   Step 상태
+========================= */
   const currentStep = ref(1)
   
-  /* 계약 임시 데이터 */
-  const draft = ref({
-    customerId: null,
-    contract: {
-      name: '',
-      startDate: '',
-      endDate: '',
-      duration: null
-    },
-    assets: [],
-    payment: null,
-    approvalLine: []
-  })
+/* =========================
+   계약 Draft
+========================= */
+const draft = ref({
+  customerId: null,
+  customerName: '',
+  customerCode: '',
+  inCharge: '',
+  segmentId: null,
+  segmentName: '',
+
+  contract: {
+    name: '',
+    startDate: '',
+    endDate: '',
+    duration: null
+  },
+
+  assets: [],
+  promotion: null,
+
+  payment: {
+    monthlyPayment: 0,
+    totalAmount: 0,
+    paymentDay: null,
+    paymentMethod: 'AUTO',
+    memo: ''
+  },
+
+  approvalLine: []
+})
   
-  /* draft 병합 업데이트 */
-  const updateDraft = (payload) => {
-    draft.value = {
-      ...draft.value,
-      ...payload
-    }
+/* =========================
+   Draft 병합
+========================= */
+const updateDraft = (payload) => {
+  draft.value = {
+    ...draft.value,
+    ...payload
   }
+}
   
-  /* 단계 이동 */
-  const nextStep = () => {
-    if (currentStep.value < 5) currentStep.value++
+/* =========================
+   Step 이동
+========================= */
+const nextStep = () => {
+  if (currentStep.value < 5) currentStep.value++
+}
+
+const prevStep = () => {
+  if (currentStep.value > 1) currentStep.value--
+}
+
+
+/* =========================
+   계약 승인 요청 (POST)
+========================= */
+const submitContract = async () => {
+  const body = {
+    contractName: draft.value.contract.name,
+    startDate: `${draft.value.contract.startDate}T00:00`,
+    contractPeriod: draft.value.contract.duration,
+
+    monthlyPayment: draft.value.payment.monthlyPayment,
+    totalAmount: draft.value.payment.totalAmount,
+    payMethod: draft.value.payment.paymentMethod === 'AUTO' ? 'A' : 'B',
+    specialContent: draft.value.payment.memo,
+
+    cumId: draft.value.customerId,
+
+    items: draft.value.assets.map(a => ({
+      itemName: a.itemName,
+      quantity: a.quantity
+    }))
   }
-  
-  const prevStep = () => {
-    if (currentStep.value > 1) currentStep.value--
+
+   /* =========================
+     승인자 분기
+  ========================= */
+  if (draft.value.approvalLine.length === 2) {
+    body.leaderId = draft.value.approvalLine[0].id
+    body.ceoId = draft.value.approvalLine[1].id
   }
-  
-  /* 계약 생성 */
-  const submitContract = async () => {
-    // TODO: POST /contracts
-    console.log('최종 계약 생성 요청', draft.value)
+
+  if (draft.value.approvalLine.length === 1) {
+    body.ceoId = draft.value.approvalLine[0].id
   }
+
+  try {
+
+    console.log('계약 승인 요청 body', body)
+
+    await api.post('/contract', body)
+
+    alert('계약 승인 요청이 완료되었습니다.')
+
+    // TODO: 계약 목록 또는 상세 페이지 이동
+    router.push('/contract')
+
+  } catch (e) {
+    console.error('계약 승인 요청 실패', e)
+    alert('계약 승인 요청 중 오류가 발생했습니다.')
+  }
+}
   </script>
   
   <template>

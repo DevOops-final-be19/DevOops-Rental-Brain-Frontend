@@ -93,6 +93,7 @@ const login = async () => {
       data.name,
       data.roles,
       data.dept,
+      data.positionId,
       data.accessToken
     );
     toastStore.showToast('로그인 되었습니다 :' + ' ' + authStore.employeeCode + ' ' + authStore.name);
