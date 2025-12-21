@@ -251,7 +251,7 @@ const goToMain = ()=>{
 
 const logout = async () => {
   console.log('empId:', authStore.empId);
-  authStore.logout();
+  
   try {
     const response = await api.post('/emp/logout', {
       empId: authStore.empId
@@ -260,6 +260,7 @@ const logout = async () => {
   } catch (e) {
     console.log('로그아웃 통신 fail');
   }
+  authStore.logout();
   console.log('empId:', authStore.empId);
   toastStore.showToast('로그아웃' + authStore.empId);
   router.push('/login');
