@@ -65,7 +65,7 @@
 
                         <!-- 오른쪽 영역 -->
                         <div class="actions">
-                            <el-button type="primary" :disabled="!isChanged" @click="saveAuth">
+                            <el-button type="primary" :disabled="!isChanged || isSelf" @click="saveAuth">
                                 수정
                             </el-button>
 
@@ -75,6 +75,9 @@
 
                     <el-alert type="warning" show-icon :closable="false" class="hint">
                         스위치를 변경한 후 <b>수정 버튼</b>을 눌러야 반영됩니다.
+                    </el-alert>
+                    <el-alert v-if="isSelf" type="error" show-icon :closable="false" class="hint">
+                        보안 정책상 <b>본인 계정의 권한은 수정할 수 없습니다.</b>
                     </el-alert>
                 </div>
 
@@ -86,7 +89,8 @@
                                 <div class="title">{{ auth.description }}</div>
                             </div>
 
-                            <el-switch v-model="auth.enabled" active-color="#22c55e" inactive-color="#e5e7eb" />
+                            <el-switch v-model="auth.enabled" :disabled="isSelf" active-color="#22c55e"
+                                inactive-color="#e5e7eb" />
                         </div>
                     </div>
 
@@ -105,6 +109,7 @@ import { ref, computed, onMounted } from "vue";
 import { ElMessage } from "element-plus";
 import { User } from "@element-plus/icons-vue";
 import api from "@/api/axios";
+import { useAuthStore } from "@/store/auth.store";
 
 /* ================= 상태 ================= */
 const employees = ref([]);
@@ -113,69 +118,100 @@ const authList = ref([]);         // 화면용 권한 목록
 const selectedEmployee = ref(null);
 const keyword = ref("");
 const originalAuthIds = ref([]);
+const authStore = useAuthStore();
 
 /* ================= 변경 여부 ================= */
 const isChanged = computed(() => {
-  if (!selectedEmployee.value) return false;
+    if (!selectedEmployee.value) return false;
 
-  const currentIds = authList.value
-    .filter(a => a.enabled)
-    .map(a => a.id)
-    .sort();
+    const currentIds = authList.value
+        .filter(a => a.enabled)
+        .map(a => a.id)
+        .sort();
 
-  return JSON.stringify(currentIds) !== JSON.stringify(originalAuthIds.value);
+    return JSON.stringify(currentIds) !== JSON.stringify(originalAuthIds.value);
+});
+const isSelf = computed(() => {
+    if (!selectedEmployee.value) return false;
+    return selectedEmployee.value.id === authStore.id;
 });
 
 /* ================= 검색 ================= */
 const filteredEmployees = computed(() => {
-  if (!keyword.value) return employees.value;
-  return employees.value.filter(e =>
-    e.name.includes(keyword.value) ||
-    e.email.includes(keyword.value) ||
-    e.dept.includes(keyword.value)
-  );
+    if (!keyword.value) return employees.value;
+    return employees.value.filter(e =>
+        e.name.includes(keyword.value) ||
+        e.email.includes(keyword.value) ||
+        e.dept.includes(keyword.value)
+    );
 });
 
 /* ================= 초기 로딩 ================= */
 onMounted(async () => {
-  const [empRes, authRes] = await Promise.all([
-    api.get("/emp/admin/emplist"),
-    api.get("/emp/admin/empauthlist")
-  ]);
+    const [empRes, authRes] = await Promise.all([
+        api.get("/emp/admin/emplist"),
+        api.get("/emp/admin/empauthlist")
+    ]);
 
-  employees.value = empRes.data;
-  allAuthList.value = authRes.data;
+    employees.value = empRes.data;
+    allAuthList.value = authRes.data;
 });
 
 /* ================= 사원 선택 ================= */
 const selectEmployee = (emp) => {
-  selectedEmployee.value = emp;
+    selectedEmployee.value = emp;
 
-  const ownedAuthIds = emp.empAuth.map(a => a.auth_id);
+    const ownedAuthIds = emp.empAuth.map(a => a.auth_id);
 
-  authList.value = allAuthList.value.map(auth => ({
-    ...auth,
-    enabled: ownedAuthIds.includes(auth.id)
-  }));
+    authList.value = allAuthList.value.map(auth => ({
+        ...auth,
+        enabled: ownedAuthIds.includes(auth.id)
+    }));
 
-  // 기준 상태 저장
-  originalAuthIds.value = [...ownedAuthIds].sort();
+    // 기준 상태 저장
+    originalAuthIds.value = [...ownedAuthIds].sort();
 };
 
 /* ================= 저장 ================= */
 const saveAuth = async () => {
-  const enabledAuthIds = authList.value
-    .filter(a => a.enabled)
-    .map(a => a.id);
+    if (isSelf.value) {
+        ElMessage.error("본인 권한은 수정할 수 없습니다.");
+        return;
+    }
 
-  await api.put("/emp/admin/empauth", {
-    auth_id: enabledAuthIds,
-    emp_id: selectedEmployee.value.id
-  });
+    const enabledAuthIds = authList.value
+        .filter(a => a.enabled)
+        .map(a => a.id);
 
-  originalAuthIds.value = [...enabledAuthIds].sort();
-  ElMessage.success("권한이 수정되었습니다");
+    try {
+        await api.put("/emp/admin/auth/modify", {
+            emp_id: selectedEmployee.value.id,
+            auth_id: enabledAuthIds
+        });
+        // ✅ 1. selectedEmployee 갱신
+        selectedEmployee.value.empAuth = enabledAuthIds.map(id => ({
+            auth_id: id
+        }));
+
+        // ✅ 2. employees 리스트도 동기화
+        const idx = employees.value.findIndex(
+            e => e.id === selectedEmployee.value.id
+        );
+
+        if (idx !== -1) {
+            employees.value[idx].empAuth = selectedEmployee.value.empAuth;
+        }
+
+        // 기준 상태 갱신
+        originalAuthIds.value = [...enabledAuthIds].sort();
+
+        ElMessage.success("권한이 수정되었습니다");
+    } catch (e) {
+        console.log(e)
+        ElMessage.error(e.response.data);
+    }
 };
+
 </script>
 
 <style scoped>
