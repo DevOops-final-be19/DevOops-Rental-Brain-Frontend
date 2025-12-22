@@ -3,18 +3,18 @@
     <!-- 상단 타이틀 및 버튼 -->
     <div class="header">
       <div>
-        <h1>렌탈 자산 목록</h1>
-        <p>전체 자산 현황 및 수익성 관리</p>
+        <h1>렌탈 제품 목록</h1>
+        <p>전체 제품 현황 및 수익성 관리</p>
       </div>
       <button class="primary-btn" @click="openCreateModal">
-        신규 자산 등록
+        신규 제품 등록
       </button>
     </div>
 
     <!-- KPI 카드 3개 -->
     <div class="kpi-row">
       <div class="kpi-card">
-        <p class="label">총 자산</p>
+        <p class="label">총 제품</p>
         <p class="value">{{ kpi.wholeCount }}개</p>
         <p class="sub">오피스 관련 제품</p>
       </div>
@@ -60,7 +60,7 @@
     <table class="asset-table">
       <thead>
         <tr>
-          <th>자산명</th>
+          <th>제품명</th>
           <th>카테고리</th>
           <th>월 렌탈료</th>
           <th>재고 현황</th>
@@ -119,6 +119,18 @@
       </tbody>
     </table>
 
+    <!-- 페이지네이션 -->
+    <div class="pagination">
+            <el-pagination
+            background
+            layout="prev, pager, next"
+            :total="total"
+            :page-size="page.size"
+            :current-page="page.current"
+            @current-change="changePage"
+            />
+    </div>
+
     <!-- 등록 모달 -->
     <ProductCreateModal
       v-if="isCreateModalOpen"
@@ -140,10 +152,10 @@
 </template>
 
 <script setup>
-    import { ref, onMounted } from 'vue';
-    import api from '@/api/axios';
-    import ProductCreateModal from './ProductCreateModal.vue';
-import ProductDetailModal from './ProductDetailModal.vue';
+  import { ref, onMounted } from 'vue';
+  import api from '@/api/axios';
+  import ProductCreateModal from './ProductCreateModal.vue';
+  import ProductDetailModal from './ProductDetailModal.vue';
 
 const kpi = ref({
   totalCount: 0,
@@ -163,6 +175,12 @@ const selectedItemName = ref('');
 const selectedCategoryName = ref('');
 const selectedMonthlyPrice = ref(0);
 
+const total = ref(0);
+const page = ref({
+    current: 1,
+    size: 7
+})
+
 // 1. KPI 조회
 async function fetchKpi() {
   try {
@@ -178,11 +196,17 @@ async function fetchKpi() {
 // 2. 기본 목록 조회
 async function fetchItemList() {
   try {
-    const res = await api.get('/item/read-groupby-name');
+    const res = await api.get('/item/read-groupby-name',{
+    params: {
+        page: page.value.current,
+        size: page.value.size
+      }
+      });
     console.log('기본 목록 조회 결과:', res.data);
     console.log('기본 목록 조회 결과:', res.data.contents);
     
     itemList.value = res.data.contents;
+    total.value = res.data.totalCount;
     buildCategoryOptions();
   } catch (err) {
     console.error("제품 목록 조회 실패", err);
@@ -259,6 +283,11 @@ function closeDetailModal() {
   selectedItemName.value = '';
   selectedMonthlyPrice.value = 0;
   selectedCategoryName.value = '';
+}
+
+const changePage = (p) => {
+    page.value.current = p
+    fetchList()
 }
 
 // 목록 리로드 (모달에서 성공 이벤트 발생 시 사용)
@@ -454,4 +483,6 @@ onMounted(async () => {
   color: #248efff2;
   cursor: pointer;
 }
+
+.pagination { display: flex; justify-content: center; margin-top: 16px; }
 </style>

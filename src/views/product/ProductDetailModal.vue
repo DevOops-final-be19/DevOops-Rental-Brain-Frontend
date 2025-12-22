@@ -118,7 +118,6 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import api from '@/api/axios';
-import ProductListView from './ProductListView.vue';
 import ProductUnitEditModal from "./ProductUnitEditModal.vue";
 import ProductEditModal from './ProductEditModal.vue';
 
