@@ -7,6 +7,12 @@
           <h2>{{ itemName }}</h2>
           <p>{{ categoryName }}</p>
         </div>
+        <button
+                  class="edit-btn"
+                  @click="openNameEditModal(itemName, monthlyPrice, categoryName)"
+                >
+                  수정
+                </button>
         <button class="icon-btn" @click="emitClose">✕</button>
       </div>
 
@@ -90,9 +96,20 @@
       <!-- 개별 수정 모달 -->
       <ProductUnitEditModal
         v-if="isEditModalOpen"
+        :item-id="selectedId"
         :unit="selectedUnit"
         @close="closeEditModal"
         @updated="handleUnitUpdated"
+      />
+
+      <!-- 제품 수정 모달 -->
+      <ProductEditModal
+        v-if="isNameEditModalOpen"
+        :item-name="selecteditemName"
+        :monthly-price="selectedMonthlyPrice"
+        :category-name="selectedCategoryName"
+        @close="closeNameEditModal"
+        @updated="handleUpdated"
       />
     </div>
   </div>
@@ -101,11 +118,17 @@
 <script setup>
 import { ref, onMounted, watch } from "vue";
 import api from '@/api/axios';
+import ProductListView from './ProductListView.vue';
 import ProductUnitEditModal from "./ProductUnitEditModal.vue";
+import ProductEditModal from './ProductEditModal.vue';
 
 const props = defineProps({
   itemName: {
     type: String,
+    required: true,
+  },
+  monthlyPrice: {
+    type: [Number, String],
     required: true,
   },
   categoryName: {
@@ -136,7 +159,13 @@ const emit = defineEmits(["close", "updated", "deleted"]);
 const unitList = ref([]);
 
 const isEditModalOpen = ref(false);
+const selectedId = ref(0);
 const selectedUnit = ref(null);
+
+const isNameEditModalOpen = ref(false);
+const selecteditemName = ref('');
+const selectedCategoryName = ref('');
+const selectedMonthlyPrice = ref(0);
 
 // 상단 카드 데이터
 // async function fetchKpiDetail() {
@@ -186,15 +215,36 @@ function formatDate(dateTime) {
   }
 }
 
-// 수정 모달 열기/닫기
+// 개별 제품 수정 모달 열기/닫기
 function openEditModal(unit) {
+  selectedId.value = unit.id;
+  console.log('id:', unit.id);
   selectedUnit.value = unit;
   isEditModalOpen.value = true;
 }
 
 function closeEditModal() {
   isEditModalOpen.value = false;
+  selectedId.value = 0;
   selectedUnit.value = null;
+}
+
+// 제품 수정 모달 열기/닫기
+function openNameEditModal(itemName, monthlyPrice, categoryName) {
+  console.log('itemName:', itemName);
+  selecteditemName.value = itemName;
+  selectedMonthlyPrice.value = monthlyPrice;
+  selectedCategoryName.value = categoryName;
+  console.log('monthlyPrice:', monthlyPrice);
+  console.log('categoryName:', categoryName);
+  isNameEditModalOpen.value = true;
+}
+
+function closeNameEditModal() {
+  isNameEditModalOpen.value = false;
+  selecteditemName.value = '';
+  selectedMonthlyPrice.value = 0;
+  selectedCategoryName.value = '';
 }
 
 // 수정 완료 시 목록 재조회
@@ -204,11 +254,16 @@ async function handleUnitUpdated() {
   emit("updated");
 }
 
+async function handleUpdated() {
+  emit("updated");
+  emit('close');
+}
+
 // 삭제
 async function deleteUnit(unit) {
   if (!confirm("해당 개별 제품을 삭제하시겠습니까?")) return;
   try {
-    await api.delete(`/item/delete/${unit.unitId}`);
+    await api.delete(`/item/delete/${unit.id}`);
     await fetchUnitList();
     // await fetchKpiDetail();
     emit("deleted");
@@ -271,6 +326,15 @@ watch(
   margin: 4px 0 0;
   font-size: 12px;
   color: #6b7280;
+}
+
+.edit-btn {
+  border: none;
+  background: transparent;
+  color: #2563eb;
+  font-size: 15px;
+  cursor: pointer;
+  margin-right: 650px;
 }
 
 .icon-btn {

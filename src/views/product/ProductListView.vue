@@ -130,7 +130,8 @@
     <ProductDetailModal
       v-if="isDetailModalOpen"
       :item-name="selectedItemName"
-      :item-categoryName="selectedCategoryName"
+      :monthly-price="selectedMonthlyPrice"
+      :category-name="selectedCategoryName"
       @close="closeDetailModal"
       @updated="reloadList"
       @deleted="reloadList"
@@ -160,6 +161,7 @@ const isCreateModalOpen = ref(false);
 const isDetailModalOpen = ref(false);
 const selectedItemName = ref('');
 const selectedCategoryName = ref('');
+const selectedMonthlyPrice = ref(0);
 
 // 1. KPI 조회
 async function fetchKpi() {
@@ -244,8 +246,10 @@ function openCreateModal() {
 function openDetailModal(item) {
   // item 객체 안에 있는 필드 이름은 실제 응답에 맞게 사용
   selectedItemName.value = item.itemName;
+  selectedMonthlyPrice.value = item.monthlyPrice;
   selectedCategoryName.value = item.categoryName;
   console.log('제품 카테고리:', item.categoryName);
+  console.log('제품 월 렌탈료:', item.monthlyPrice);
   console.log('제품명:', item.itemName);
   isDetailModalOpen.value = true;
 }
@@ -253,7 +257,8 @@ function openDetailModal(item) {
 function closeDetailModal() {
   isDetailModalOpen.value = false;
   selectedItemName.value = '';
-  selectedCategoryName.value = item.categoryName;
+  selectedMonthlyPrice.value = 0;
+  selectedCategoryName.value = '';
 }
 
 // 목록 리로드 (모달에서 성공 이벤트 발생 시 사용)
