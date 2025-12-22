@@ -16,25 +16,29 @@
         <button class="icon-btn" @click="emitClose">✕</button>
       </div>
 
-      <!-- 상단 KPI 카드 4개 -->
-      <!-- <div class="detail-kpi-row">
-        <div class="detail-kpi-card blue">
+      <!-- 상단 KPI 카드 5개 -->
+      <div class="detail-kpi-row">
+        <div class="detail-kpi-card">
           <p class="label">총 보유</p>
           <p class="value">{{ kpiDetail.totalCount }}개</p>
         </div>
-        <div class="detail-kpi-card indigo">
+        <div class="detail-kpi-card">
           <p class="label">렌탈 중</p>
           <p class="value">{{ kpiDetail.rentCount }}개</p>
         </div>
-        <div class="detail-kpi-card green">
+        <div class="detail-kpi-card">
           <p class="label">대여 가능</p>
           <p class="value">{{ kpiDetail.availableCount }}개</p>
         </div>
-        <div class="detail-kpi-card orange">
+        <div class="detail-kpi-card">
           <p class="label">수리 중</p>
           <p class="value">{{ kpiDetail.repairCount }}개</p>
         </div>
-      </div> -->
+        <div class="detail-kpi-card">
+          <p class="label">연체</p>
+          <p class="value">{{ kpiDetail.overdueCount }}개</p>
+        </div>
+      </div>
 
       <!-- 개별 제품 목록 -->
       <div class="detail-table-wrapper">
@@ -145,13 +149,14 @@ const STATUS_MAP = {
 
 const emit = defineEmits(["close", "updated", "deleted"]);
 
-// const kpiDetail = ref({
-//   totalCount: 0,
-//   rentCount: 0,
-//   availableCount: 0,
-//   repairCount: 0,
-//   categoryName: '',
-// });
+const kpiDetail = ref({
+  totalCount: 0,
+  rentCount: 0,
+  availableCount: 0,
+  repairCount: 0,
+  overdueCount: 0,
+  categoryName: '',
+});
 
 
 
@@ -167,16 +172,16 @@ const selectedCategoryName = ref('');
 const selectedMonthlyPrice = ref(0);
 
 // 상단 카드 데이터
-// async function fetchKpiDetail() {
-//   try {
-//     const res = await api.get(
-//       `/item/kpi-detail-count/${props.itemName}`
-//     );
-//     kpiDetail.value = res.data;
-//   } catch (err) {
-//     console.error("상세 KPI 조회 실패", err);
-//   }
-// }
+async function fetchKpiDetail() {
+  try {
+    const res = await api.get(
+      `/item/kpi/${props.itemName}`
+    );
+    kpiDetail.value = res.data;
+  } catch (err) {
+    console.error("상세 KPI 조회 실패", err);
+  }
+}
 
 // 개별 제품 목록
 async function fetchUnitList() {
@@ -249,7 +254,7 @@ function closeNameEditModal() {
 // 수정 완료 시 목록 재조회
 async function handleUnitUpdated() {
   await fetchUnitList();
-//   await fetchKpiDetail();
+  await fetchKpiDetail();
   emit("updated");
 }
 
@@ -264,7 +269,7 @@ async function deleteUnit(unit) {
   try {
     await api.delete(`/item/delete/${unit.id}`);
     await fetchUnitList();
-    // await fetchKpiDetail();
+    await fetchKpiDetail();
     emit("deleted");
   } catch (err) {
     console.error("개별 제품 삭제 실패", err);
@@ -272,16 +277,14 @@ async function deleteUnit(unit) {
 }
 
 onMounted(async () => {
-  // await Promise.all([fetchKpiDetail(), fetchUnitList()]);  kpi api 추가하면 아래줄 지우고 이거 주석풀기
-    await Promise.all([fetchUnitList()]);
+  await Promise.all([fetchKpiDetail(), fetchUnitList()]);
 });
 
 // 혹시 부모에서 itemName이 바뀌는 경우를 대비
 watch(
   () => [props.itemName, props.categoryName],
   async () => {
-    // await Promise.all([fetchKpiDetail(), fetchUnitList()]);  kpi api 추가하면 아래줄 지우고 이거 주석풀기
-    await Promise.all([fetchUnitList()]);
+    await Promise.all([fetchKpiDetail(), fetchUnitList()]);
   }
 );
 </script>
@@ -343,7 +346,7 @@ watch(
   cursor: pointer;
 }
 
-/* .detail-kpi-row {
+.detail-kpi-row {
   display: flex;
   gap: 12px;
   padding: 16px 24px 8px;
@@ -368,7 +371,7 @@ watch(
   margin-top: 4px;
 }
 
-.detail-kpi-card.blue {
+/* .detail-kpi-card.blue {
   border-color: #bfdbfe;
   background: #eff6ff;
 }
