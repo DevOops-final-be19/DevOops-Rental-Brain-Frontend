@@ -1,15 +1,12 @@
 <template>
     <div class="admin-auth-page">
-
-        <!-- 상단 타이틀 -->
         <div class="page-title">
             <h2>사용자 관리</h2>
             <span>사용자별 권한을 관리합니다</span>
         </div>
 
         <div class="content">
-
-            <!-- 좌측: 사용자 목록 -->
+            <!-- 좌측 사용자 목록 -->
             <el-card shadow="never" class="user-list">
                 <template #header>
                     <div class="card-header">
@@ -18,125 +15,69 @@
                         </el-icon>
                         사용자 목록
                     </div>
+                    <el-input v-model="keyword" placeholder="이름, 이메일, 부서 검색" clearable class="search" />
                 </template>
 
-                <el-input v-model="keyword" placeholder="이름, 이메일, 부서 검색" clearable class="search" />
 
-                <!-- ✅ 스크롤 영역 -->
                 <div class="list scroll">
                     <div v-for="emp in filteredEmployees" :key="emp.id" class="user-item"
                         :class="{ active: emp.id === selectedEmployee?.id }" @click="selectEmployee(emp)">
-                        <el-avatar class="avatar">
-                            <el-icon>
-                                <User />
-                            </el-icon>
-                        </el-avatar>
-
-                        <div class="meta">
-                            <div class="name">{{ emp.name }}</div>
-                            <div class="sub">{{ emp.email }}</div>
-                            <div class="dept">{{ emp.position.position_name }}</div>
-                        </div>
-                    </div>
-                </div>
-            </el-card>
-
-            <!-- 우측: 권한 목록 -->
-            <el-card shadow="never" class="auth-panel" v-if="selectedEmployee">
-
-                <!-- ✅ 고정 영역 -->
-                <div class="auth-fixed">
-                    <div class="emp-header">
-                        <!-- 왼쪽 영역 -->
-                        <div class="emp-info">
-                            <el-avatar size="48">
+                        <div class="left">
+                            <div class="avatar">
                                 <el-icon>
                                     <User />
                                 </el-icon>
-                            </el-avatar>
-
-                            <div>
-                                <div class="name">{{ selectedEmployee.name }}</div>
-                                <div class="sub">
-                                    {{ selectedEmployee.email }} · {{ selectedEmployee.dept }}
-                                </div>
+                            </div>
+                            <div class="meta">
+                                <div class="name">{{ emp.name }}</div>
+                                <div class="email">{{ emp.email }}</div>
+                                <div class="dept">{{ emp.position.position_name }}</div>
                             </div>
                         </div>
 
-                        <!-- 오른쪽 영역 -->
                         <div class="actions">
-                            <el-button type="primary" :disabled="!isChanged || isSelf" @click="saveAuth">
-                                수정
+                            <el-button circle size="small" class="icon-btn" @click.stop="goEdit(emp)">
+                                <el-icon>
+                                    <Edit />
+                                </el-icon>
                             </el-button>
-
                         </div>
                     </div>
-
-
-                    <el-alert type="warning" show-icon :closable="false" class="hint">
-                        스위치를 변경한 후 <b>수정 버튼</b>을 눌러야 반영됩니다.
-                    </el-alert>
-                    <el-alert v-if="isSelf" type="error" show-icon :closable="false" class="hint">
-                        보안 정책상 <b>본인 계정의 권한은 수정할 수 없습니다.</b>
-                    </el-alert>
                 </div>
-
-                <!-- ✅ 스크롤 영역 -->
-                <div class="auth-scroll">
-                    <div class="auth-list">
-                        <div v-for="auth in authList" :key="auth.id" class="auth-item">
-                            <div class="info">
-                                <div class="title">{{ auth.description }}</div>
-                            </div>
-
-                            <el-switch v-model="auth.enabled" :disabled="isSelf" active-color="#22c55e"
-                                inactive-color="#e5e7eb" />
-                        </div>
-                    </div>
-
-
-                </div>
-
             </el-card>
 
-
+            <!-- 우측 패널 -->
+            <el-card shadow="never" class="right-panel" v-if="selectedEmployee">
+                <router-view :key="$route.fullPath" :employee="selectedEmployee" :auth-master="authMaster" @updateEmployee="syncEmployee" />
+            </el-card>
         </div>
     </div>
 </template>
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { ElMessage } from "element-plus";
-import { User } from "@element-plus/icons-vue";
+import { User, Edit } from "@element-plus/icons-vue";
+import { useRouter, useRoute } from "vue-router";
 import api from "@/api/axios";
-import { useAuthStore } from "@/store/auth.store";
 
-/* ================= 상태 ================= */
+const router = useRouter();
+const route = useRoute();
+
 const employees = ref([]);
-const allAuthList = ref([]);      // ✅ 권한 마스터 (1회 로딩)
-const authList = ref([]);         // 화면용 권한 목록
 const selectedEmployee = ref(null);
 const keyword = ref("");
-const originalAuthIds = ref([]);
-const authStore = useAuthStore();
+const authMaster = ref([]);
 
-/* ================= 변경 여부 ================= */
-const isChanged = computed(() => {
-    if (!selectedEmployee.value) return false;
+onMounted(async () => {
+    const [empRes, authRes] = await Promise.all([
+        api.get("/emp/admin/emplist"),
+        api.get("/emp/admin/empauthlist"),
+    ]);
 
-    const currentIds = authList.value
-        .filter(a => a.enabled)
-        .map(a => a.id)
-        .sort();
-
-    return JSON.stringify(currentIds) !== JSON.stringify(originalAuthIds.value);
-});
-const isSelf = computed(() => {
-    if (!selectedEmployee.value) return false;
-    return selectedEmployee.value.id === authStore.id;
+    employees.value = empRes.data;
+    authMaster.value = authRes.data;
 });
 
-/* ================= 검색 ================= */
 const filteredEmployees = computed(() => {
     if (!keyword.value) return employees.value;
     return employees.value.filter(e =>
@@ -146,72 +87,46 @@ const filteredEmployees = computed(() => {
     );
 });
 
-/* ================= 초기 로딩 ================= */
-onMounted(async () => {
-    const [empRes, authRes] = await Promise.all([
-        api.get("/emp/admin/emplist"),
-        api.get("/emp/admin/empauthlist")
-    ]);
-
-    employees.value = empRes.data;
-    allAuthList.value = authRes.data;
-});
-
-/* ================= 사원 선택 ================= */
 const selectEmployee = (emp) => {
     selectedEmployee.value = emp;
-
-    const ownedAuthIds = emp.empAuth.map(a => a.auth_id);
-
-    authList.value = allAuthList.value.map(auth => ({
-        ...auth,
-        enabled: ownedAuthIds.includes(auth.id)
-    }));
-
-    // 기준 상태 저장
-    originalAuthIds.value = [...ownedAuthIds].sort();
+    router.push(`/admin/menus/${emp.id}/auth`);
 };
 
-/* ================= 저장 ================= */
-const saveAuth = async () => {
-    if (isSelf.value) {
-        ElMessage.error("본인 권한은 수정할 수 없습니다.");
-        return;
-    }
-
-    const enabledAuthIds = authList.value
-        .filter(a => a.enabled)
-        .map(a => a.id);
-
-    try {
-        await api.put("/emp/admin/auth/modify", {
-            emp_id: selectedEmployee.value.id,
-            auth_id: enabledAuthIds
-        });
-        // ✅ 1. selectedEmployee 갱신
-        selectedEmployee.value.empAuth = enabledAuthIds.map(id => ({
-            auth_id: id
-        }));
-
-        // ✅ 2. employees 리스트도 동기화
-        const idx = employees.value.findIndex(
-            e => e.id === selectedEmployee.value.id
-        );
-
-        if (idx !== -1) {
-            employees.value[idx].empAuth = selectedEmployee.value.empAuth;
-        }
-
-        // 기준 상태 갱신
-        originalAuthIds.value = [...enabledAuthIds].sort();
-
-        ElMessage.success("권한이 수정되었습니다");
-    } catch (e) {
-        console.log(e)
-        ElMessage.error(e.response.data);
-    }
+const goEdit = (emp) => {
+    selectedEmployee.value = emp;
+    router.push(`/admin/menus/${emp.id}/edit`);
 };
 
+const positionMap = {
+  "1": "CEO",
+  "2": "고객관리 팀장",
+  "3": "영업관리 팀장",
+  "4": "제품관리 팀장",
+  "5": "고객관리 팀원",
+  "6": "영업관리 팀원",
+  "7": "제품관리 팀원"
+};
+
+const syncEmployee = (payload) => {
+  const idx = employees.value.findIndex(e => e.id === payload.id);
+  if (idx === -1) return;
+
+  const prev = employees.value[idx];
+
+  employees.value[idx] = {
+    ...prev,
+    ...payload,
+    position: {
+      position_id: payload.position?.position_id ?? prev.position.position_id,
+      position_name:
+        positionMap[payload.position?.position_id] ?? prev.position.position_name
+    }
+  };
+
+  if (selectedEmployee.value?.id === payload.id) {
+    selectedEmployee.value = employees.value[idx];
+  }
+};
 </script>
 
 <style scoped>
@@ -219,28 +134,16 @@ const saveAuth = async () => {
     margin-bottom: 20px;
 }
 
-.page-title h2 {
-    margin: 0;
-    font-size: 26px;
-}
-
-.page-title span {
-    color: #6b7280;
+.card-header{
+    padding-bottom: 10px;
 }
 
 .content {
     display: flex;
     gap: 20px;
     height: calc(100vh - 120px);
-    /* ✅ 전체 높이 고정 */
 }
 
-/* 공통 스크롤 */
-.scroll {
-    overflow-y: auto;
-}
-
-/* 좌측 */
 .user-list {
     width: 320px;
     border-radius: 14px;
@@ -249,123 +152,78 @@ const saveAuth = async () => {
 }
 
 .search {
-    margin-bottom: 12px;
+    margin-bottom: 5px;
 }
 
 .list {
     flex: 1;
-    padding-right: 4px;
+    overflow-y: auto;
 }
 
 .user-item {
+    position: relative;
     display: flex;
-    gap: 12px;
-    padding: 10px;
-    border-radius: 10px;
+    justify-content: space-between;
+    padding: 14px;
+    border-radius: 12px;
     cursor: pointer;
-}
-
-.user-item.active {
-    background: #eff6ff;
-    border-left: 4px solid #3b82f6;
 }
 
 .user-item:hover {
     background: #f1f5f9;
 }
 
+.user-item.active {
+    background: #eff6ff;
+}
+
+.left {
+    display: flex;
+    gap: 12px;
+}
+
+.avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #2563eb;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .meta .name {
     font-weight: 600;
 }
 
-.meta .sub {
+.meta .email {
     font-size: 12px;
     color: #6b7280;
 }
 
 .meta .dept {
     font-size: 12px;
-    color: #3b82f6;
-}
-
-/* 우측 패널 전체 */
-.auth-panel {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    border-radius: 14px;
-}
-
-
-.auth-panel :deep(.el-card__body) {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    padding: 16px;
-}
-
-.emp-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    /* ⭐ 좌우 분리 */
-    margin-bottom: 12px;
-}
-
-.emp-info {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.emp-header .name {
-    font-weight: 700;
-}
-
-.emp-header .sub {
-    font-size: 13px;
-    color: #6b7280;
-}
-
-.hint {
-    margin-bottom: 12px;
-}
-
-/* 🔒 고정 영역 */
-.auth-fixed {
-    flex-shrink: 0;
-}
-
-/* 📜 스크롤 영역 */
-.auth-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding-right: 4px;
-}
-
-.auth-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-}
-
-.auth-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px;
-    border-radius: 12px;
-    border: 1px solid #e5e7eb;
+    color: #2563eb;
 }
 
 .actions {
-    display: flex;
-    align-items: center;
+    opacity: 0;
+    transition: opacity 0.15s;
 }
 
-.actions .el-button {
-    height: 36px;
-    padding: 0 18px;
+.user-item:hover .actions {
+    opacity: 1;
+}
+
+.right-panel {
+    flex: 1;
+    border-radius: 14px;
+    height: 100%;
+}
+
+.right-panel :deep(.el-card__body) {
+    height: 100%;
+    padding: 16px;
 }
 </style>
