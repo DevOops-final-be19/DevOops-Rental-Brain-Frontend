@@ -1,8 +1,19 @@
 <template>
     <div class="admin-auth-page">
         <div class="page-title">
-            <h2>사용자 관리</h2>
-            <span>사용자별 권한을 관리합니다</span>
+            <div class="title-left">
+                <h2>사용자 관리</h2>
+                <span>사용자별 권한을 관리합니다</span>
+            </div>
+
+            <div class="title-right">
+                <el-button type="primary" size="medium" round @click="goCreate">
+                    <el-icon>
+                        <User />
+                    </el-icon>
+                    사원 등록
+                </el-button>
+            </div>
         </div>
 
         <div class="content">
@@ -10,12 +21,19 @@
             <el-card shadow="never" class="user-list">
                 <template #header>
                     <div class="card-header">
-                        <el-icon>
-                            <User />
-                        </el-icon>
-                        사용자 목록
+                        <div class="header-top">
+                            <div class="title">
+                                <el-icon>
+                                    <User />
+                                </el-icon>
+                                사용자 목록
+                            </div>
+
+
+                        </div>
+
+                        <el-input v-model="keyword" placeholder="이름, 이메일, 부서 검색" clearable class="search" />
                     </div>
-                    <el-input v-model="keyword" placeholder="이름, 이메일, 부서 검색" clearable class="search" />
                 </template>
 
 
@@ -36,7 +54,7 @@
                         </div>
 
                         <div class="actions">
-                            <el-button circle size="small" class="icon-btn" @click.stop="goEdit(emp)">
+                            <el-button circle size="large" class="icon-btn" @click.stop="goEdit(emp)">
                                 <el-icon>
                                     <Edit />
                                 </el-icon>
@@ -47,8 +65,9 @@
             </el-card>
 
             <!-- 우측 패널 -->
-            <el-card shadow="never" class="right-panel" v-if="selectedEmployee">
-                <router-view :key="$route.fullPath" :employee="selectedEmployee" :auth-master="authMaster" @updateEmployee="syncEmployee" />
+            <el-card shadow="never" class="right-panel" v-if="$route.name">
+                <router-view :key="$route.fullPath" :employee="selectedEmployee" :auth-master="authMaster"
+                    :position-map="positionMap" @updateEmployee="syncEmployee" />
             </el-card>
         </div>
     </div>
@@ -67,15 +86,21 @@ const employees = ref([]);
 const selectedEmployee = ref(null);
 const keyword = ref("");
 const authMaster = ref([]);
+const positionMap = ref({});
 
 onMounted(async () => {
-    const [empRes, authRes] = await Promise.all([
+    const [empRes, authRes, posRes] = await Promise.all([
         api.get("/emp/admin/emplist"),
         api.get("/emp/admin/empauthlist"),
+        api.get("/emp/admin/positionlist"),
     ]);
 
     employees.value = empRes.data;
     authMaster.value = authRes.data;
+    positionMap.value = posRes.data.reduce((acc, cur) => {
+        acc[cur.position_id] = cur.position_name;
+        return acc;
+    }, {});
 });
 
 const filteredEmployees = computed(() => {
@@ -97,14 +122,9 @@ const goEdit = (emp) => {
     router.push(`/admin/menus/${emp.id}/edit`);
 };
 
-const positionMap = {
-  "1": "CEO",
-  "2": "고객관리 팀장",
-  "3": "영업관리 팀장",
-  "4": "제품관리 팀장",
-  "5": "고객관리 팀원",
-  "6": "영업관리 팀원",
-  "7": "제품관리 팀원"
+const goCreate = () => {
+    selectedEmployee.value = null;
+    router.push("/admin/menus/create");
 };
 
 const syncEmployee = (payload) => {
@@ -113,13 +133,18 @@ const syncEmployee = (payload) => {
 
   const prev = employees.value[idx];
 
+  const nextPositionId =
+    payload.position?.position_id != null
+      ? Number(payload.position.position_id)
+      : prev.position.position_id;
+
   employees.value[idx] = {
     ...prev,
     ...payload,
     position: {
-      position_id: payload.position?.position_id ?? prev.position.position_id,
+      position_id: nextPositionId,
       position_name:
-        positionMap[payload.position?.position_id] ?? prev.position.position_name
+        positionMap.value[nextPositionId] ?? prev.position.position_name
     }
   };
 
@@ -130,12 +155,37 @@ const syncEmployee = (payload) => {
 </script>
 
 <style scoped>
+.header-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.header-top .title {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
 .page-title {
+    display: flex;
+    justify-content: space-between;
+    /* ⭐ 좌/우 분리 */
+    align-items: center;
     margin-bottom: 20px;
 }
 
-.card-header{
-    padding-bottom: 10px;
+.title-left {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.title-right {
+    display: flex;
+    align-items: center;
+    padding-right: 20px;
 }
 
 .content {

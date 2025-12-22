@@ -126,6 +126,11 @@ const routes = [
             name: "admin-user-edit",
             component: () => import("@/views/systemmenu/UserEditView.vue"),
           },
+          {
+            path: 'create',
+            name: 'admin-create-emp',
+            component: () => import('@/views/systemmenu/CreateEmpView.vue'),
+          },
         ],
       },
       {

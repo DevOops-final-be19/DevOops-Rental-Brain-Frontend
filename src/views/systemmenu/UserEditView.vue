@@ -76,13 +76,7 @@
       <!-- 직급 -->
       <el-form-item label="직급">
         <el-select v-model="form.positionId" style="width: 100%">
-          <el-option label="CEO" value="1" />
-          <el-option label="고객관리 팀장" value="2" />
-          <el-option label="영업관리 팀장" value="3" />
-          <el-option label="제품관리 팀장" value="4" />
-          <el-option label="고객관리 팀원" value="5" />
-          <el-option label="영업관리 팀원" value="6" />
-          <el-option label="제품관리 팀원" value="7" />
+          <el-option v-for="(name, id) in props.positionMap" :key="id" :label="name" :value="String(id)" />
         </el-select>
       </el-form-item>
 
@@ -120,6 +114,10 @@ const rules = {
 
 const props = defineProps({
   employee: {
+    type: Object,
+    required: true
+  },
+  positionMap: {
     type: Object,
     required: true
   }
@@ -214,6 +212,7 @@ const save = async () => {
 
 .header {
   margin-bottom: 16px;
+  text-align: center;
 }
 
 .header h3 {
