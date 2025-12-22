@@ -4,10 +4,10 @@
             <h3>사원 등록</h3>
         </div>
 
-        <el-form ref="formRef" :model="form" :rules="rules" label-width="120px">
-            <!-- 사번 -->
+        <el-form ref="formRef" :model="form" :rules="rules" label-width="100px">
+            <!-- 아이디 -->
             <el-form-item label="사원 아이디" prop="empId">
-                <el-input v-model="form.empId" />
+                <el-input v-model="form.empId" placeholder="숫자, 문자 조합으로 작성해주십시오." />
             </el-form-item>
 
             <!-- 비밀번호 -->
@@ -22,12 +22,12 @@
 
             <!-- 전화번호 -->
             <el-form-item label="전화번호" prop="phone">
-                <el-input v-model="form.phone" />
+                <el-input v-model="form.phone" placeholder="하이픈 없이 작성해주십시오." />
             </el-form-item>
 
             <!-- 이메일 -->
             <el-form-item label="이메일" prop="email">
-                <el-input v-model="form.email" />
+                <el-input v-model="form.email" placeholder="example@email.com" />
             </el-form-item>
 
             <!-- 주소 -->
@@ -67,10 +67,12 @@
 
             <!-- 버튼 -->
             <el-form-item>
-                <el-button type="primary" size="large" @click="save">
-                    등록
-                </el-button>
-            </el-form-item>
+                <div class="button-row">
+                    <el-button type="primary" class="submit-btn" round @click="save">
+                        등록
+                    </el-button>
+                </div>
+                </el-form-item>
         </el-form>
     </div>
 </template>
@@ -107,10 +109,22 @@ const form = reactive({
 });
 
 const rules = {
-    empId: [{ required: true, message: "사번은 필수입니다", trigger: "blur" }],
+    empId: [{ required: true, message: "아이디는 필수입니다", trigger: "blur" },
+    {
+        pattern: /^[a-zA-Z0-9._-]+$/,
+        message: "아이디 형식이 올바르지 않습니다.",
+        trigger: "blur"
+    }
+    ],
     pwd: [{ required: true, message: "비밀번호는 필수입니다", trigger: "blur" }],
     name: [{ required: true, message: "이름은 필수입니다", trigger: "blur" }],
-    phone: [{ required: true, message: "전화번호는 필수입니다", trigger: "blur" }],
+    phone: [{ required: true, message: "전화번호는 필수입니다", trigger: "blur" },
+    {
+        pattern: /^01[0-9]?\d{3,4}?\d{4}$/,
+        message: "연락처 형식이 올바르지 않습니다",
+        trigger: "blur"
+    }
+    ],
     email: [
         { required: true, message: "이메일은 필수입니다", trigger: "blur" },
         {
@@ -131,19 +145,19 @@ const save = async () => {
     formRef.value.validate(async (valid) => {
         if (!valid) return;
 
-        try{
-        await api.post("/emp/admin/signup", {
-            ...form,
-            positionId: Number(form.positionId)
-        });
+        try {
+            await api.post("/emp/admin/signup", {
+                ...form,
+                positionId: Number(form.positionId)
+            });
 
-        ElMessage.success("사원이 등록되었습니다");
+            ElMessage.success("사원이 등록되었습니다");
 
-        // 등록 후 목록으로
-        router.push("/admin/menus");
-        // 또는 바로 수정 화면
-        // router.push(`/admin/menus/${newEmpId}/edit`);
-        }catch(e){
+            // 등록 후 목록으로
+            router.push("/admin/menus");
+            // 또는 바로 수정 화면
+            // router.push(`/admin/menus/${newEmpId}/edit`);
+        } catch (e) {
             ElMessage.warning(e.response?.data)
         }
     });
@@ -160,5 +174,18 @@ const save = async () => {
 .header {
     margin-bottom: 16px;
     text-align: center;
+}
+
+.button-row {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+
+.submit-btn {
+    margin-top: 20px;
+    width: 180px;
+    height: 44px;
+    font-size: 16px;
 }
 </style>
