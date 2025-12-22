@@ -10,7 +10,7 @@
     <!-- 사용자 정보 -->
     <div class="user-section">
       <el-avatar size="large" src="https://via.placeholder.com/80" />
-      <div class="user-info">
+      <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
         <el-button type="primary" class="button" @click.stop="logout">
@@ -269,6 +269,10 @@ const goToNotificationCenter = ()=>{
   router.push("/notifications");
 }
 
+const goToMyPage = ()=>{
+  router.push('/mypage')
+}
+
 onMounted(async () => {
   noticeStore.fetchUnread(authStore.id);
 })
@@ -368,13 +372,23 @@ const getIcon = (type) => {
   display: flex;
   align-items: center;
   padding-top: 20px;
+  padding-right: 7px;
   gap: 10px;
   position: relative;
 }
 
 .user-info {
+  transition-duration: 0.2s;
   display: flex;
   flex-direction: column;
+  color: #0F172A;
+  cursor: pointer;
+}
+
+.user-info:hover {
+  transition-duration: 0.2s;
+  color: #1E3A8A;
+  cursor: pointer;
 }
 
 .user-info .name {
