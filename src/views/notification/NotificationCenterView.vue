@@ -227,11 +227,21 @@ const tabs = [
 
 /* utils */
 const timeAgo = (date) => {
-  const diff = dayjs().diff(dayjs(date), "minute");
-  if (diff < 1) return "방금 전";
-  if (diff < 60) return `${diff}분 전`;
-  if (diff < 1440) return `${Math.floor(diff / 60)}시간 전`;
-  return `${Math.floor(diff / 1440)}일 전`;
+const now = dayjs();
+  const target = dayjs(date);
+  const diffSec = now.diff(target, "second");
+  const diffMin = now.diff(target, "minute");
+  const diffHour = now.diff(target, "hour");
+  const diffDay = now.diff(target, "day");
+  const diffWeek = now.diff(target, "week");
+  const diffMonth = now.diff(target, "month");
+  const diffYear = now.diff(target, "year");
+  if (diffSec < 60) return "방금 전";
+  if (diffMin < 60) return `${diffMin}분 전`;
+  if (diffHour < 24) return `${diffHour}시간 전`;
+  if (diffDay < 7) return `${diffDay}일 전`;
+  if (diffWeek < 4) return `${diffWeek}주 전`;
+  if (diffMonth < 12) return `${diffMonth}개월 전`;
 };
 
 const getIcon = (type) => {

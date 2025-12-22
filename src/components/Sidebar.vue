@@ -10,7 +10,7 @@
     <!-- 사용자 정보 -->
     <div class="user-section">
       <el-avatar size="large" src="https://via.placeholder.com/80" />
-      <div class="user-info">
+      <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
         <el-button type="primary" class="button" @click.stop="logout">
@@ -94,10 +94,8 @@
       <!-- 고객 -->
       <el-sub-menu index="customer">
         <template #title>
-          <el-icon>
-            <UserFilled />
-          </el-icon>
-          <span>고객관리</span>
+          <el-icon><UserFilled /></el-icon>
+          <span>고객 관리</span>
         </template>
 
         <el-menu-item index="/customers">
@@ -107,12 +105,20 @@
           고객 목록
         </el-menu-item>
 
-        <el-menu-item index="/cs">
-          <el-icon>
-            <ChatDotRound />
-          </el-icon>
-          고객응대
-        </el-menu-item>
+        <el-sub-menu index="cs">
+          <template #title>
+            <el-icon><ChatDotRound /></el-icon>
+            <span>고객 응대</span>
+          </template>
+          
+          <el-menu-item index="/cs/supports">
+            <el-icon><QuestionFilled /></el-icon> 문의 관리
+          </el-menu-item>
+          
+          <el-menu-item index="/cs/feedbacks">
+            <el-icon><Star /></el-icon> 피드백 관리
+          </el-menu-item>
+        </el-sub-menu>
 
         <el-menu-item index="/analysis/overview">
           <el-icon>
@@ -133,10 +139,8 @@
       <!-- 영업관리 (견적/계약/캠페인) -->
       <el-sub-menu index="business">
         <template #title>
-          <el-icon>
-            <Briefcase />
-          </el-icon>
-          <span>영업관리</span>
+          <el-icon><Briefcase /></el-icon>
+          <span>영업 관리</span>
         </template>
 
         <el-menu-item index="/quotes">
@@ -164,10 +168,8 @@
       <!-- 자산운영 -->
       <el-sub-menu index="product">
         <template #title>
-          <el-icon>
-            <Box />
-          </el-icon>
-          <span>제품관리</span>
+          <el-icon><Box /></el-icon>
+          <span>제품 관리</span>
         </template>
 
         <el-menu-item index="/assets">
@@ -178,19 +180,15 @@
         </el-menu-item>
 
         <el-menu-item index="/as">
-          <el-icon>
-            <Tools />
-          </el-icon>
-          AS/정기점검
+          <el-icon><Tools /></el-icon>
+          AS / 정기점검
         </el-menu-item>
       </el-sub-menu>
 
       <!-- 결재관리 -->
       <el-menu-item index="/approvals">
-        <el-icon>
-          <Notebook />
-        </el-icon>
-        전자결재
+        <el-icon><Notebook /></el-icon>
+        전자 결재
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
@@ -229,7 +227,9 @@ import {
   Box,
   Setting,
   Tools,
-  CreditCard
+  CreditCard,
+  QuestionFilled, // 문의 관리 아이콘
+  Star            // 피드백 관리 아이콘
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -267,6 +267,10 @@ const logout = async () => {
 const goToNotificationCenter = ()=>{
   vis.value = false;
   router.push("/notifications");
+}
+
+const goToMyPage = ()=>{
+  router.push('/mypage')
 }
 
 onMounted(async () => {
@@ -368,13 +372,23 @@ const getIcon = (type) => {
   display: flex;
   align-items: center;
   padding-top: 20px;
+  padding-right: 7px;
   gap: 10px;
   position: relative;
 }
 
 .user-info {
+  transition-duration: 0.2s;
   display: flex;
   flex-direction: column;
+  color: #0F172A;
+  cursor: pointer;
+}
+
+.user-info:hover {
+  transition-duration: 0.2s;
+  color: #1E3A8A;
+  cursor: pointer;
 }
 
 .user-info .name {

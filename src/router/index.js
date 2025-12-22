@@ -27,9 +27,14 @@ const routes = [
 
       // --- 고객응대 ---
       {
-        path: 'cs',
-        name: 'cs-list',
-        component: () => import('@/views/cs/CsListView.vue'),
+        path: 'cs/supports',
+        name: 'cs-support-list',
+        component: () => import('@/views/cs/SupportListView.vue'), // 문의 관리
+      },
+      {
+        path: 'cs/feedbacks',
+        name: 'cs-feedback-list',
+        component: () => import('@/views/cs/FeedbackListView.vue'), // 피드백 관리
       },
 
       // --- 고객분석 ---
@@ -129,6 +134,22 @@ const routes = [
         path: 'admin/users',
         name: 'admin-users',
         component: () => import('@/views/systemmenu/UserManageView.vue'),
+      },
+      // --- 사용자 페이지 ---
+      {
+        path: 'mypage',
+        name: 'my-page',
+        component: () => import('@/views/auth/MyPageView.vue'),
+      },
+      {
+        path: 'modifyinfo',
+        name: 'modify-info-page',
+        component: () => import('@/views/auth/ModifyInfoPageView.vue'),
+      },
+      {
+        path: 'modifypwd',
+        name: 'modify-pwd-page',
+        component: () => import('@/views/auth/ModifyPwdView.vue'),
       },
     ],
   },
