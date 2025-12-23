@@ -65,6 +65,7 @@ onMounted(load);
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
   min-height: 360px;
+  color: #000000;
 }
 
 .chart-card h3 {

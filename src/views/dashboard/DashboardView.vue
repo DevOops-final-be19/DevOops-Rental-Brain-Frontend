@@ -5,19 +5,21 @@
       <div class="row-full">
         <DashboardKpi />
       </div>
+      
+        <!-- 3열 -->
+        <div class="row-3">
+          <QuarterCustomerChart />
+          <AiInsight />
+          <ProductStatusChart />
+        </div>
 
+      
       <!-- 2열 -->
       <div class="row-2">
         <SegmentAnalysisChart />
         <PriorityAlert />
       </div>
 
-      <!-- 3열 -->
-      <div class="row-3">
-        <QuarterCustomerChart />
-        <AiInsight />
-        <ProductStatusChart />
-      </div>
     </div>
   </div>
 </template>
