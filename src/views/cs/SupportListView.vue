@@ -81,13 +81,13 @@
           sortable="custom" 
         />
         
-        <el-table-column 
+        <!-- <el-table-column 
             prop="createDate" 
             label="접수일시" 
             width="160" 
             align="center" 
             :formatter="dateFormatter" 
-        />
+        /> -->
 
         <el-table-column prop="customerName" label="기업명" width="150" show-overflow-tooltip />
         <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip />
