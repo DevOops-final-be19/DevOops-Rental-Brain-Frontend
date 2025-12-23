@@ -49,6 +49,8 @@
         </div>
       </div>
     </div>
+
+    <SegmentAnalysisChart />
   </div>
 </template>
 
@@ -56,6 +58,7 @@
 import { computed, onMounted, ref } from "vue";
 import { useRoute } from "vue-router";
 import { getRiskKpi, getRiskReasonKpi } from "@/api/customeranalysis";
+import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
 
 const route = useRoute();
 const isActive = (path) => route.path === path;

@@ -11,8 +11,8 @@
     <!-- KPI 5개 -->
     <div class="kpi-wrapper">
       <div class="kpi-box">
-        <div class="kpi-title">총 고객 수</div>
-        <div class="kpi-value">{{ fmt(kpi.totalCustomerCount) }}개사</div>
+        <div class="kpi-title">거래중 고객 / 총 고객 수</div>
+        <div class="kpi-value">{{ fmt(kpi.tradeCustomerCount) }}개사 / {{ fmt(kpi.totalCustomerCount) }}개사</div>
         <div class="kpi-sub">
           <span class="up">▲ {{ round1(kpi.tradeCustomerMomRate) }}%</span>
           <span class="muted">전월 대비(거래 고객 기준)</span>
@@ -21,7 +21,7 @@
 
       <div class="kpi-box">
         <div class="kpi-title">평균 거래액</div>
-        <div class="kpi-value">{{ fmtWon(kpi.avgTradeAmount) }}</div>
+        <div class="kpi-value">{{ fmtManwon(kpi.avgTradeAmount) }}</div>
         <div class="kpi-sub">
           <span class="up">▲ {{ round1(kpi.avgTradeMomRate) }}%</span>
           <span class="muted">전월 대비</span>
@@ -57,38 +57,29 @@
 
     </div>
 
-    <!-- 2열 레이아웃 -->
-    <div class="grid-2">
-      <!-- 월별 응대 트렌드(너 백엔드가 있으면 여기 연결, 없으면 UI만 유지) -->
-      <SupportMonthlyTrend />
-
-
-      <!-- 월별 이탈률 추이(백엔드 연동 완료) -->
-      <div class="card">
-        <div class="card-title">월별 이탈률 추이</div>
-        <div class="chart-placeholder">
-          <div class="hint">막대 차트 자리</div>
-
-          <!-- 일단 데이터가 들어오는지 “텍스트로” 검증 (차트 붙이면 이 부분 제거) -->
-          <div class="debug-row">
-            <span v-for="m in riskMonthly" :key="m.snapshotMonth" class="chip">
-              {{ m.snapshotMonth }}: {{ round1(m.riskRate) }}%
-            </span>
-          </div>
-        </div>
+        <!-- 2열 레이아웃 -->
+    <div class="summary-grid">
+      <div class="col col-2">
+        <SupportMonthlyTrend />
       </div>
-     
+
+      <div class="col col-2">
+        <RiskMonthlyRate />
+      </div>
+
+      <div class="col col-1">
+        <RiskGuideTable /> <!-- 기준표만 분리 -->
+      </div>
     </div>
 
     <!-- 2열 레이아웃 -->
     <div class="grid-2">
- <!-- 세그먼트 분포 (파이 차트 자리 → 컴포넌트 교체) -->
       <div class="card">
         <SegmentDistribution
           title="고객 세그먼트 분석"
           :segments="segmentDist.segments"
           :total="segmentDist.totalCustomerCount"
-          :showMiniList="true"
+          :showMiniList="false"
         />
       </div>
 
@@ -118,42 +109,6 @@
         </div>
       </div>
     </div>
-
-    <!-- 기준표(고정 UI) -->
-    <div class="card">
-      <div class="card-title">권장 기준표 (B2B 렌탈 CRM 기준)</div>
-      <table class="guide-table">
-        <thead>
-          <tr>
-            <th>단계</th>
-            <th>조건</th>
-            <th>의미</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td><span class="badge ok">정상</span></td>
-            <td>≤ 10%</td>
-            <td>안정 상태</td>
-          </tr>
-          <tr>
-            <td><span class="badge warn">주의</span></td>
-            <td>10% ~ 15%</td>
-            <td>관리 필요</td>
-          </tr>
-          <tr>
-            <td><span class="badge alert">경고</span></td>
-            <td>15% ~ 20%</td>
-            <td>구조적 문제 가능</td>
-          </tr>
-          <tr>
-            <td><span class="badge danger">위험</span></td>
-            <td>≥ 20%</td>
-            <td>즉각 대응 필요</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
   </div>
 </template>
 
@@ -171,7 +126,8 @@ import {
 // 세그먼트 도넛 차트 컴포넌트
 import SegmentDistribution from '@/components/analysis/SegmentDistribution.vue';
 import SupportMonthlyTrend from '@/components/analysis/SupportMonthlyTrend.vue';
-// import RiskMonthlyRate from '@/components/analysis/RiskMonthlyRate.vue';
+import RiskMonthlyRate from '@/components/analysis/RiskMonthlyRate.vue';
+import RiskGuideTable from '@/components/analysis/RiskGuideTable.vue';
 
 const route = useRoute();
 const isActive = (path) => route.path === path;
@@ -276,7 +232,14 @@ const last12MonthsRange = () => {
 };
 
 const fmt = (n) => (Number(n) || 0).toLocaleString();
-const fmtWon = (n) => `${fmt(n)}만원`; // 화면처럼 "만원"이면 백엔드 avgTradeAmount 단위 확인 필요(원/만원)
+const fmtManwon = (n) => {
+  const v = Number(n) || 0;
+
+  // 값이 크면(보통 원 단위) 만원으로 변환해서 표시
+  const inManwon = v >= 100000 ? (v / 10000) : v;
+
+  return `${inManwon.toLocaleString(undefined, { maximumFractionDigits: 1 })}만원`;
+};
 const round1 = (n) => (Number(n) || 0).toFixed(1);
 </script>
 
@@ -362,7 +325,7 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
 }
 
 .kpi-value {
-  font-size: 28px;
+  font-size: 25px;
   font-weight: 800;
   color: #333;
 }
@@ -392,14 +355,26 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   margin-bottom: 20px;
 }
 
+/* 카드들 묶는 그리드 */
+.grid-3 {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr; /* 너가 원한 2:2:1 */
+  column-gap: 16px;
+  row-gap: 16px;      /* ✅ 세로 간격 고정 */
+  align-items: stretch; /* ✅ 같은 row에서 높이 맞추기 */
+}
+
 .card {
   background: #fff;
   border: 1px solid #eee;
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
 
+  display: flex;
+  flex-direction: column;
+  min-height: 360px;  /* ✅ 같은 줄 카드 높이 맞추는 핵심 */
+}
 .card-title {
   font-size: 14px;
   font-weight: 700;
@@ -494,5 +469,17 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
 
 @media (max-width: 640px) {
   .kpi-box { flex: 1 1 100%; }
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: 2fr 2fr 1fr; /* ⭐ 2:2:1 */
+  gap: 16px;
+  align-items: stretch;
+}
+
+.col {
+  display: flex;
+  flex-direction: column;
 }
 </style>
