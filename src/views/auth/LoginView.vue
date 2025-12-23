@@ -108,7 +108,7 @@ const login = async () => {
 
 </script>
 
-<style>
+<style scoped>
 .login-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff);

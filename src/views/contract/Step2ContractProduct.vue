@@ -144,7 +144,7 @@ const emit = defineEmits(['update', 'next', 'prev'])
 /* 계약 정보 */
 const contractName = ref('')
 const startDate = ref('')
-const duration = ref(12)
+const duration = ref('')
 
 /* 만료일 계산 */
 const endDate = computed(() => {
@@ -244,6 +244,31 @@ const totalMonthlyPrice = computed(() =>
 
 /* 다음 단계 */
 const handleNext = () => {
+
+  // 계약명
+  if (!contractName.value.trim()) {
+    alert('계약명을 입력해주세요.')
+    return
+  }
+
+  // 계약 시작일
+  if (!startDate.value) {
+    alert('계약 시작일을 선택해주세요.')
+    return
+  }
+
+  // 계약 기간
+  if (!duration.value || duration.value < 1) {
+    alert('계약 기간을 1개월 이상 입력해주세요.')
+    return
+  }
+
+  // 렌탈 제품 최소 1개
+  if (selectedItems.value.length === 0) {
+    alert('렌탈 제품을 최소 1개 이상 선택해주세요.')
+    return
+  }
+
   emit('update', {
     contract: {
       name: contractName.value,
@@ -269,104 +294,37 @@ const formatPrice = v =>
 </script>
 
 <style scoped>
-.step-container {
-  padding: 32px 48px;
-}
+.step-container {padding: 32px 48px;}
 
-.title {
-  font-size: 22px;
-  margin-bottom: 20px;
-}
+.title {font-size: 22px;margin-bottom: 20px;}
 
-.card {
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  margin-bottom: 24px;
-}
+.card {background: #fff;border-radius: 8px;padding: 20px;margin-bottom: 24px;}
 
-.section-title {
-  font-size: 16px;
-  margin-bottom: 12px;
-}
+.section-title {font-size: 16px; margin-bottom: 12px;}
 
-.form-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px;
-}
+.form-grid {display: grid;grid-template-columns: repeat(2, 1fr);gap: 16px;}
 
-input,
-select {
-  width: 100%;
-  padding: 8px 10px;
-}
+input, select {width: 100%;padding: 8px 10px;}
 
-.product-select {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 16px;
-}
+.product-select {display: flex;gap: 8px;margin-bottom: 16px;}
 
-.item-table {
-  width: 100%;
-  border-collapse: collapse;
-}
+.item-table {width: 100%;border-collapse: collapse;}
 
-.item-table th,
-.item-table td {
-  padding: 10px;
-  border-bottom: 1px solid #eee;
-}
+.item-table th, .item-table td {padding: 10px;border-bottom: 1px solid #eee;}
 
-.total-price {
-  margin-top: 12px;
-  font-size: 16px;
-}
+.total-price {margin-top: 12px;font-size: 16px;}
 
-.promotion-list {
-display: flex;
-justify-content: space-around;
-align-items: center;
-margin: 30px;
+.promotion-list {display: flex;justify-content: space-around;align-items: center;margin: 30px;}
 
-}
+.promotion-list input[name="promotion"] {accent-color: #248eff;transform: scale(1.5);cursor: pointer;}
 
+.desc {margin-top: 10px;font-size: 13px;color: #666;line-height: 1.4;}
 
-.promotion-list input[name="promotion"] {
-  accent-color: #248eff;
-  transform: scale(1.5);
-  cursor: pointer;
-}
+.footer {display: flex;justify-content: space-between;}
 
-.desc {
-  margin-top: 10px;
-  font-size: 13px;
-  color: #666;
-  line-height: 1.4;
-}
+.primary-btn {background: #248eff;color: #fff;border: none;padding: 8px 16px;}
 
-.footer {
-  display: flex;
-  justify-content: space-between;
-}
+.secondary-btn {background: #eee;border: none;padding: 8px 16px;}
 
-.primary-btn {
-  background: #248eff;
-  color: #fff;
-  border: none;
-  padding: 8px 16px;
-}
-
-.secondary-btn {
-  background: #eee;
-  border: none;
-  padding: 8px 16px;
-}
-
-.link-btn {
-  background: none;
-  border: none;
-  color: #248eff;
-}
+.link-btn {background: none;border: none;color: #248eff;}
 </style>

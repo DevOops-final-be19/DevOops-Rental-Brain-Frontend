@@ -1,6 +1,7 @@
 <script setup>
   import { ref } from 'vue'
   import api from '@/api/axios';
+  import { useRouter } from 'vue-router'
   
   import Step1Customer from './Step1Customer.vue'
   import Step2ContractProduct from './Step2ContractProduct.vue'
@@ -8,6 +9,8 @@
   import Step4Approval from './Step4Approval.vue'
   import Step5Review from './Step5Review.vue'
   
+const router = useRouter()
+
 /* =========================
    Step 상태
 ========================= */
@@ -110,7 +113,7 @@ const submitContract = async () => {
     alert('계약 승인 요청이 완료되었습니다.')
 
     // TODO: 계약 목록 또는 상세 페이지 이동
-    router.push('/contract')
+    router.push('/contracts')
 
   } catch (e) {
     console.error('계약 승인 요청 실패', e)

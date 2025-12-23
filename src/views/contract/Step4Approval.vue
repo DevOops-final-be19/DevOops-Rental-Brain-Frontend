@@ -62,7 +62,7 @@
      API
   ========================= */
   async function fetchEmployees() {
-    const res = await api.get('/emp/contract')
+    const res = await api.get('/contract/emp')
     employees.value = res.data ?? []
   }
   
