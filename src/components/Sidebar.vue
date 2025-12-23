@@ -157,12 +157,21 @@
           계약(결재)
         </el-menu-item>
 
-        <el-menu-item index="/campaign/promotions">
-          <el-icon>
-            <Promotion />
+        <el-sub-menu index="campaign">
+          <template #title><el-icon>
+            <Present />
           </el-icon>
-          캠페인
-        </el-menu-item>
+          <span>캠페인</span>
+          </template>
+
+          <el-menu-item index="/campaign/promotions">
+            <el-icon><Promotion /></el-icon> 프로모션
+          </el-menu-item>
+          
+          <el-menu-item index="/campaign/coupons">
+            <el-icon><Ticket /></el-icon> 쿠폰
+          </el-menu-item>
+        </el-sub-menu>
       </el-sub-menu>
 
       <!-- 자산운영 -->
@@ -229,7 +238,9 @@ import {
   Tools,
   CreditCard,
   QuestionFilled, // 문의 관리 아이콘
-  Star            // 피드백 관리 아이콘
+  Star,           // 피드백 관리 아이콘
+  Present,
+  Ticket
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
