@@ -19,7 +19,7 @@
           <span class="label">평균 만족도</span>
           <span class="value">
             <span class="star">⭐</span>
-            {{ score(c.avgScore) }}
+            {{ score(c.avgSatisfaction) }}
           </span>
         </div>
       </div>
@@ -49,19 +49,63 @@
 import { onMounted, ref } from "vue";
 import { getCustomerSegmentDetailCard } from "@/api/customeranalysis";
 
+/**
+ * ✅ props: 조회할 세그먼트 ID 목록
+ * - 기본값: 1~7
+ */
 const props = defineProps({
   segmentIds: { type: Array, default: () => [1, 2, 3, 4, 5, 6, 7] },
 });
 
 const cards = ref([]);
 
+/* ---------------------------------------------------------
+ * 1) 공통 유틸(값 보정/포맷)
+ * --------------------------------------------------------- */
+
+/** ✅ 만족도는 0~5 범위로 강제 (백엔드/조인 이슈로 6~7이 와도 UI 방어) */
+const clamp5 = (v) => Math.max(0, Math.min(5, v));
+
+/** ✅ 숫자 콤마 포맷 */
+const fmt = (n) => (Number(n) || 0).toLocaleString();
+
+/** ✅ 만족도 표시(0이면 '-') + 소수 1자리 */
+const score = (n) => {
+  const v = clamp5(Number(n) || 0);
+  if (!v) return "-";
+  return (Math.round(v * 10) / 10).toFixed(1);
+};
+
+/**
+ * ✅ 원 단위를 "억 xxxx만원" / "xxxx만원" 으로 표기
+ * - 1만원 = 10,000원
+ * - 1억 = 100,000,000원 = 10,000만원
+ */
+const moneyKr = (won) => {
+  const v = Math.floor(Number(won) || 0);
+  if (v <= 0) return "0만원";
+
+  const man = Math.floor(v / 10000);      // 만원 단위
+  const eok = Math.floor(man / 10000);    // 억(= 10,000만원)
+  const restMan = man % 10000;
+
+  if (eok > 0 && restMan > 0) return `${eok}억 ${restMan.toLocaleString()}만원`;
+  if (eok > 0) return `${eok}억`;
+  return `${man.toLocaleString()}만원`;
+};
+
+/* ---------------------------------------------------------
+ * 2) 응답 normalize (백엔드 키가 조금 달라도 흡수)
+ * --------------------------------------------------------- */
 const normalize = (segmentId, data) => {
   return {
     segmentId,
 
+    // ✅ 세그먼트명/고객수
     segmentName: data?.segmentName ?? data?.name ?? "세그먼트",
     customerCount: Number(data?.customerCount ?? data?.count ?? 0) || 0,
 
+    // ✅ 금액
     totalTradeAmount: Number(
       data?.totalTradeAmount ?? data?.totalAmount ?? data?.totalTrade ?? 0
     ) || 0,
@@ -70,34 +114,59 @@ const normalize = (segmentId, data) => {
       data?.avgTradeAmount ?? data?.avgAmount ?? data?.avgTrade ?? 0
     ) || 0,
 
-    // ✅ 만족도 키 추가
-    avgScore: Number(
-      data?.avgSatisfaction ?? data?.avgScore ?? data?.averageScore ?? data?.score ?? 0
-    ) || 0,
+    // ✅ 만족도 (키 통일 + 0~5 clamp)
+    avgSatisfaction: clamp5(
+      Number(
+        data?.avgSatisfaction ??
+        data?.avgScore ??
+        data?.averageScore ??
+        data?.score ??
+        0
+      ) || 0
+    ),
 
-    // ✅ 인기 품목 키 추가
-    popularItem: data?.topItemName ?? data?.popularItem ?? data?.topItem ?? data?.bestItem ?? "",
+    // ✅ 세그먼트 카드 하단 3개
+    popularItem:
+      data?.topItemName ??
+      data?.popularItem ??
+      data?.topItem ??
+      data?.bestItem ??
+      "",
 
-    // ✅ 주요 문의사항 키 추가
-    topInquiry: data?.topSupport ?? data?.topInquiry ?? data?.mainInquiry ?? data?.inquiryKeyword ?? "",
+    topInquiry:
+      data?.topSupport ??
+      data?.topInquiry ??
+      data?.mainInquiry ??
+      data?.inquiryKeyword ??
+      "",
 
-    // 기존 그대로
-    topFeedback: data?.topFeedback ?? data?.mainFeedback ?? data?.feedbackKeyword ?? "",
+    topFeedback:
+      data?.topFeedback ??
+      data?.mainFeedback ??
+      data?.feedbackKeyword ??
+      "",
 
+    // ✅ 로딩/에러 표시용
     _loading: false,
     _error: "",
   };
 };
 
+/* ---------------------------------------------------------
+ * 3) API 호출
+ * --------------------------------------------------------- */
 const fetchAll = async () => {
-  // 스켈레톤/로딩 상태 먼저 깔기
+  /**
+   * ✅ 1) 먼저 로딩 카드(스켈레톤 역할)를 깔아둠
+   * - 응답 도착 전에도 UI 레이아웃이 흔들리지 않게
+   */
   cards.value = props.segmentIds.map((id) => ({
     segmentId: id,
     segmentName: "불러오는 중...",
     customerCount: 0,
     totalTradeAmount: 0,
     avgTradeAmount: 0,
-    avgScore: 0,
+    avgSatisfaction: 0,
     popularItem: "",
     topInquiry: "",
     topFeedback: "",
@@ -105,11 +174,16 @@ const fetchAll = async () => {
     _error: "",
   }));
 
+  /**
+   * ✅ 2) 세그먼트별 API 병렬 호출
+   * - 실패해도 다른 카드 렌더링은 계속 진행
+   */
   await Promise.all(
     props.segmentIds.map(async (id) => {
       try {
         const res = await getCustomerSegmentDetailCard(id);
-        const data = res?.data ?? res; // 혹시 res.data가 아닌 경우도 대비
+        const data = res?.data ?? res; // axios면 res.data가 일반적이라 방어
+
         const next = normalize(id, data);
 
         const idx = cards.value.findIndex((x) => x.segmentId === id);
@@ -130,36 +204,10 @@ const fetchAll = async () => {
 
 onMounted(fetchAll);
 
-/* ---------- format helpers ---------- */
-const fmt = (n) => (Number(n) || 0).toLocaleString();
-
-const score = (n) => {
-  const v = Number(n) || 0;
-  if (!v) return "-";
-  return (Math.round(v * 10) / 10).toFixed(1);
-};
-
-/**
- * 원 단위를 "억 xxxx만원" / "xxxx만원" 으로 표기
- * - 1만원 = 10,000원
- * - 1억 = 100,000,000원 = 10,000만원
- */
-const moneyKr = (won) => {
-  const v = Math.floor(Number(won) || 0);
-  if (v <= 0) return "0만원";
-
-  const man = Math.floor(v / 10000); // 만원 단위
-  const eok = Math.floor(man / 10000); // 억(= 10,000만원)
-  const restMan = man % 10000;
-
-  if (eok > 0 && restMan > 0) return `${eok}억 ${restMan.toLocaleString()}만원`;
-  if (eok > 0) return `${eok}억`;
-  return `${man.toLocaleString()}만원`;
-};
-
-/* ---------- tone ---------- */
+/* ---------------------------------------------------------
+ * 4) 카드 톤(테두리 강조)
+ * --------------------------------------------------------- */
 const toneClass = (segmentId) => {
-  // 너 스샷 느낌대로 테두리 톤만 다르게
   const map = {
     1: "tone-blue",     // 잠재
     2: "tone-sky",      // 신규
@@ -172,7 +220,6 @@ const toneClass = (segmentId) => {
   return map[segmentId] ?? "tone-gray";
 };
 </script>
-
 <style scoped>
 /* ✅ 4 + 3 느낌 (반응형 포함) */
 .seg-wrap{
