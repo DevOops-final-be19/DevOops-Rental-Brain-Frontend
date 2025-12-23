@@ -22,16 +22,16 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
-import axios from "axios";
 
 import VChart from "vue-echarts";
 import { use } from "echarts/core";
-import { BarChart, LineChart } from "echarts/charts";
+import { BarChart } from "echarts/charts";
 import { GridComponent, TooltipComponent, LegendComponent } from "echarts/components";
 import { CanvasRenderer } from "echarts/renderers";
+
 import { getSegmentTradeChart } from "@/api/customeranalysis";
 
-use([BarChart, LineChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
+use([BarChart, GridComponent, TooltipComponent, LegendComponent, CanvasRenderer]);
 
 const route = useRoute();
 
@@ -53,6 +53,18 @@ const hasData = computed(() => {
   return rows.value.some((r) => (Number(r.customerCount) || 0) > 0 || (Number(r.totalTradeAmount) || 0) > 0);
 });
 
+// ✅ 원(₩) → "n억 m만원" 자동 포맷
+const fmtMoneyAuto = (won) => {
+  const v = Number(won) || 0;
+  const man = Math.floor(v / 10000); // 원 → 만원
+  if (man >= 10000) {
+    const eok = Math.floor(man / 10000);
+    const restMan = man % 10000;
+    return restMan > 0 ? `${eok}억 ${restMan.toLocaleString()}만원` : `${eok}억`;
+  }
+  return `${man.toLocaleString()}만원`;
+};
+
 const option = computed(() => {
   const labels = (rows.value ?? []).map((r) => r.segmentName ?? "Unknown");
   const customerCounts = (rows.value ?? []).map((r) => Number(r.customerCount) || 0);
@@ -62,28 +74,40 @@ const option = computed(() => {
   return {
     tooltip: {
       trigger: "axis",
-      valueFormatter: (v) => (Number(v) || 0).toLocaleString(),
+      formatter: (params) => {
+        return params
+          .map((p) => {
+            if (p.seriesName.includes("매출")) {
+              return `${p.marker}${p.seriesName}: ${fmtMoneyAuto(p.value)}`;
+            }
+            return `${p.marker}${p.seriesName}: ${(Number(p.value) || 0).toLocaleString()}명`;
+          })
+          .join("<br/>");
+      },
     },
+
     legend: { bottom: 0 },
     grid: { left: 40, right: 20, top: 20, bottom: 45, containLabel: true },
     xAxis: { type: "category", data: labels },
+
+    // ✅ 매출 축을 "억" 단위로 (차트 스케일 깔끔)
     yAxis: [
       { type: "value", name: "고객수" },
       {
         type: "value",
-        name: "매출(원)",
+        name: "매출(억)",
         axisLabel: {
-          formatter: (v) => `${(Number(v) / 100000000).toFixed(0)}억`,
+          formatter: (v) => `${Math.floor((Number(v) || 0) / 100000000).toLocaleString()}`, // 원 → 억 (소수점 제거)
         },
       },
     ],
+
     series: [
       {
         name: "고객수",
         type: "bar",
         yAxisIndex: 0,
         data: customerCounts,
-        itemStyle: { color: "#6366F1" },
         barMaxWidth: 26,
       },
       {
@@ -91,39 +115,33 @@ const option = computed(() => {
         type: "bar",
         yAxisIndex: 1,
         data: totalSales,
-        itemStyle: { color: "#A78BFA" },
         barMaxWidth: 26,
       },
+      // ✅ 평균매출: line → bar 로 변경
       {
         name: "평균매출",
-        type: "line",
+        type: "bar",
         yAxisIndex: 1,
         data: avgSales,
-        smooth: true,
-        symbolSize: 6,
+        barMaxWidth: 26,
       },
     ],
   };
 });
 
-async function fetchChart() {
+const fetchChart = async () => {
   loading.value = true;
   error.value = "";
   try {
-    const { data } = await axios.get(
-      // ✅ 보통 /api 로 시작해야 프록시/서버가 제대로 받음
-      "/api/customersegmentanalysis/segmentTradeChart",
-      { params: { month: month.value } }
-    );
-
-    rows.value = Array.isArray(data) ? data : [];
+    const res = await getSegmentTradeChart(month.value);
+    rows.value = Array.isArray(res.data) ? res.data : [];
   } catch (e) {
     error.value = e?.response?.data?.message ?? e?.message ?? String(e);
     rows.value = [];
   } finally {
     loading.value = false;
   }
-}
+};
 
 onMounted(fetchChart);
 watch(month, fetchChart);

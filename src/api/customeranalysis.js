@@ -55,3 +55,7 @@ export const getRiskReasonKpi = (month) =>
 // 고객 세그먼트 분석 차트
 export const getSegmentTradeChart = (month) =>
   api.get(`/customersegmentanalysis/segmentTradeChart`, { params: { month }});
+
+// 고객 세그먼트별 카드
+export const getCustomerSegmentDetailCard = (segmentId) =>
+  api.get(`/customersegmentanalysis/segmentCard`,  { params: { segmentId }} )
