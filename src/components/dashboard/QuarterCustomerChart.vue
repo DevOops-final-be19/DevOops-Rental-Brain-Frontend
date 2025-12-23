@@ -29,15 +29,23 @@ const option = ref({
 
 <style scoped>
 .chart-card {
-  background: white;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
   padding: 20px;
-  height: 360px;
-  border-radius: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+  min-height: 360px;
+}
+
+.chart-card h3 {
+  margin: 0 0 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
 }
 
 .chart {
   width: 100%;
-  height: 260px;
+  height: 280px; /* 260보다 약간 키워도 카드 높이 통일됨 */
 }
 </style>
