@@ -38,6 +38,25 @@ const routes = [
         component: () => import('@/views/cs/FeedbackListView.vue'), // 피드백 관리
       },
 
+      {
+        path: 'cs/survey',
+        name: 'cs-survey-list',
+        component: () => import('@/views/cs/SurveyView.vue'), // 설문 관리
+        children:[
+          {
+        path: 'cs/survey/result',
+        name: 'cs-survey-result',
+        component: () => import('@/views/cs/SurveyAiResultView.vue'), // 설문 결과
+      },
+        ]
+      },
+
+      {
+        path: 'cs/survey/create',
+        name: 'cs-survey-create',
+        component: () => import('@/views/cs/SurveyCreateView.vue'), // 설문 생성
+      },
+
       // --- 고객분석 ---
       {
         path: 'analysis/summary',
