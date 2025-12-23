@@ -120,6 +120,23 @@ const routes = [
         path: 'admin/menus',
         name: 'admin-menu',
         component: () => import('@/views/systemmenu/AdminMenuListView.vue'),
+        children: [
+          {
+            path: ":id/auth",
+            name: "admin-user-auth",
+            component: () => import("@/views/systemmenu/UserAuthView.vue"),
+          },
+          {
+            path: ":id/edit",
+            name: "admin-user-edit",
+            component: () => import("@/views/systemmenu/UserEditView.vue"),
+          },
+          {
+            path: 'create',
+            name: 'admin-create-emp',
+            component: () => import('@/views/systemmenu/CreateEmpView.vue'),
+          },
+        ],
       },
       {
         path: 'admin/roles',
