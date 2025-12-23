@@ -46,15 +46,15 @@
           <span class="muted">{{ fmt(kpi.stableCustomerCount) }}/{{ fmt(kpi.tradeCustomerCount) }}개사 안정</span>
         </div>
       </div>
-
       <div class="kpi-box">
-        <div class="kpi-title">이탈 위험률</div>
-        <div class="kpi-value danger">{{ round1(kpi.riskRate) }}%</div>
-        <div class="kpi-sub">
+          <div class="kpi-title">이탈 위험률</div>
+          <div class="kpi-value danger">{{ round1(kpi.riskRate) }}%</div>
+          <div class="kpi-sub">
           <span class="down">▲ {{ round1(kpi.riskMomDiffRate) }}%p</span>
           <span class="muted">이탈 위험 고객 {{ fmt(kpi.riskCustomerCount) }}개사</span>
         </div>
       </div>
+
     </div>
 
     <!-- 2열 레이아웃 -->
@@ -62,19 +62,7 @@
       <!-- 월별 응대 트렌드(너 백엔드가 있으면 여기 연결, 없으면 UI만 유지) -->
       <SupportMonthlyTrend />
 
-      <!-- 세그먼트 분포 (파이 차트 자리 → 컴포넌트 교체) -->
-      <div class="card">
-        <SegmentDistribution
-          title="고객 세그먼트 분석"
-          :segments="segmentDist.segments"
-          :total="segmentDist.totalCustomerCount"
-          :showMiniList="true"
-        />
-      </div>
-    </div>
 
-    <!-- 2열 레이아웃 -->
-    <div class="grid-2">
       <!-- 월별 이탈률 추이(백엔드 연동 완료) -->
       <div class="card">
         <div class="card-title">월별 이탈률 추이</div>
@@ -88,6 +76,20 @@
             </span>
           </div>
         </div>
+      </div>
+     
+    </div>
+
+    <!-- 2열 레이아웃 -->
+    <div class="grid-2">
+ <!-- 세그먼트 분포 (파이 차트 자리 → 컴포넌트 교체) -->
+      <div class="card">
+        <SegmentDistribution
+          title="고객 세그먼트 분석"
+          :segments="segmentDist.segments"
+          :total="segmentDist.totalCustomerCount"
+          :showMiniList="true"
+        />
       </div>
 
       <!-- 만족도 분포 + 불만족 TOP -->
@@ -167,8 +169,9 @@ import {
 } from '@/api/customeranalysis';
 
 // 세그먼트 도넛 차트 컴포넌트
-import SegmentDistribution from '@/components/analysis/Segment-distribution.vue';
+import SegmentDistribution from '@/components/analysis/SegmentDistribution.vue';
 import SupportMonthlyTrend from '@/components/analysis/SupportMonthlyTrend.vue';
+// import RiskMonthlyRate from '@/components/analysis/RiskMonthlyRate.vue';
 
 const route = useRoute();
 const isActive = (path) => route.path === path;
