@@ -82,6 +82,7 @@ const load = async () => {
 onMounted(load);
 </script>
 
+
 <style scoped>
 .chart-card {
   background: #fff;
