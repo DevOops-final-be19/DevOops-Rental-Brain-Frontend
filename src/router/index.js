@@ -31,6 +31,7 @@ const routes = [
         name: 'cs-support-list',
         component: () => import('@/views/cs/SupportListView.vue'), // 문의 관리
       },
+
       {
         path: 'cs/feedbacks',
         name: 'cs-feedback-list',
@@ -39,14 +40,19 @@ const routes = [
 
       // --- 고객분석 ---
       {
-        path: 'analysis/overview',
-        name: 'analysis-overview',
-        component: () => import('@/views/analysis/CustomerOverviewView.vue'),
+        path: 'analysis/summary',
+        name: 'analysis-summary',
+        component: () => import('@/views/analysis/CustomerSummaryAnalysisView.vue'),
+      },
+      {
+        path: 'analysis/support',
+        name: 'analysis-support',
+        component: () => import('@/views/analysis/CustomerSupportAnalysisView.vue'),
       },
       {
         path: 'analysis/segment',
         name: 'analysis-segment',
-        component: () => import('@/views/analysis/SegmentAnalysisView.vue'),
+        component: () => import('@/views/analysis/CustomerSegmentAnalysisView.vue'),
       },
 
       // --- 연체관리 ---
@@ -58,7 +64,7 @@ const routes = [
 
       // --- 견적 ---
       {
-        path: 'quotes',
+        path: 'quote',
         name: 'quote-list',
         component: () => import('@/views/business/QuoteListView.vue'),
       },
