@@ -27,7 +27,6 @@ export const getSatisfactionCustomers = (star, page = 1, size = 10) =>
     params: { page, size },
   });
 
-
 // 고객 응대 분석 (Support)
 
 // 응대 KPI
@@ -41,8 +40,6 @@ export const getCustomerSupportKpi = (month) =>
 export const getMonthlyTrend = (year) =>
   api.get("/customerSupportAnalysis/monthly-trend", { params: { year } });
 
-// 고객 세그먼트 분석 (Segment)
-
 // 이탈 위험 고객 비중 KPI
 export const getRiskKpi = (month) =>
   api.get('/customersegmentanalysis/riskKpi', {
@@ -54,3 +51,11 @@ export const getRiskReasonKpi = (month) =>
   api.get('/customersegmentanalysis/riskReasonKpi', {
     params: { month },
   });
+
+// 고객 세그먼트 분석 차트
+export const getSegmentTradeChart = (month) =>
+  api.get(`/customersegmentanalysis/segmentTradeChart`, { params: { month }});
+
+// 고객 세그먼트별 카드
+export const getCustomerSegmentDetailCard = (segmentId) =>
+  api.get(`/customersegmentanalysis/segmentCard`,  { params: { segmentId }} )
