@@ -38,9 +38,16 @@
           <span>로그인 상태 유지</span>
         </div> -->
 
-        <button type="button" class="login-btn" @click.stop="login">
-          로그인
-        </button>
+        <el-button
+  type="primary"
+  class="login-btn"
+  :loading="loading"
+  :disabled="loading"
+  @click="login"
+  size="large"
+>
+  로그인
+</el-button>
       </form>
     </div>
 
@@ -70,20 +77,24 @@ const pwd = ref('');
 const toastStore = useToastStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const loading = ref(false);
 
 const login = async () => {
+  if (loading.value) return;
+
   if (!empId.value || !pwd.value) {
     toastStore.showToast('아이디와 비밀번호를 입력하세요');
     return;
   }
-  console.log(empId.value, pwd.value);
 
   try {
-    const response = await api.post(`/login`, {
+    loading.value = true;
+
+    const response = await api.post('/login', {
       empId: empId.value,
       pwd: pwd.value
-    })
-    console.log("response: ", response);
+    });
+
     const data = response.data;
 
     authStore.setUserInfo(
@@ -95,13 +106,16 @@ const login = async () => {
       data.dept,
       data.accessToken
     );
-    toastStore.showToast('로그인 되었습니다 :' + ' ' + authStore.employeeCode + ' ' + authStore.name);
-    router.push("/");
 
-  }
-  catch (e) {
-    console.log('로그인 실패', e);
-    toastStore.showToast(e.response?.data?.error);
+    toastStore.showToast(
+      `로그인 되었습니다 : ${authStore.employeeCode} ${authStore.name}`
+    );
+
+    router.push('/');
+  } catch (e) {
+    toastStore.showToast(e.response?.data?.error || '로그인 실패');
+  } finally {
+    loading.value = false;
   }
 };
 
@@ -215,15 +229,46 @@ const login = async () => {
 .login-btn {
   width: 100%;
   height: 44px;
-  border: none;
   border-radius: 12px;
-  background: linear-gradient(90deg, #3366cc, #1447e6);
-  color: #fff;
+
+  /* 텍스트 */
+  color: #f9fafb; /* 거의 흰색 */
+
   font-size: 15px;
   font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 8px 20px rgba(20, 71, 230, .35);
+
+  /* 배경 */
+  background: linear-gradient(90deg, #3366cc, #1447e6);
+
+  /* 효과 */
+  box-shadow: 0 8px 20px rgba(20, 71, 230, 0.35);
+  transition: all 0.25s ease;
 }
+
+.login-btn:hover {
+  background: linear-gradient(90deg, #3b72e0, #1f5bff);
+  box-shadow: 0 12px 28px rgba(20, 71, 230, 0.45);
+  transform: translateY(-2px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 6px 14px rgba(20, 71, 230, 0.35);
+}
+
+.login-btn.is-loading,
+.login-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.85;
+  background: linear-gradient(90deg, #4b6fdc, #365fe0);
+  box-shadow: none;
+  transform: none;
+}
+
+.login-btn span {
+  color: #f9fafb;
+}
+
 
 /* 하단 */
 .security {

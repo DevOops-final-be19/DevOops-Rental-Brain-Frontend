@@ -176,13 +176,15 @@ watch(
 /* 💾 저장 */
 const save = async () => {
   formRef.value.validate(async (valid) => {
-    if (!valid) {
-      // ❌ 퇴사인데 퇴사일 없으면 여기서 막힘
-      return;
+    if (!valid) return;
+
+    // ✅ 여기서만 정리
+    if (form.status !== "Q") {
+      form.resignDate = null;
     }
+
     try {
       const payload = { ...form };
-      console.log(payload);
 
       await api.put("/emp/admin/info/modify", payload);
 
@@ -197,7 +199,7 @@ const save = async () => {
 
       ElMessage.success("회원 정보가 수정되었습니다");
     } catch (e) {
-      ElMessage.warning(e.response.data)
+      ElMessage.warning(e.response?.data);
     }
   });
 };
