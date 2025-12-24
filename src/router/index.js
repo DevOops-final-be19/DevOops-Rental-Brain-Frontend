@@ -78,7 +78,17 @@ const routes = [
       {
         path: 'customer/risk',
         name: 'customer-risklist',
-        component: () => import('@/views/customer/RiskListView.vue'),
+        component: () => import('@/views/customer/overdue/RiskListView.vue'),
+      },
+      {
+        path: 'customer/risks/pay/:overdueId',
+        name: 'customer-pay-overdue-detail',
+        component: () => import('@/views/customer/overdue/PayOverdueDetailView.vue'),
+      },
+      {
+        path: 'customer/risks/item/:overdueId',
+        name: 'customer-item-overdue-detail',
+        component: () => import('@/views/customer/overdue/ItemOverdueDetailView.vue'),
       },
 
       // --- 견적 ---
