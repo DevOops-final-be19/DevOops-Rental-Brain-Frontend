@@ -138,9 +138,16 @@ const syncEmployee = (payload) => {
       ? Number(payload.position.position_id)
       : prev.position.position_id;
 
+  const isQuit = payload.status === "Q";
+
   employees.value[idx] = {
     ...prev,
     ...payload,
+
+    resign_date: isQuit
+      ? payload.resignDate
+      : null,
+
     position: {
       position_id: nextPositionId,
       position_name:
@@ -152,6 +159,8 @@ const syncEmployee = (payload) => {
     selectedEmployee.value = employees.value[idx];
   }
 };
+
+
 </script>
 
 <style scoped>

@@ -177,16 +177,6 @@ const routes = [
           },
         ],
       },
-      {
-        path: 'admin/roles',
-        name: 'admin-role',
-        component: () => import('@/views/systemmenu/RolePermissionMatrixView.vue'),
-      },
-      {
-        path: 'admin/users',
-        name: 'admin-users',
-        component: () => import('@/views/systemmenu/UserManageView.vue'),
-      },
       // --- 사용자 페이지 ---
       {
         path: 'mypage',
