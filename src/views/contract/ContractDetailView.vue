@@ -1,442 +1,279 @@
 <template>
-    <div class="max-w-[1400px] mx-auto">
-  
-      <!-- 로딩 -->
-      <div v-if="!vm" class="loading">
-        계약 정보를 불러오는 중입니다...
-      </div>
-  
-      <!-- =========================
-           Contract Detail
-      ========================= -->
-      <div v-else class="contract-detail-page">
-  
-        <!-- Header -->
-        <div class="header">
-          <button class="back-btn" @click="goBack">
-            ← 계약 목록으로 돌아가기
-          </button>
-  
-          <div class="header-main">
-            <div>
-              <h1>{{ vm.contractName }}</h1>
-              <p class="contract-code">{{ vm.contractCode }}</p>
-            </div>
-          </div>
+  <div class="page-container" v-loading="loading">
+
+    <!-- ===== Header ===== -->
+    <div class="detail-header">
+      <div class="header-left">
+        <el-button circle plain @click="goList">
+          <el-icon><ArrowLeft /></el-icon>
+        </el-button>
+
+        <div>
+          <h2 class="title">{{ vm.contractName }}</h2>
+          <p class="sub">{{ vm.contractCode }}</p>
         </div>
-  
-        <!-- Progress -->
-        <div class="progress-card">
-          <div class="progress-header">
-            <div>
-              <p class="progress-label">계약 진행률</p>
-              <p class="progress-sub">
-                총 {{ vm.period.contractPeriod }}개월
-              </p>
-            </div>
-            <div class="progress-rate">
-              {{ vm.period.progressRate }}%
-            </div>
-          </div>
-  
-          <div class="progress-bar">
-            <div
-              class="progress-bar-fill"
-              :style="{ width: vm.period.progressRate + '%' }"
-            />
-          </div>
-        </div>
-  
-        <!-- KPI -->
-        <div class="kpi-grid">
-          <div class="kpi-card">
-            <p class="kpi-title">월 납부액</p>
-            <p class="kpi-value">{{ money(vm.payment.monthlyPayment) }}</p>
-          </div>
-  
-          <div class="kpi-card">
-            <p class="kpi-title">총 계약 금액</p>
-            <p class="kpi-value">{{ money(vm.payment.totalAmount) }}</p>
-          </div>
-  
-          <div class="kpi-card">
-            <p class="kpi-title">결제 방식</p>
-            <p class="kpi-value">{{ vm.payment.payMethodLabel }}</p>
-          </div>
-  
-          <div class="kpi-card kpi-danger">
-            <p class="kpi-title">연체 건수</p>
-            <p class="kpi-value">{{ vm.payment.overdueCount }}건</p>
-          </div>
-        </div>
-  
-        <!-- =========================
-             Rental Items
-        ========================= -->
-        <div class="section">
-          <h3 class="section-title">렌탈 자산</h3>
-  
-          <div class="asset-list">
-            <div
-              v-for="item in vm.items.detail"
-              :key="item.itemId"
-              class="asset-card"
-            >
-              <div class="asset-icon">📦</div>
-  
-              <div class="asset-info">
-                <p class="asset-name">{{ item.name }}</p>
-                <p class="asset-meta">자산 코드: {{ item.itemCode }}</p>
-                <p class="asset-meta">
-                  최근 점검일: {{ item.latelyInspectDate }}
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-  
-        <!-- =========================
-             Payments
-        ========================= -->
-        <div class="section">
-          <h3 class="section-title">결제 내역</h3>
-  
-          <table class="payment-table">
-            <thead>
-              <tr>
-                <th>납부 예정일</th>
-                <th>실 납부일</th>
-                <th>상태</th>
-                <th>연체</th>
-              </tr>
-            </thead>
-  
-            <tbody>
-              <tr v-for="p in vm.payments" :key="p.id">
-                <td>{{ date(p.dueDate) }}</td>
-                <td>{{ p.actualDate ? date(p.actualDate) : '-' }}</td>
-                <td>
-                  <span :class="['pay-badge', p.status]">
-                    {{ paymentStatusLabel(p.status) }}
-                  </span>
-                </td>
-                <td>
-                  <span
-                    :class="p.overdueDays > 0 ? 'overdue-text' : 'normal-text'"
-                  >
-                    {{ p.overdueDays ?? '-' }}
-                  </span>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-  
       </div>
     </div>
-  </template>
-  
-  <script setup>
-  import { ref, onMounted } from 'vue'
-  import { useRouter, useRoute } from 'vue-router'
-  import api from '@/api/axios'
-  
-  const router = useRouter()
-  const route = useRoute()
-  
-  const vm = ref(null)
-  
-  onMounted(async () => {
-    const contractId = route.params.id
-  
-    const [basic, items, payments] = await Promise.all([
-      api.get(`/contract/${contractId}/basic-info`),
-      api.get(`/contract/${contractId}/items`),
-      api.get(`/contract/${contractId}/payments`)
-    ])
-  
-    vm.value = toVM(basic.data, items.data, payments.data)
-  })
-  
-  function toVM(basic, items, payments) {
-    const payMethodMap = {
-      A: '자동이체',
-      B: '계좌이체',
-      C: '카드결제',
+
+    <!-- ===== Progress / KPI ===== -->
+    <el-card shadow="never" class="summary-card">
+      <div class="summary-grid">
+        <div>
+          <div class="progress-label">계약 진행률</div>
+          <el-progress :percentage="vm.progressRate" :stroke-width="12" />
+        </div>
+
+        <div class="kpi">
+          <p class="kpi-title">월 납부액</p>
+          <p class="kpi-value">{{ money(vm.monthlyPayment) }}</p>
+        </div>
+
+        <div class="kpi">
+          <p class="kpi-title">총 계약 금액</p>
+          <p class="kpi-value">{{ money(vm.totalAmount) }}</p>
+        </div>
+
+        <div class="kpi danger">
+          <p class="kpi-title">연체 건수</p>
+          <p class="kpi-value">{{ vm.overdueCount }}건</p>
+        </div>
+      </div>
+    </el-card>
+
+    <!-- ===== Tabs ===== -->
+    <el-tabs
+      v-model="activeTab"
+      type="border-card"
+      class="detail-tabs"
+      @tab-change="onTabChange"
+    >
+
+      <!-- 계약 개요 -->
+      <el-tab-pane label="계약 개요" name="overview">
+        <el-card shadow="never" class="overview-card">
+          <el-descriptions :column="3" border>
+            <el-descriptions-item label="계약 코드">{{ vm.contractCode }}</el-descriptions-item>
+            <el-descriptions-item label="고객 코드">{{ vm.customerCode }}</el-descriptions-item>
+            <el-descriptions-item label="담당자">{{ vm.inCharge }}</el-descriptions-item>
+            <el-descriptions-item label="연락처">{{ formatPhone(vm.callNum) }}</el-descriptions-item>
+            <el-descriptions-item label="계약 시작일">{{ formatDate(vm.startDate) }}</el-descriptions-item>
+            <el-descriptions-item label="계약 기간">{{ vm.contractPeriod }} 개월</el-descriptions-item>
+            <el-descriptions-item label="결제 방식">{{ vm.payMethodLabel }}</el-descriptions-item>
+            <el-descriptions-item label="렌탈 자산 수">{{ vm.productCount }} 종</el-descriptions-item>
+            <el-descriptions-item label="특이 사항" :span="3">
+              {{ vm.specialContent || '-' }}
+            </el-descriptions-item>
+          </el-descriptions>
+        </el-card>
+      </el-tab-pane>
+
+      <!-- 렌탈 자산 -->
+      <el-tab-pane label="렌탈 자산" name="items">
+        <el-table :data="items" border stripe>
+          <el-table-column prop="itemCode" label="자산 코드" width="160" />
+          <el-table-column prop="name" label="자산명" />
+          <el-table-column prop="latelyInspectDate" label="최근 점검일" width="140" />
+        </el-table>
+      </el-tab-pane>
+
+      <!-- 결제 내역 -->
+      <el-tab-pane label="결제 내역" name="payments">
+        <el-table :data="payments" border stripe>
+          <el-table-column label="납부 예정일" width="140">
+            <template #default="{ row }">{{ formatDate(row.payment_due) }}</template>
+          </el-table-column>
+
+          <el-table-column label="실 납부일" width="140">
+            <template #default="{ row }">
+              {{ row.payment_actual ? formatDate(row.payment_actual) : '-' }}
+            </template>
+          </el-table-column>
+
+          <el-table-column label="상태" width="120" align="center">
+            <template #default="{ row }">
+              <el-tag :type="paymentStatusTag(row.payment_status)">
+                {{ paymentStatusLabel(row.payment_status) }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column label="연체 일수" width="120" align="center">
+            <span :class="row.overdue_days ? 'overdue' : ''">
+              {{ row.overdue_days ?? '-' }}
+            </span>
+          </el-table-column>
+        </el-table>
+      </el-tab-pane>
+
+    </el-tabs>
+  </div>
+</template>
+
+<script setup>
+import { ref, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import api from '@/api/axios'
+import { ArrowLeft } from '@element-plus/icons-vue'
+
+const route = useRoute()
+const router = useRouter()
+
+const loading = ref(false)
+const activeTab = ref('overview')
+
+/* =========================
+   State
+========================= */
+const vm = ref(initVm())
+const items = ref([])
+const payments = ref([])
+
+const basicLoaded = ref(false)
+const itemsLoaded = ref(false)
+const paymentsLoaded = ref(false)
+
+function initVm() {
+  return {
+    contractName: '',
+    contractCode: '',
+    contractPeriod: 0,
+    startDate: '',
+    customerCode: '',
+    inCharge: '',
+    callNum: '',
+    monthlyPayment: 0,
+    totalAmount: 0,
+    payMethodLabel: '',
+    specialContent: '',
+    productCount: 0,
+    progressRate: 0,
+    overdueCount: 0
+  }
+}
+
+/* =========================
+   API
+========================= */
+async function fetchBasic(contractId) {
+  if (!contractId || basicLoaded.value) return
+
+  loading.value = true
+  try {
+    const res = await api.get(`/contract/${contractId}/basic-info`)
+    const b = res.data
+    const payMethodMap = { A: '자동이체', B: '계좌이체' }
+
+    vm.value = {
+      contractName: b.overview.contractName,
+      contractCode: b.overview.contractCode,
+      contractPeriod: b.overview.contractPeriod,
+      startDate: b.overview.startDate,
+      customerCode: b.overview.customerCode,
+      inCharge: b.overview.inCharge,
+      callNum: b.overview.callNum,
+      monthlyPayment: b.overview.monthlyPayment,
+      totalAmount: b.overview.totalAmount,
+      payMethodLabel: payMethodMap[b.overview.payMethod] ?? '-',
+      specialContent: b.overview.specialContent,
+      productCount: b.productCount,
+      progressRate: b.progress?.progressRate ?? 0,
+      overdueCount: b.overdueCount ?? 0
     }
-  
-    return {
-      contractName: basic.overview.contractName,
-      contractCode: basic.overview.contractCode,
-  
-      period: {
-        contractPeriod: basic.overview.contractPeriod,
-        progressRate: basic.progress.progressRate,
-      },
-  
-      payment: {
-        monthlyPayment: basic.overview.monthlyPayment,
-        totalAmount: basic.overview.totalAmount,
-        payMethodLabel: payMethodMap[basic.overview.payMethod],
-        overdueCount: basic.overdueCount,
-      },
-  
-      items: {
-        detail: items.contractItemDetail,
-        summary: items.contractItemSummary,
-      },
-  
-      payments: payments.map(p => ({
-        id: p.id,
-        dueDate: p.payment_due,
-        actualDate: p.payment_actual,
-        status: p.payment_status,
-        overdueDays: p.overdue_days,
-      })),
-    }
+
+    basicLoaded.value = true
+  } finally {
+    loading.value = false
   }
-  
-  function money(v) {
-    return v.toLocaleString() + '원'
+}
+
+async function fetchItems() {
+  if (itemsLoaded.value) return
+  loading.value = true
+  try {
+    const res = await api.get(`/contract/${route.params.id}/items`)
+    items.value = res.data?.contractItemDetail ?? []
+    itemsLoaded.value = true
+  } finally {
+    loading.value = false
   }
-  
-  function date(v) {
-    return v.split('T')[0]
+}
+
+async function fetchPayments() {
+  if (paymentsLoaded.value) return
+  loading.value = true
+  try {
+    const res = await api.get(`/contract/${route.params.id}/payments`)
+    payments.value = res.data ?? []
+    paymentsLoaded.value = true
+  } finally {
+    loading.value = false
   }
-  
-  function paymentStatusLabel(status) {
-    return { C: '완납', N: '연체', P: '예정' }[status]
+}
+
+/* =========================
+   Tab Handler
+========================= */
+function onTabChange(tabName) {
+  if (tabName === 'items') fetchItems()
+  if (tabName === 'payments') fetchPayments()
+}
+
+/* =========================
+   Lifecycle
+========================= */
+onMounted(() => {
+  fetchBasic(route.params.id)
+})
+
+watch(
+  () => route.params.id,
+  (newId) => {
+    vm.value = initVm()
+    items.value = []
+    payments.value = []
+    activeTab.value = 'overview'
+
+    basicLoaded.value = false
+    itemsLoaded.value = false
+    paymentsLoaded.value = false
+
+    fetchBasic(newId)
   }
-  
-  function goBack() {
-    router.push({ name: 'contract-list' })
-  }
-  </script>
-  
-  <style scoped>
-  /* =========================
-     Layout
-  ========================= */
-  .contract-detail-page {
-    padding: 32px 24px;
-    font-family: "Inter", "Noto Sans KR", sans-serif;
-    color: #111827;
-  }
-  
-  .loading {
-    padding: 40px;
-    text-align: center;
-    color: #6b7280;
-  }
-  
-  /* =========================
-     Header
-  ========================= */
-  .header {
-    margin-bottom: 32px;
-  }
-  
-  .back-btn {
-    background: none;
-    border: none;
-    font-size: 13px;
-    color: #6b7280;
-    cursor: pointer;
-    margin-bottom: 12px;
-  }
-  
-  .back-btn:hover {
-    color: #111827;
-  }
-  
-  .header-main h1 {
-    font-size: 28px;
-    font-weight: 600;
-  }
-  
-  .contract-code {
-    font-size: 13px;
-    color: #6b7280;
-  }
-  
-  /* =========================
-     Progress
-  ========================= */
-  .progress-card {
-    background: #eff6ff;
-    border: 1px solid #bfdbfe;
-    border-radius: 14px;
-    padding: 24px;
-    margin-bottom: 32px;
-  }
-  
-  .progress-header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 12px;
-  }
-  
-  .progress-label {
-    font-size: 13px;
-    color: #1e40af;
-  }
-  
-  .progress-sub {
-    font-size: 16px;
-    font-weight: 500;
-  }
-  
-  .progress-rate {
-    font-size: 32px;
-    font-weight: 600;
-    color: #1e3a8a;
-  }
-  
-  .progress-bar {
-    width: 100%;
-    height: 10px;
-    background: #bfdbfe;
-    border-radius: 999px;
-  }
-  
-  .progress-bar-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #3b82f6, #2563eb);
-  }
-  
-  /* =========================
-     KPI
-  ========================= */
-  .kpi-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 16px;
-    margin-bottom: 40px;
-  }
-  
-  .kpi-card {
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 14px;
-    padding: 20px;
-  }
-  
-  .kpi-title {
-    font-size: 13px;
-    color: #6b7280;
-  }
-  
-  .kpi-value {
-    font-size: 22px;
-    font-weight: 600;
-  }
-  
-  .kpi-danger {
-    background: #fef2f2;
-    border-color: #fecaca;
-  }
-  
-  .kpi-danger .kpi-value {
-    color: #b91c1c;
-  }
-  
-  /* =========================
-     Section
-  ========================= */
-  .section {
-    margin-bottom: 40px;
-  }
-  
-  .section-title {
-    font-size: 18px;
-    font-weight: 600;
-    margin-bottom: 16px;
-  }
-  
-  /* =========================
-     Assets
-  ========================= */
-  .asset-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-  
-  .asset-card {
-    display: flex;
-    gap: 16px;
-    background: #f9fafb;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-    padding: 16px 20px;
-  }
-  
-  .asset-icon {
-    width: 44px;
-    height: 44px;
-    background: #e0f2fe;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .asset-name {
-    font-weight: 600;
-  }
-  
-  .asset-meta {
-    font-size: 13px;
-    color: #6b7280;
-  }
-  
-  /* =========================
-     Payments
-  ========================= */
-  .payment-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .payment-table th {
-    background: #f9fafb;
-    font-size: 13px;
-    color: #6b7280;
-    padding: 12px;
-    text-align: left;
-  }
-  
-  .payment-table td {
-    padding: 14px 12px;
-    font-size: 14px;
-    border-bottom: 1px solid #e5e7eb;
-  }
-  
-  .pay-badge {
-    padding: 4px 10px;
-    border-radius: 999px;
-    font-size: 12px;
-    font-weight: 500;
-  }
-  
-  .pay-badge.C {
-    background: #dcfce7;
-    color: #15803d;
-  }
-  
-  .pay-badge.N {
-    background: #fee2e2;
-    color: #b91c1c;
-  }
-  
-  .pay-badge.P {
-    background: #f3f4f6;
-    color: #374151;
-  }
-  
-  .overdue-text {
-    color: #b91c1c;
-    font-weight: 600;
-  }
-  </style>
-  
+)
+
+/* =========================
+   Utils
+========================= */
+const goList = () => router.push({ name: 'contract-list' })
+const money = v => (typeof v === 'number' ? v.toLocaleString() + '원' : '-')
+const formatDate = v => (v ? String(v).substring(0, 10) : '-')
+
+const formatPhone = v =>
+  v
+    ? String(v).replace(
+        /(^02|^0505|^1[0-9]{3}|^0[0-9]{2})([0-9]+)?([0-9]{4})$/,
+        '$1-$2-$3'
+      )
+    : '-'
+
+const paymentStatusLabel = s => ({ P: '예정', C: '완납', N: '연체' }[s] ?? '-')
+const paymentStatusTag = s => ({ P: 'info', C: 'success', N: 'danger' }[s] ?? 'info')
+</script>
+
+<style scoped>
+.page-container { padding: 24px; max-width: 1600px; margin: 0 auto; }
+.detail-header { display: flex; align-items: center; margin-bottom: 20px; }
+.header-left { display: flex; align-items: center; gap: 12px; }
+.title { font-size: 24px; font-weight: 700; }
+.sub { font-size: 13px; color: #888; }
+.summary-card { margin-bottom: 24px; }
+.summary-grid { display: grid; grid-template-columns: 2fr repeat(3, 1fr); gap: 20px; align-items: center; }
+.progress-label { font-size: 14px; margin-bottom: 8px; }
+.kpi { text-align: center; }
+.kpi-title { font-size: 13px; color: #666; }
+.kpi-value { font-size: 20px; font-weight: 700; }
+.kpi.danger .kpi-value { color: #d32f2f; }
+.detail-tabs { margin-top: 20px; }
+.overview-card { padding: 10px; }
+.overdue { color: #d32f2f; font-weight: 600; }
+</style>

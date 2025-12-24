@@ -33,3 +33,15 @@ export const getApprovalPending = (pageNum, amount) => {
       params: { pageNum, amount }
     })
   }
+
+  export const approveApproval = (approvalCode) => {
+    return api.patch(`/approval/approve`, null, {
+    params: { approvalCode }
+  })
+  }
+
+  export const rejectApproval = (approvalCode, data) => {
+    return api.patch(`/approval/reject`, data, {
+      params: { approvalCode }
+    })
+  }

@@ -4,7 +4,7 @@
     <div class="header">
       <h2>내 결재 내역</h2>
       <p class="subtitle">
-        내가 처리해야 할 결재와 전체 결재 진행 현황을 확인합니다
+        내가 처리해야 할 결재와 전체 결재 진행 현황
       </p>
     </div>
 
@@ -151,11 +151,6 @@ onMounted(fetchStatus)
   padding: 20px;
   border-left: 6px solid transparent;
   transition: all 0.2s ease;
-}
-
-.stat-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.06);
 }
 
 .stat-card.wide {

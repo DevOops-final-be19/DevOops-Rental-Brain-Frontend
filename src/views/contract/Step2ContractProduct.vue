@@ -228,12 +228,23 @@ const removeItem = name => {
 watch(selectedQuantity, (val) => {
   if (!selectedItem.value) return
 
-  if (val > selectedItem.value.possibleAmount) {
-    selectedQuantity.value = selectedItem.value.possibleAmount
+  const max = selectedItem.value.possibleAmount
+
+  // 숫자가 아니면 초기화
+  if (!val || val < 1) {
+    selectedQuantity.value = 1
+    return
   }
 
-  if (val < 1) {
-    selectedQuantity.value = 1
+   // 🔥 max가 10 미만일 때 → 두 자리 입력 시 마지막 자리만 유지
+  if (max < 10 && val >= 10) {
+    selectedQuantity.value = val % 10 || 1
+    return
+  }
+
+  // 일반적인 초과 방지
+  if (val > max) {
+    selectedQuantity.value = max
   }
 })
 

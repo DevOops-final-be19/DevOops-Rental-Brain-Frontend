@@ -1,6 +1,6 @@
 <template>
   <el-card shadow="never">
-    <el-table :data="list" style="width: 100%">
+    <el-table :data="list" style="width: 100%" empty-text="진행 중인 결재가 없습니다.">
       <el-table-column
         prop="approval_code"
         label="결재 코드"
