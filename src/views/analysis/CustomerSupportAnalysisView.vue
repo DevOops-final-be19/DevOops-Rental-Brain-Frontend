@@ -118,13 +118,16 @@
       </div>
     </div>
 
-    <!-- 차트 영역 -->
-    <div class="grid-2">
-      <SupportMonthlyTrend />
-    </div>
+      <!-- 차트 + AI 인사이트 (2:1) -->
+      <div class="trend-ai-row">
+        <div class="trend-col">
+          <SupportMonthlyTrend />
+        </div>
 
-    <!-- 하단  -->
-    <QuoteInsightPanel />
+        <div class="ai-col">
+          <QuoteInsightPanel />
+        </div>
+      </div>
   </div>
 </template>
 

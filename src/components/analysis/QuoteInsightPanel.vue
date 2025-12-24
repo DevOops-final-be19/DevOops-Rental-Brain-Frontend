@@ -3,8 +3,8 @@
     <!-- 헤더 -->
     <div class="ai-head">
       <div class="ai-title-area">
-        <div class="ai-title">AI 견적 인사이트</div>
-        <div class="ai-subtitle">월별 견적 데이터를 기반으로 성공·실패 요인과 키워드를 요약합니다.</div>
+        <div class="ai-title">AI 응대 인사이트</div>
+        <div class="ai-subtitle">월별 고객 응대 데이터를 기반으로 성공·실패 요인과 키워드를 요약합니다.</div>
       </div>
 
       <div class="ai-controls">
