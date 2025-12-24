@@ -38,9 +38,16 @@
           <span>로그인 상태 유지</span>
         </div> -->
 
-        <el-button type="primary" class="login-btn" :loading="loading" :disabled="loading" @click="login" size="large">
-          로그인
-        </el-button>
+        <el-button
+  type="primary"
+  class="login-btn"
+  :loading="loading"
+  :disabled="loading"
+  @click="login"
+  size="large"
+>
+  로그인
+</el-button>
       </form>
     </div>
 
