@@ -34,6 +34,28 @@
         
         <div class="month-badge">{{ kpi?.currentMonth ?? month }} 기준</div>
       </div>
+
+      <!-- ✅ 토글 + 선택월 -->
+      <div class="header-actions">
+        <div class="seg-toggle">
+          <button class="seg-btn" :class="{ active: mode === 'this' }" @click="setThisMonth">
+            이번 달
+          </button>
+          <button class="seg-btn" :class="{ active: mode === 'prev' }" @click="setPrevMonth">
+            전월
+          </button>
+          <button class="seg-btn" :class="{ active: mode === 'pick' }" @click="mode = 'pick'">
+            선택 월
+          </button>
+        </div>
+
+        <div v-if="mode === 'pick'" class="month-pick">
+          <input type="month" v-model="pickedMonth" class="month-input" />
+          <button class="apply-btn" @click="applyPickedMonth">적용</button>
+        </div>
+
+        <div class="month-badge">{{ kpi?.currentMonth ?? month }} 기준</div>
+      </div>
     </div>
     <div class="analysis-section">
       <AnalysisSummary
