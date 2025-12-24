@@ -8,7 +8,7 @@
       
         <!-- 3열 -->
         <div class="row-3">
-          <QuarterCustomerChart />
+          <PriorityAlert />
           <AiInsight />
           <ProductStatusChart />
         </div>
@@ -17,9 +17,9 @@
       <!-- 2열 -->
       <div class="row-2">
         <SegmentAnalysisChart />
-        <PriorityAlert />
-      </div>
+          <QuarterCustomerChart />
 
+      </div>
     </div>
   </div>
 </template>
@@ -36,9 +36,13 @@ import ProductStatusChart from "@/components/dashboard/ProductStatusChart.vue";
 <style scoped>
 /* 고객분석 페이지와 동일한 컨테이너 톤 */
 .page-container {
-  padding: 20px;
-  max-width: 1400px;
+  padding: 24px;              /* 20 -> 24 */
+  max-width: 1440px;          /* 1400 -> 1440 (스크린샷 느낌) */
   margin: 0 auto;
+
+  display: flex;              /* ✅ 섹션 간 간격 통일 */
+  flex-direction: column;
+  gap: 20px;                  /* ✅ 전체 세로 간격 기준 */
 }
 
 .dashboard-grid {
