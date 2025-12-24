@@ -40,15 +40,24 @@
       </el-table-column>
 
       <el-table-column
-        label="관리"
-        width="120"
+        label="결재"
+        width="180"
       >
         <template #default="{ row }">
           <el-button
             size="small"
-            type="primary"
+            type="success"
+            @click="openApproveModal(row)"
           >
-            결재 처리
+            승인
+          </el-button>
+        
+          <el-button
+            size="small"
+            type="danger"
+            @click="openRejectModal(row)"
+          >
+            반려
           </el-button>
         </template>
       </el-table-column>
@@ -71,6 +80,7 @@
 import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { getApprovalPending } from '@/api/approval'
+import { approveApproval, rejectApproval } from '@/api/approval'
 
 /* pagination */
 const page = ref(1)
@@ -81,15 +91,21 @@ const total = ref(0)
 const list = ref([])
 const loading = ref(false)
 
+const approveVisible = ref(false)
+const selectedApproval = ref(null)
+
 /* api */
 const fetchList = async () => {
   loading.value = true
   try {
-    // ⚠️ interceptor로 response.data가 이미 벗겨진 상태
+    // interceptor로 response.data가 이미 벗겨진 상태
     const res = await getApprovalPending(page.value, size.value)
     console.log('pending res:', res)
-    list.value = res.contents || []
-    total.value = res.totalCount || 0
+
+    const data = res.contents ? res : res.data
+
+    list.value = data.contents ?? []
+    total.value = data.totalCount ?? 0
   } catch (e) {
     console.error('대기 결재 조회 실패', e)
     list.value = []
@@ -97,6 +113,22 @@ const fetchList = async () => {
   } finally {
     loading.value = false
   }
+}
+
+const confirmApprove = async () => {
+  try {
+    await approveApproval(selectedApproval.value.approvalCode)
+    ElMessage.success('승인 처리되었습니다.')
+    approveVisible.value = false
+    fetchList()
+  } catch (e) {
+    ElMessage.error('승인 처리 실패')
+  }
+}
+
+const openApproveModal = (row) => {
+  selectedApproval.value = row
+  approveVisible.value = true
 }
 
 /* util */
