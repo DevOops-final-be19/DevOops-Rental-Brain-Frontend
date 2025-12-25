@@ -2,6 +2,7 @@
   import { ref } from 'vue'
   import api from '@/api/axios';
   import { useRouter } from 'vue-router'
+  import { useToastStore } from '@/store/useToast'
   
   import Step1Customer from './Step1Customer.vue'
   import Step2ContractProduct from './Step2ContractProduct.vue'
@@ -10,7 +11,7 @@
   import Step5Review from './Step5Review.vue'
   
 const router = useRouter()
-
+const toastStore = useToastStore();
 /* =========================
    Step 상태
 ========================= */
@@ -42,7 +43,8 @@ const draft = ref({
     totalAmount: 0,
     paymentDay: null,
     paymentMethod: 'AUTO',
-    memo: ''
+    memo: '',
+    coupon: null
   },
 
   approvalLine: []
@@ -92,6 +94,17 @@ const submitContract = async () => {
     }))
   }
 
+  /* =========================
+     쿠폰 / 프로모션
+  ========================= */
+  if (draft.value.payment.coupon) {
+    body.couponId = draft.value.payment.coupon.id
+  }
+
+  if (draft.value.promotion) {
+    body.promotionId = draft.value.promotion.id
+  }
+
    /* =========================
      승인자 분기
   ========================= */
@@ -110,14 +123,14 @@ const submitContract = async () => {
 
     await api.post('/contract', body)
 
-    alert('계약 승인 요청이 완료되었습니다.')
+    toastStore.showToast('계약 승인 요청이 완료되었습니다.')
 
     // TODO: 계약 목록 또는 상세 페이지 이동
     router.push('/contracts')
 
   } catch (e) {
     console.error('계약 승인 요청 실패', e)
-    alert('계약 승인 요청 중 오류가 발생했습니다.')
+    toastStore.showToast('계약 승인 요청 중 오류가 발생했습니다.')
   }
 }
   </script>

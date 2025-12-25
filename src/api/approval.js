@@ -10,38 +10,42 @@ export const getApprovalStatus = () => {
 /**
  * 대기 결재 목록
  */
-export const getApprovalPending = (pageNum, amount) => {
+export const getApprovalPending = (pageNum, amount, keyword) => {
     return api.get('/approval/pending', {
-      params: { pageNum, amount }
+      params: { pageNum, amount, keyword: keyword || undefined }
     })
   }
   
   /**
    * 진행 중 결재 목록
    */
-  export const getApprovalProgress = (pageNum, amount) => {
+  export const getApprovalProgress = (pageNum, amount, keyword) => {
     return api.get('/approval/progress', {
-      params: { pageNum, amount }
+      params: { pageNum, amount , keyword: keyword || undefined }
     })
   }
   
   /**
    * 완료 결재 목록
    */
-  export const getApprovalCompleted = (pageNum, amount) => {
+  export const getApprovalCompleted = (pageNum, amount, keyword) => {
     return api.get('/approval/completed', {
-      params: { pageNum, amount }
+      params: { pageNum, amount, keyword: keyword || undefined }
     })
   }
 
-  export const approveApproval = (approvalCode) => {
-    return api.patch(`/approval/approve`, null, {
-    params: { approvalCode }
-  })
+  /**
+   * 결재 승인
+   */
+  export const approveApproval = (approvalMappingId) => {
+    return api.patch(`/approval/approve/${approvalMappingId}`)
   }
+  
 
-  export const rejectApproval = (approvalCode, data) => {
-    return api.patch(`/approval/reject`, data, {
-      params: { approvalCode }
-    })
+    /**
+   * 결재 반려
+   */
+  export const rejectApproval = (approvalMappinId, data) => {
+    return api.patch(`/approval/reject/${approvalMappinId}`, data)
   }
+  

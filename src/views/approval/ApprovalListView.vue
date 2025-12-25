@@ -56,15 +56,15 @@
     <el-card shadow="never" class="tabs-card">
       <el-tabs v-model="activeTab" class="approval-tabs">
         <el-tab-pane label="대기" name="pending">
-          <ApprovalPending />
+          <ApprovalPending @changed="handleChanged" />
         </el-tab-pane>
 
         <el-tab-pane label="진행" name="progress">
-          <ApprovalProgress />
+          <ApprovalProgress ref="progressRef" />
         </el-tab-pane>
 
         <el-tab-pane label="완료" name="completed">
-          <ApprovalCompleted />
+          <ApprovalCompleted ref="completedRef"/>
         </el-tab-pane>
       </el-tabs>
     </el-card>
@@ -85,6 +85,9 @@ import {
   CircleCheck,
   CircleClose
 } from '@element-plus/icons-vue'
+
+const progressRef = ref(null)
+const completedRef = ref(null)
 
 /**
  * 활성 탭
@@ -113,14 +116,20 @@ const fetchStatus = async () => {
   }
 }
 
+const handleChanged = async () => {
+  await fetchStatus() // KPI 갱신
+
+  // 다른 탭 목록 갱신
+  progressRef.value?.fetchList()
+  completedRef.value?.fetchList()
+}
+
 onMounted(fetchStatus)
 </script>
 
 <style scoped>
 /* ===== Layout ===== */
-.page-container {
-  padding: 24px;
-}
+.page-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
 
 .header {
   margin-bottom: 24px;

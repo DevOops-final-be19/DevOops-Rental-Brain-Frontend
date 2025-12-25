@@ -2,8 +2,8 @@
   <div class="page-container">
     <!-- Header -->
     <div class="header">
-      <h2>계약 목록</h2>
-      <p class="subtitle">계약 현황 및 진행 상태 관리</p>
+      <h2 class="page-title">계약 목록</h2>
+      <p class="page-subtitle">계약 현황 및 진행 상태 관리</p>
     </div>
 
     <!-- KPI -->
@@ -37,7 +37,7 @@
     <div class="toolbar">
       <el-input
         v-model="searchKeyword"
-        placeholder="계약명, 고객명, 담당자 검색..."
+        placeholder="계약명, 고객명, 담당자, 계약코드 검색"
         prefix-icon="Search"
         class="search-bar"
         @keyup.enter="fetchList"
@@ -107,7 +107,7 @@
 
         <el-table-column label="관리" width="120" align="center">
           <template #default="{ row }">
-            <el-button v-if="!isBlockedStatus(row.status)" link type="primary" size="small" @click="goToDetail(row.id)">
+            <el-button link type="primary" size="small" @click="goToDetail(row.id)">
               상세보기
             </el-button>
           </template>
@@ -201,9 +201,6 @@ const statusLabel = (s) =>
 const statusType = (s) =>
   ({ P: 'warning', I: 'danger', T: 'info', C: 'success', W:'waiting', R: "reject" }[s])
 
-const isBlockedStatus = (status) => {
-  return status === 'W' || status === 'R'
-}
 
 watch(selectedStatus, () => {
   page.value = 1
@@ -216,9 +213,10 @@ onMounted(async () => {
 })
 </script>
 <style scoped>
-.page-container { max-width: 1600px; margin: 0 auto; }
-.header h2 { margin: 0 0 4px 0; font-size: 22px; }
-.header .subtitle { color: #666; font-size: 14px; margin-bottom: 24px; }
+.page-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+.page-title { font-size: 24px; font-weight: 700; color: #333; margin: 0; }
+.page-subtitle { margin: 6px 0 0; color: #6b7280; font-size: 13px; margin-bottom: 24px; }
+
 
 .stats-row {display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 24px;}
 .stat-card {background: white; border: 1px solid #eee; border-radius: 8px; padding: 20px;}

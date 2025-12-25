@@ -1,6 +1,25 @@
 <template>
   <el-card shadow="never">
-    <el-table :data="list" style="width: 100%" empty-text="진행 중인 결재가 없습니다.">
+
+    <!-- Search -->
+    <div class="search-area">
+      <el-input
+        v-model="keyword"
+        placeholder="결재 코드 / 제목 검색"
+        clearable
+        style="width: 260px"
+        @keyup.enter="onSearch"
+      />
+      <el-button type="primary" @click="onSearch">검색</el-button>
+    </div>
+
+    <!-- Table -->
+    <el-table
+      :data="list"
+      v-loading="loading"
+      style="width: 100%"
+      empty-text="진행 중인 결재가 없습니다."
+    >
       <el-table-column
         prop="approval_code"
         label="결재 코드"
@@ -24,38 +43,97 @@
         </template>
       </el-table-column>
 
+      <el-table-column label="다음 승인자 직책">
+        <template #default="{ row }">
+          {{ row.nextApproverPosition || '-' }}
+        </template>
+      </el-table-column>
+
       <el-table-column label="요청일" width="160">
         <template #default="{ row }">
           {{ formatDate(row.requestDate) }}
         </template>
       </el-table-column>
     </el-table>
+
+    <!-- Pagination -->
+    <div class="pagination-area">
+      <el-pagination
+        layout="prev, pager, next"
+        :total="total"
+        :page-size="size"
+        v-model:current-page="page"
+        @current-change="fetchList"
+      />
+    </div>
+
   </el-card>
 </template>
-
 <script setup>
-import { ref, onMounted } from 'vue'
-import dayjs from 'dayjs'
-import { getApprovalProgress } from '@/api/approval'
-
-const list = ref([])
-
-const fetchList = async () => {
-  try {
-    const res = await getApprovalProgress(1, 10)
-
-    // 방어 코드 (백엔드 응답 구조 변화 대비)
-    list.value = res?.data?.contents ?? []
-  } catch (e) {
-    console.error('결재 진행 목록 조회 실패', e)
-    list.value = []
+  import { ref, onMounted } from 'vue'
+  import dayjs from 'dayjs'
+  import { getApprovalProgress } from '@/api/approval'
+  
+  /* pagination */
+  const page = ref(1)
+  const size = ref(10)
+  const total = ref(0)
+  
+  /* search */
+  const keyword = ref('')
+  
+  /* table */
+  const list = ref([])
+  const loading = ref(false)
+  
+  /* api */
+  const fetchList = async () => {
+    loading.value = true
+    try {
+      const res = await getApprovalProgress(
+        page.value,
+        size.value,
+        keyword.value
+      )
+  
+      const data = res.contents ? res : res.data ?? res
+  
+      list.value = data.contents ?? []
+      total.value = data.totalCount ?? 0
+    } catch (e) {
+      console.error('결재 진행 목록 조회 실패', e)
+      list.value = []
+      total.value = 0
+    } finally {
+      loading.value = false
+    }
   }
-}
-
-const formatDate = d => {
-  if (!d) return '-'
-  return dayjs(d).format('YYYY-MM-DD')
-}
-
-onMounted(fetchList)
-</script>
+  
+  const onSearch = () => {
+    page.value = 1
+    fetchList()
+  }
+  
+  /* util */
+  const formatDate = d =>
+    d ? dayjs(d).format('YYYY-MM-DD') : '-'
+  
+  defineExpose({ fetchList })
+  
+  onMounted(fetchList)
+  </script>
+  
+<style scoped>
+  .search-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .pagination-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+  </style>
