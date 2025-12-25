@@ -19,6 +19,8 @@ import { use } from 'echarts/core'
 import { CanvasRenderer } from 'echarts/renderers'
 import { useAuthStore } from './store/auth.store';
 
+import { formatDate } from '@/utils/date'
+
 const app = createApp(App);
 const pinia = createPinia();
 pinia.use(piniaPersistedstate);

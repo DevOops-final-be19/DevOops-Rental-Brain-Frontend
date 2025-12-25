@@ -1,7 +1,5 @@
 <template>
   <div class="card">
-    <div class="card-title">권장 기준표 (B2B 렌탈 CRM 기준)</div>
-
     <table class="guide-table">
       <thead>
         <tr>
@@ -31,6 +29,13 @@
   </div>
 </template>
 
+<script setup>
+const props = defineProps({
+  showTitle: { type: Boolean, default: true },
+});
+
+</script>
+
 <style scoped>
 .card {
   background: #fff;
@@ -38,13 +43,6 @@
   border-radius: 8px;
   padding: 20px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.02);
-}
-
-.card-title {
-  font-size: 14px;
-  font-weight: 900;
-  color: #111827;
-  margin-bottom: 12px;
 }
 
 .guide-table {
