@@ -164,6 +164,25 @@ const selectedItems = ref([])
 const promotions = ref([])
 const selectedPromotion = ref(null)
 
+watch(
+  () => props.draft,
+  (draft) => {
+    // 계약 정보
+    contractName.value = draft.contract?.name || ''
+    startDate.value = draft.contract?.startDate || ''
+    duration.value = draft.contract?.duration || ''
+
+    // 제품
+    selectedItems.value = draft.assets
+      ? JSON.parse(JSON.stringify(draft.assets))
+      : []
+
+    // 프로모션
+    selectedPromotion.value = draft.promotion || null
+  },
+  { immediate: true }
+)
+
 /* API 호출 */
 const fetchItems = async () => {
   const res = await api.get('/item/read-groupby-name')

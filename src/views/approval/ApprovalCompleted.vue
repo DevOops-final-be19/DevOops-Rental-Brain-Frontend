@@ -1,5 +1,15 @@
 <template>
   <el-card shadow="never">
+    <div class="search-area">
+      <el-input
+        v-model="keyword"
+        placeholder="결재 코드 / 제목 검색"
+        clearable
+        style="width: 260px"
+        @keyup.enter="onSearch"
+      />
+      <el-button type="primary" @click="onSearch">검색</el-button>
+    </div>
     <el-table :data="list" style="width: 100%" empty-text="완료된 결재가 없습니다.">
       <el-table-column
         prop="approvalCode"
@@ -27,6 +37,12 @@
         label="반려 사유"
       />
 
+      <el-table-column label="요청일" width="160">
+        <template #default="{ row }">
+          {{ formatDate(row.requestDate) }}
+        </template>
+      </el-table-column>
+
       <el-table-column label="처리일" width="160">
         <template #default="{ row }">
           {{ formatDate(row.lastProcessDate) }}
@@ -41,16 +57,38 @@ import { ref, onMounted } from 'vue'
 import dayjs from 'dayjs'
 import { getApprovalCompleted } from '@/api/approval'
 
+/* pagination */
+const page = ref(1)
+const size = ref(10)
+const total = ref(0)
+
+const keyword = ref('')
 const list = ref([])
+const loading = ref(false)
 
 const fetchList = async () => {
+  loading.value = true
   try {
-    const res = await getApprovalCompleted(1, 10)
+    const res = await getApprovalCompleted(
+      page.value,
+      size.value,
+      keyword.value
+    )
+    const data = res.contents ? res : res.data ?? res
     list.value = res?.data?.contents ?? []
+    total.value = data.totalCount ?? 0
   } catch (e) {
     console.error('완료된 결재 조회 실패', e)
     list.value = []
+    total.value = 0
+  } finally {
+    loading.value = false
   }
+}
+
+const onSearch = () => {
+  page.value = 1
+  fetchList()
 }
 
 const formatDate = d => {
@@ -58,5 +96,21 @@ const formatDate = d => {
   return dayjs(d).format('YYYY-MM-DD')
 }
 
+defineExpose({ fetchList })
+
 onMounted(fetchList)
 </script>
+<style scoped>
+  .search-area {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+  
+  .pagination-area {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 16px;
+  }
+  </style>
