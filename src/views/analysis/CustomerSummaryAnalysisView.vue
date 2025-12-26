@@ -1,6 +1,7 @@
 <template>
   <div class="page-container">
     <!-- 헤더 -->
+    
     <div class="header-row">
       <div class="title-area">
         <h2 class="page-title">고객 요약 분석</h2>
@@ -8,7 +9,9 @@
           전체 고객 현황을 기반으로 규모, 위험도, 만족도를 종합적으로 분석합니다.
         </p>
       </div>
+      
 
+      
       <!-- ✅ 토글 + 선택월 -->
       <div class="header-actions">
         <div class="seg-toggle">
@@ -23,15 +26,22 @@
           </button>
         </div>
 
+        
         <div v-if="mode === 'pick'" class="month-pick">
           <input type="month" v-model="pickedMonth" class="month-input" />
           <button class="apply-btn" @click="applyPickedMonth">적용</button>
         </div>
-
+        
         <div class="month-badge">{{ kpi?.currentMonth ?? month }} 기준</div>
       </div>
     </div>
-
+    <div class="analysis-section">
+      <AnalysisSummary
+        :text="customerSummary.text"
+        :tone="customerSummary.tone"
+      />
+    </div>
+    
     <!-- KPI 5개 -->
     <div class="kpi-wrapper">
       <div class="kpi-box">
@@ -42,7 +52,7 @@
           <span class="muted">전월 대비(거래 고객 기준)</span>
         </div>
       </div>
-
+      
       <div class="kpi-box">
         <div class="kpi-title">평균 거래액</div>
         <div class="kpi-value">{{ fmtManwon(kpi.avgTradeAmount) }}</div>
@@ -153,6 +163,7 @@ import SupportMonthlyTrend from "@/components/analysis/SupportMonthlyTrend.vue";
 import RiskMonthlyRate from "@/components/analysis/RiskMonthlyRate.vue";
 import CustomerSatisfactionCard from "@/components/analysis/CustomerSatisfactionCard.vue";
 import SatisfactionDetailModal from "@/components/analysis/SatisfactionDetailModal.vue";
+import AnalysisSummary from "@/components/analysis/AnalysisSummary.vue";
 
 const satModalOpen = ref(false);
 const satStar = ref(5);
@@ -165,6 +176,36 @@ const openSatisfactionModal = (star) => {
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
+
+// 한줄평
+const customerSummary = computed(() => {
+  if (!kpi.value) return { text: "고객 요약 지표를 불러오는 중입니다.", tone: "neutral" };
+
+  const stableRate = Number(kpi.value?.stableCustomerRate ?? 0);
+  const riskRate = Number(kpi.value?.riskRate ?? 0);
+  const riskDiffP = Number(kpi.value?.riskMomDiffRate ?? 0);
+
+  if (riskRate >= 15 || riskDiffP >= 3) {
+    return {
+      text: `이탈 위험 고객 비중 ${riskRate}%로 증가 추세입니다. 위험 고객 우선 케어가 필요합니다.`,
+      tone: "danger",
+    };
+  }
+
+  if (riskRate >= 10) {
+    return {
+      text: `안정 고객 비중은 유지되지만, 이탈 위험 고객 ${riskRate}%가 감지되어 선제 대응이 필요합니다.`,
+      tone: "warn",
+    };
+  }
+ if (riskRate < 10) {
+  return {
+    text: `안정 고객 비중 ${stableRate}%로 전반적인 고객 상태는 안정적입니다.`,
+    tone: "good",
+  };
+};
+});
+
 
 /* =========================
    ✅ 카드 클릭 이동(사이드바 기준으로 name만 맞추면 끝)
@@ -350,6 +391,10 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   padding: 24px;
   max-width: 1440px;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
 
 /* 헤더 */
@@ -358,7 +403,7 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   justify-content: space-between;
   align-items: flex-start;
   gap: 16px;
-  margin-bottom: 20px;
+  margin-bottom: 0px;
 }
 
 .page-title {
@@ -563,5 +608,33 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   .grid-2 {
     grid-template-columns: 1fr;
   }
+}
+/*  한줄평 */
+.kpi-card,
+.card.kpi-card {
+  cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    border-color 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.kpi-card:hover,
+.card.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-card:active,
+.card.kpi-card:active {
+  transform: translateY(-1px);
+}
+
+.kpi-card:focus-visible,
+.card.kpi-card:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
 }
 </style>

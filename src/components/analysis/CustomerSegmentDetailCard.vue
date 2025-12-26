@@ -1,12 +1,16 @@
 <template>
   <div class="seg-wrap">
-    <BaseCard
-      v-for="c in cards"
-      :key="c.segmentId"
-      class="seg-card"
-      :class="toneClass(c.segmentId)"
-      :hoverable="true"
-    >
+      <BaseCard
+        v-for="c in cards"
+        :key="c.segmentId"
+        class="seg-card"
+        :class="toneClass(c.segmentId)"
+        :hoverable="true"
+        role="button"
+        tabindex="0"
+        @click="openSegment(c.segmentId)"
+        @keydown.enter="openSegment(c.segmentId)"
+      >
       <!-- ✅ 카드 헤더 슬롯 -->
       <template #header>
         <div class="seg-head">
@@ -52,6 +56,12 @@
       <div v-if="c._loading" class="overlay">불러오는 중...</div>
       <div v-else-if="c._error" class="overlay error">불러오기 실패</div>
     </BaseCard>
+    <!-- 모달 -->
+      <SegmentCustomersModal
+        :open="modalOpen"
+        :segmentId="selectedSegmentId"
+        @close="modalOpen = false"
+      />
   </div>
 </template>
 
@@ -59,6 +69,16 @@
 import { onMounted, ref } from "vue";
 import { getCustomerSegmentDetailCard } from "@/api/customeranalysis";
 import BaseCard from "@/components/common/BaseCard.vue";
+import SegmentCustomersModal from "@/components/analysis/SegmentCustomersModal.vue";
+
+// 모달
+const modalOpen = ref(false);
+const selectedSegmentId = ref(1);
+
+const openSegment = (segmentId) => {
+  selectedSegmentId.value = Number(segmentId);
+  modalOpen.value = true;
+};
 
 /**
  * ✅ props: 조회할 세그먼트 ID 목록
@@ -365,5 +385,16 @@ const toneClass = (segmentId) => {
 }
 .overlay.error {
   color: #ef4444;
+}
+
+.seg-card {
+  position: relative;
+  min-height: 320px;
+  cursor: pointer;
+}
+
+.seg-card:focus {
+  outline: 2px solid #c7d2fe;
+  outline-offset: 2px;
 }
 </style>

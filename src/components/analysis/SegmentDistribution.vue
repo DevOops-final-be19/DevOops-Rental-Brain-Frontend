@@ -156,15 +156,16 @@ const option = computed(() => {
         center: isMobile.value ? ["50%", "45%"] : ["35%", "50%"],
 
         avoidLabelOverlap: true,
-        label: {
-          show: true,
-          formatter: (p) => {
-            const n = p.name || "";
-            return n.length > 8 ? n.slice(0, 8) + "…" : n;
-          },
-          fontSize: 11,
-          color: "#374151",
-        },
+label: {
+  show: true,
+  formatter: (p) => `${p.percent}%`,
+  fontSize: 12,
+  fontWeight: 800,
+  color: "#374151",
+},
+labelLine: {
+  show: false,
+},
         labelLine: { show: true, length: 10, length2: 6 },
 
         // (원하면 hover를 더 티나게 하려면 여기 emphasis/itemStyle 강화 가능)

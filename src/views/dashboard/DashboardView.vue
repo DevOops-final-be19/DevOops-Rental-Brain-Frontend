@@ -55,7 +55,7 @@
           <SegmentAnalysisChart />
         </div>
         <div>
-          <AiInsight />
+          <CampaignWorkbenchMock />
         </div>
 
       </section>
@@ -74,6 +74,7 @@ import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue
 import QuarterCustomerChart from "@/components/dashboard/QuarterCustomerChart.vue";
 
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
+import CampaignWorkbenchMock from "@/components/dashboard/CampaignWorkbenchMock.vue";
 
 const router = useRouter();
 
@@ -120,7 +121,7 @@ function goTo(key) {
 /* 2단: 3열 (균등) */
 .grid-3 {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 2fr;
   gap: 16px;
   align-items: stretch;
 }
