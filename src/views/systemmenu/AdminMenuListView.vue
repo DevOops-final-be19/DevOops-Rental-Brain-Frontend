@@ -9,7 +9,7 @@
             <div class="title-right">
                 <el-button type="primary" size="medium" round @click="goCreate">
                     <el-icon>
-                        <User />
+                        <Avatar />
                     </el-icon>
                     사원 등록
                 </el-button>
@@ -24,7 +24,7 @@
                         <div class="header-top">
                             <div class="title">
                                 <el-icon>
-                                    <User />
+                                    <Avatar />
                                 </el-icon>
                                 사용자 목록
                             </div>
@@ -75,7 +75,7 @@
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
-import { User, Edit } from "@element-plus/icons-vue";
+import { User, Edit, Avatar } from "@element-plus/icons-vue";
 import { useRouter, useRoute } from "vue-router";
 import api from "@/api/axios";
 

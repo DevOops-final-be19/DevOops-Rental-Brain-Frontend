@@ -295,6 +295,7 @@ const logout = async () => {
   toastStore.showToast('로그아웃' + authStore.empId);
   router.push('/login');
 }
+
 const goToNotificationCenter = ()=>{
   vis.value = false;
   router.push("/notifications");
