@@ -293,9 +293,6 @@ const mode = ref("this");
 /** 선택월 input 값 */
 const pickedMonth = ref("");
 
-const aiResult = ref(null);
-
-
 /** YYYY-MM */
 const ym = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
 const addMonths = (baseYM, diff) => {
@@ -757,5 +754,34 @@ const typeLabel = (t) => {
   .trend-ai-row{
     grid-template-columns: 1fr;
   }
+}
+
+/*  한줄평 */
+.kpi-card,
+.card.kpi-card {
+  cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    border-color 0.14s ease,
+    background-color 0.14s ease;
+}
+
+.kpi-card:hover,
+.card.kpi-card:hover {
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.kpi-card:active,
+.card.kpi-card:active {
+  transform: translateY(-1px);
+}
+
+.kpi-card:focus-visible,
+.card.kpi-card:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
 }
 </style>

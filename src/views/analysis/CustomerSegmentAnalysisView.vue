@@ -1,8 +1,6 @@
 <template>
   <div class="page-container">
-    <!-- =========================
-         Header
-    ========================== -->
+    <!-- 헤더 -->
     <div class="header-row">
       <div class="title-area">
         <h2 class="page-title">고객 세그먼트 분석</h2>
