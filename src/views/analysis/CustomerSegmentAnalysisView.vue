@@ -584,5 +584,28 @@ const reasonLabel = (code) => {
   outline: 2px solid #111827;
   outline-offset: 2px;
 }
+/* ===== KPI card hover (fix) ===== */
+.card.clickable {
+  cursor: pointer;
+  transition:
+    transform 0.14s ease,
+    box-shadow 0.14s ease,
+    border-color 0.14s ease,
+    background-color 0.14s ease;
+}
 
+.card.clickable:hover {
+  transform: translateY(-2px);
+  border-color: #d1d5db;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.08);
+}
+
+.card.clickable:active {
+  transform: translateY(-1px);
+}
+
+.card.clickable:focus-visible {
+  outline: 2px solid #111827;
+  outline-offset: 2px;
+}
 </style>
