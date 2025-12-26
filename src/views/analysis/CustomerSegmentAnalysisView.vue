@@ -1,6 +1,8 @@
 <template>
   <div class="page-container">
-    <!-- 헤더 -->
+    <!-- =========================
+         Header
+    ========================== -->
     <div class="header-row">
       <div class="title-area">
         <h2 class="page-title">고객 세그먼트 분석</h2>
@@ -9,7 +11,6 @@
         </p>
       </div>
 
-      <!-- ✅ 토글 + 선택월 -->
       <div class="header-actions">
         <div class="seg-toggle">
           <button class="seg-btn" :class="{ active: mode === 'this' }" @click="setThisMonth">
@@ -32,8 +33,11 @@
       </div>
     </div>
 
+    <!-- =========================
+         KPI Summary
+    ========================== -->
     <div class="grid-2">
-      <!-- (1) 이탈 위험 고객 비중 -->
+      <!-- 이탈 위험 고객 비중 -->
       <div class="card">
         <div class="kpi-head">
           <div class="icon warn">⚠️</div>
@@ -49,13 +53,14 @@
 
         <div class="kpi-sub">
           <span :class="(risk?.momDiffRate ?? 0) <= 0 ? 'up' : 'down'">
-            전월 대비 {{ (risk?.momDiffRate ?? 0) >= 0 ? "+" : "" }}{{ round1(risk?.momDiffRate) }}%p
+            전월 대비
+            {{ (risk?.momDiffRate ?? 0) >= 0 ? "+" : "" }}{{ round1(risk?.momDiffRate) }}%p
             {{ (risk?.momDiffRate ?? 0) <= 0 ? "(위험 고객 감소 중)" : "(위험 고객 증가 중)" }}
           </span>
         </div>
       </div>
 
-      <!-- (2) 이탈 위험 사유 분포 -->
+      <!-- 이탈 위험 사유 분포 -->
       <div class="card">
         <div class="kpi-head">
           <div class="icon purple">△</div>
@@ -74,6 +79,18 @@
       </div>
     </div>
 
+    <!-- =========================
+         Insight Charts
+         ⚠️ 내부 컴포넌트가 카드 역할
+    ========================== -->
+    <div class="grid-2 insight-charts">
+      <RiskMonthlyRate />
+      <SegmentDistribution />
+    </div>
+
+    <!-- =========================
+         Detail Analysis
+    ========================== -->
     <SegmentAnalysisChart />
     <CustomerSegmentDetailCard />
   </div>
@@ -85,6 +102,8 @@ import { useRoute, useRouter } from "vue-router";
 import { getRiskKpi, getRiskReasonKpi } from "@/api/customeranalysis";
 import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
 import CustomerSegmentDetailCard from "@/components/analysis/CustomerSegmentDetailCard.vue";
+import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
+import RiskMonthlyRate from "@/components/analysis/RiskMonthlyRate.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -389,5 +408,25 @@ const reasonLabel = (code) => {
   .header-actions {
     justify-content: flex-start;
   }
+}
+
+/* 2열 그리드 (분석 차트용) */
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* 이 섹션만 살짝 여백 */
+.insight-charts {
+  margin-top: 16px;
+}
+
+.grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  align-items: stretch;
 }
 </style>

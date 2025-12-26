@@ -118,16 +118,27 @@
       </div>
     </div>
 
-      <!-- 차트 + AI 인사이트 (2:1) -->
-      <div class="trend-ai-row">
-        <div class="trend-col">
-          <SupportMonthlyTrend />
-        </div>
-
-        <div class="ai-col">
-          <QuoteInsightPanel />
-        </div>
+    <!-- 1) 상단: 차트(2) + AI 실행 카드(1) -->
+    <div class="trend-ai-row">
+      <div class="trend-col">
+        <SupportMonthlyTrend />
       </div>
+
+      <div class="ai-col">
+        <CustomerSatisfactionCard
+          :satisfaction="satisfaction"
+          :topIssues="topIssues"
+          @open="openSatisfactionModal"
+        />
+
+        <SatisfactionDetailModal
+          v-if="satModalOpen && satStar != null"
+          :open="satModalOpen"
+          :star="satStar"
+          @close="satModalOpen = false"
+        />
+      </div>
+    </div>
   </div>
 </template>
 
@@ -136,7 +147,8 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { getCustomerSupportKpi } from "@/api/customeranalysis";
 import SupportMonthlyTrend from "@/components/analysis/SupportMonthlyTrend.vue";
-import QuoteInsightPanel from "@/components/analysis/QuoteInsightPanel.vue";
+import CustomerSatisfactionCard from "@/components/analysis/CustomerSatisfactionCard.vue";
+import SatisfactionDetailModal from "@/components/analysis/SatisfactionDetailModal.vue";
 
 const route = useRoute();
 const router = useRouter();
@@ -145,10 +157,29 @@ const now = new Date();
 const defaultMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 const month = computed(() => route.query.month ?? defaultMonth);
 
+// 만족도 카드에 내려줄 데이터
+const satisfaction = computed(() => kpi.value?.satisfaction ?? null);
+
+// (지금은 안 쓰더라도 props 맞추기용)
+const topIssues = computed(() => []);
+
+// 모달 상태
+const satModalOpen = ref(false);
+const satStar = ref(null);
+
+// 카드에서 별점 클릭 시
+const openSatisfactionModal = (star) => {
+  satStar.value = star;
+  satModalOpen.value = true;
+};
+
 /** 토글 모드 */
 const mode = ref("this");
 /** 선택월 input 값 */
 const pickedMonth = ref("");
+
+const aiResult = ref(null);
+
 
 /** YYYY-MM */
 const ym = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
@@ -490,6 +521,19 @@ const typeLabel = (t) => {
   }
   .header-actions {
     justify-content: flex-start;
+  }
+}
+.trend-ai-row{
+  display: grid;
+  grid-template-columns: 2fr 1fr; /* 2 : 1 */
+  gap: 18px;
+  align-items: start;
+}
+
+/* 반응형: 좁아지면 세로로 */
+@media (max-width: 1200px){
+  .trend-ai-row{
+    grid-template-columns: 1fr;
   }
 }
 </style>
