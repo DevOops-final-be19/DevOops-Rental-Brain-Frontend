@@ -63,13 +63,14 @@ import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/useToast';
 import axios from 'axios';
 import { ref } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 
 const empId = ref('');
 const pwd = ref('');
 const toastStore = useToastStore();
 const authStore = useAuthStore();
 const router = useRouter();
+const route = useRoute();
 const loading = ref(false);
 
 const login = async () => {
@@ -104,7 +105,8 @@ const login = async () => {
       `로그인 되었습니다 : ${authStore.employeeCode} ${authStore.name}`
     );
 
-    router.push('/');
+    const redirect = route.query.redirect || "/";
+    router.push(redirect);
   } catch (e) {
     toastStore.showToast(e.response?.data?.error || '로그인 실패');
   } finally {

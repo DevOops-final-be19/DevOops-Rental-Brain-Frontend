@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import GlobalLayout from "@/layouts/GlobalLayout.vue";
+import { useAuthStore } from '@/store/auth.store';
 
 const routes = [
   {
     path: '/',
     component: GlobalLayout,
+    meta: { requiresAuth: true },
     children: [
       // --- Dashboard ---
       {
@@ -203,6 +205,28 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  const token = authStore.token;
+
+  // 로그인 페이지는 항상 허용
+  if (to.name === "login") {
+    next();
+    return;
+  }
+
+  // 인증 필요한 페이지인데 토큰 없으면
+  if (to.matched.some((route) => route.meta.requiresAuth) && !token) {
+    next({
+      name: "login",
+      query: { redirect: to.fullPath },
+    });
+    return;
+  }
+
+  next();
 });
 
 export default router;

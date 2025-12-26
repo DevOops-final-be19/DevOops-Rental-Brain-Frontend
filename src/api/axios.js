@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/useToast';
 import axios from 'axios'
+import router from "@/router";
 
 const api = axios.create({
     // baseURL: import.meta.env.VITE_API_BASE_URL,
@@ -33,16 +34,18 @@ api.interceptors.response.use(
     async (e) => {
         console.log('인터셉터 호출')
         const authStore = useAuthStore();
-        const toastStore = useToastStore();
+        
         const originalRequest = e.config;
 
         // 무한 루프 방지
         if (originalRequest._retry) {
+            unAuth(error.message);
             return Promise.reject(e);
         }
 
         if (e.response?.status === 401) {
             if(e.response?.data?.message !== "access token expired"){
+                unAuth(e.message);
                 return Promise.reject(e);
             }
             
@@ -59,14 +62,26 @@ api.interceptors.response.use(
                 return api(originalRequest);
             }
             catch (error) {
-                console.log('오류: ', error.message);
-                toastStore.showToast('오류가 발생했습니다: '+ error.message);
+                unAuth(error.message);
+                return Promise.reject(error);
             }
         }
-        console.log('오류:', e.message);
-        toastStore.showToast('오류가 발생했습니다: '+ e.message);
         return Promise.reject(e);
     }
 )
+
+function unAuth(message) {
+    const authStore = useAuthStore();
+    const toastStore = useToastStore();
+
+    authStore.logout();
+    localStorage.clear();
+
+    if (message) {
+        toastStore.showToast(message);
+    }
+
+    router.replace("/login");  // 여기서만 이동
+}
 
 export default api

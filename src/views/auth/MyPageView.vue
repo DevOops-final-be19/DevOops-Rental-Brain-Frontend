@@ -57,7 +57,7 @@
             <template #header>
                 <div class="card-header">
                     <el-icon>
-                        <User />
+                        <Avatar />
                     </el-icon>
                     기본 정보
                 </div>
