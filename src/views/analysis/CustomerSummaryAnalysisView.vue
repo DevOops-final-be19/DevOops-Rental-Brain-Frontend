@@ -4,7 +4,9 @@
     <div class="header-row">
       <div class="title-area">
         <h2 class="page-title">고객 요약 분석</h2>
-        <p class="page-subtitle">전체 고객 현황을 기반으로 규모, 위험도, 만족도를 종합적으로 분석합니다.</p>
+        <p class="page-subtitle">
+          전체 고객 현황을 기반으로 규모, 위험도, 만족도를 종합적으로 분석합니다.
+        </p>
       </div>
 
       <!-- ✅ 토글 + 선택월 -->
@@ -81,48 +83,55 @@
 
     <!-- 2열 레이아웃 -->
     <div class="summary-grid">
-      <div class="col col-2">
+      <!-- ✅ 월별 응대 트렌드(문의/CS 탭으로 이동) -->
+      <div
+        class="col col-2 panel clickable"
+        role="button"
+        tabindex="0"
+        @click="goTo('CustomerSupportAnalysisView')"
+        @keydown.enter.prevent="goTo('CustomerSupportAnalysisView')"
+        @keydown.space.prevent="goTo('CustomerSupportAnalysisView')"
+      >
         <SupportMonthlyTrend />
       </div>
 
-      <div class="col col-2">
+      <!-- ✅ 월별 이탈위험률(연체/위험관리 탭으로 이동) -->
+      <div
+        class="col col-2 panel clickable"
+        role="button"
+        tabindex="0"
+        @click="goTo('CustomerSegmentAnalysisView')"
+        @keydown.enter.prevent="goTo('CustomerSegmentAnalysisView')"
+        @keydown.space.prevent="goTo('CustomerSegmentAnalysisView')"
+      >
         <RiskMonthlyRate />
       </div>
     </div>
 
     <!-- 2열 레이아웃 -->
     <div class="grid-2">
-      <div class="card">
-        <SegmentDistribution
-          title="고객 세그먼트 분석"
-          :segments="segmentDist.segments"
-          :total="segmentDist.totalCustomerCount"
-          :showMiniList="false"
-        />
-      </div>
+          <CustomerSatisfactionCard
+            :satisfaction="satisfaction"
+            :topIssues="topIssues"
+            @open="openSatisfactionModal"
+          />
 
-      <div class="card">
-        <div class="card-title">고객 만족도 분포</div>
+          <SatisfactionDetailModal
+            :open="satModalOpen"
+            :star="satStar"
+            @close="satModalOpen = false"
+          />
 
-        <div class="rating-row">
-          <div class="rating-item" v-for="r in ratingRows" :key="r.star">
-            <div class="label">⭐ {{ r.star }}점</div>
-            <div class="bar">
-              <div class="fill" :style="{ width: r.percent + '%' }"></div>
-            </div>
-            <div class="count">{{ r.count }}개사</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="card-title small">불만족 원인 TOP 3</div>
-        <div class="top3">
-          <div class="top3-item" v-for="(x, idx) in topIssues" :key="idx">
-            <span class="name">{{ idx + 1 }}. {{ x.name }}</span>
-            <span class="count">{{ x.count }}건</span>
-          </div>
-        </div>
+        <!--  고객 세그먼트(고객분석-세그먼트 탭으로 이동) -->
+        <div
+        class="col col-2 panel clickable"
+        role="button"
+        tabindex="0"
+        @click="goTo('CustomerSegmentAnalysisView')"
+        @keydown.enter.prevent="goTo('CustomerSegmentAnalysisView')"
+        @keydown.space.prevent="goTo('CustomerSegmentAnalysisView')"
+        >
+        <SegmentDistribution />
       </div>
     </div>
   </div>
@@ -142,10 +151,45 @@ import {
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
 import SupportMonthlyTrend from "@/components/analysis/SupportMonthlyTrend.vue";
 import RiskMonthlyRate from "@/components/analysis/RiskMonthlyRate.vue";
+import CustomerSatisfactionCard from "@/components/analysis/CustomerSatisfactionCard.vue";
+import SatisfactionDetailModal from "@/components/analysis/SatisfactionDetailModal.vue";
+
+const satModalOpen = ref(false);
+const satStar = ref(5);
+
+const openSatisfactionModal = (star) => {
+  satStar.value = Number(star) || 5;
+  satModalOpen.value = true;
+};
 
 const route = useRoute();
 const router = useRouter();
 const loading = ref(false);
+
+/* =========================
+   ✅ 카드 클릭 이동(사이드바 기준으로 name만 맞추면 끝)
+========================= */
+function goTo(key) {
+  const map = {
+    // 연체관리 탭
+    overdue: { name: "OverdueManagement" },
+
+    // 문의 관리 탭
+    inquiry: { name: "cs-support-list" },
+
+    // 고객분석 > 세그먼트 탭(이 페이지가 탭형이면 query로)
+    // 1) 탭이 query 방식이면 아래처럼:
+    segment: { name: "CustomerSummaryAnalysis", query: { tab: "segment" } },
+
+    CustomerSegmentAnalysisView: { name: "analysis-segment" },
+
+    CustomerSupportAnalysisView: { name: "analysis-support" },
+  };
+
+  const target = map[key];
+  if (!target) return;
+  router.push(target);
+}
 
 /* =========================
    Month (route.query.month)
@@ -251,14 +295,6 @@ const topIssues = ref([
   { name: "AS 처리 속도", count: 15 },
   { name: "제품 품질", count: 12 },
   { name: "가격 정책", count: 8 },
-]);
-
-const ratingRows = computed(() => [
-  { star: 5, count: satisfaction.value.star5Count, percent: satisfaction.value.star5Percent },
-  { star: 4, count: satisfaction.value.star4Count, percent: satisfaction.value.star4Percent },
-  { star: 3, count: satisfaction.value.star3Count, percent: satisfaction.value.star3Percent },
-  { star: 2, count: satisfaction.value.star2Count, percent: satisfaction.value.star2Percent },
-  { star: 1, count: satisfaction.value.star1Count, percent: satisfaction.value.star1Percent },
 ]);
 
 /* =========================
@@ -401,7 +437,7 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   border-radius: 999px;
 }
 
-/* ===== 기존 스타일 유지(하단은 원본 파일 스타일) ===== */
+/* KPI */
 .kpi-wrapper {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -457,15 +493,12 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   font-weight: 900;
 }
 
+/* 레이아웃 */
 .summary-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 15px;
   margin-bottom: 18px;
-}
-
-.col-1 {
-  grid-column: span 2;
 }
 
 .grid-2 {
@@ -474,6 +507,7 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   gap: 15px;
 }
 
+/* 기본 카드 */
 .card {
   background: #fff;
   border: 1px solid #eee;
@@ -482,72 +516,33 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
 }
 
-.card-title {
-  font-size: 14px;
-  font-weight: 900;
-  margin-bottom: 12px;
-  color: #111827;
+/* ✅ 클릭 wrapper */
+.panel {
+  width: 100%;
 }
 
-.card-title.small {
-  font-size: 12px;
-  margin-top: 6px;
+/* ✅ Hover 애니메이션(대시보드 KPI 톤) */
+.clickable {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  will-change: transform;
+  border-radius: 10px;
 }
 
-.rating-row {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.10);
+  border-color: #dbeafe;
 }
 
-.rating-item {
-  display: grid;
-  grid-template-columns: 80px 1fr 70px;
-  align-items: center;
-  gap: 10px;
-  font-size: 12px;
+.clickable:active {
+  transform: translateY(-1px) scale(0.99);
+  box-shadow: 0 6px 14px rgba(17, 24, 39, 0.08);
 }
 
-.bar {
-  height: 8px;
-  border-radius: 999px;
-  background: #f3f4f6;
-  overflow: hidden;
-}
-
-.fill {
-  height: 100%;
-  background: #2563eb;
-  border-radius: 999px;
-}
-
-.divider {
-  height: 1px;
-  background: #eee;
-  margin: 14px 0;
-}
-
-.top3 {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 12px;
-}
-
-.top3-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.top3-item .name {
-  font-weight: 800;
-  color: #374151;
-}
-
-.top3-item .count {
-  font-weight: 900;
-  color: #111827;
+.clickable:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
 }
 
 /* 반응형 */
@@ -564,9 +559,6 @@ const round1 = (n) => (Number(n) || 0).toFixed(1);
   }
   .summary-grid {
     grid-template-columns: 1fr;
-  }
-  .col-1 {
-    grid-column: span 1;
   }
   .grid-2 {
     grid-template-columns: 1fr;
