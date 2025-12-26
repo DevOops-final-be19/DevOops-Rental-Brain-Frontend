@@ -1,25 +1,54 @@
 <template>
-  <BaseCard class="mini-card">
-    <!-- ✅ 헤더: BaseCard 규격 사용 -->
-    <template #header>
-      <div class="mini-title" :class="toneClass">{{ title }}</div>
-    </template>
-
-    <div v-if="!items || items.length === 0" class="empty">데이터가 없습니다.</div>
-
-    <div v-else>
-      <div v-for="it in items" :key="it.rank" class="row">
-        <div class="row-top">
-          <span class="label">{{ it.rank }}. {{ it.label }}</span>
-          <span class="count">{{ it.count }}</span>
+  <div class="insight-grid">
+    <BaseCard
+      v-for="(sec, sIdx) in sections"
+      :key="sIdx"
+      class="insight-card"
+    >
+      <template #header>
+        <div class="head">
+          <div class="title">{{ sec.title ?? mainTitle }}</div>
         </div>
+      </template>
 
-        <div class="bar-wrap">
-          <div class="bar" :class="toneClass" :style="{ width: width(it.count) }"></div>
+      <div class="body">
+        <div v-for="(blk, bIdx) in (sec.blocks ?? [])" :key="bIdx" class="block">
+          <div v-if="blk.subtitle" class="blk-sub">
+            <span class="icon" :class="toneClass(blk.tone)">
+              {{ iconByTone(blk.tone) }}
+            </span>
+            <span class="txt">{{ blk.subtitle }}</span>
+          </div>
+
+          <div class="list">
+            <div
+              v-for="item in (blk.items ?? [])"
+              :key="`${sIdx}-${bIdx}-${item.rank}-${item.label}`"
+              class="row"
+            >
+              <div class="left">
+                <span class="rank" :class="toneClass(blk.tone)">{{ item.rank }}</span>
+                <span class="label">{{ item.label }}</span>
+              </div>
+
+              <div class="right">
+                <span class="count" :class="toneClass(blk.tone)">{{ fmt(item.count) }}건</span>
+              </div>
+
+              <div class="bar-wrap">
+                <div class="bar-bg"></div>
+                <div
+                  class="bar"
+                  :class="toneClass(blk.tone)"
+                  :style="{ width: barWidth(blk.items, item.count) }"
+                />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
-  </BaseCard>
+    </BaseCard>
+  </div>
 </template>
 
 <script setup>
@@ -27,96 +56,174 @@ import { computed } from "vue";
 import BaseCard from "@/components/common/BaseCard.vue";
 
 const props = defineProps({
-  title: { type: String, required: true },
-  items: { type: Array, default: () => [] },
-  tone: { type: String, default: "info" }, // success|danger|info|warning
+  sections: { type: Array, default: () => [] },
 });
 
-const toneClass = computed(() => `t-${props.tone}`);
-const maxCount = computed(() =>
-  Math.max(...(props.items || []).map((x) => Number(x?.count || 0)), 1)
-);
-const width = (c) => `${(Number(c || 0) / maxCount.value) * 100}%`;
+const mainTitle = computed(() => props.sections?.[0]?.title ?? "인사이트 TOP 리스트");
+
+const fmt = (n) => (Number(n) || 0).toLocaleString();
+
+const toneClass = (tone) => {
+  if (tone === "good") return "tone-good";
+  if (tone === "bad") return "tone-bad";
+  return "tone-neutral";
+};
+
+const iconByTone = (tone) => {
+  if (tone === "good") return "🌱";
+  if (tone === "bad") return "🚨";
+  return "•";
+};
+
+const barWidth = (items, count) => {
+  const arr = Array.isArray(items) ? items : [];
+  const max = Math.max(...arr.map((x) => Number(x?.count ?? 0)), 0);
+  if (!max) return "0%";
+  const pct = Math.max(0, Math.min(100, (Number(count) / max) * 100));
+  return `${pct.toFixed(0)}%`;
+};
 </script>
 
 <style scoped>
-/* ✅ 이제 카드 외형은 BaseCard가 담당
-   - 여기서는 “내부 컴포넌트 레이아웃”만 관리 */
-.mini-title {
-  font-size: 12px;
+.insight-grid {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 18px;
+  align-items: start;
+}
+
+@media (max-width: 1200px) {
+  .insight-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.insight-card {
+  width: 100%;
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.title {
+  font-size: 14px;
   font-weight: 900;
   color: #111827;
-  margin: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+/* 블록(성공요인/실패요인 등) */
+.block + .block {
+  margin-top: 8px;
+}
+
+.blk-sub {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 10px;
+  font-weight: 900;
+  font-size: 12px;
+  color: #111827;
+}
+
+.icon {
+  display: inline-flex;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .row {
-  margin-bottom: 10px;
-}
-.row:last-child {
-  margin-bottom: 0;
+  position: relative;
+  padding-bottom: 10px;
 }
 
-.row-top {
+.left {
   display: flex;
-  justify-content: space-between;
+  align-items: center;
   gap: 10px;
+}
+
+.rank {
+  width: 22px;
+  height: 22px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
   font-size: 12px;
+  font-weight: 900;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  color: #111827;
 }
 
 .label {
-  color: #374151;
-  font-weight: 800;
+  font-size: 12px;
+  font-weight: 900;
+  color: #111827;
+}
+
+.right {
+  position: absolute;
+  right: 0;
+  top: 0;
 }
 
 .count {
-  color: #111827;
+  font-size: 12px;
   font-weight: 900;
 }
 
 .bar-wrap {
+  margin-top: 8px;
+  position: relative;
   height: 7px;
-  background: #f3f4f6;
   border-radius: 999px;
   overflow: hidden;
-  margin-top: 6px;
+}
+
+.bar-bg {
+  position: absolute;
+  inset: 0;
+  background: #f3f4f6;
 }
 
 .bar {
-  height: 100%;
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
   border-radius: 999px;
 }
 
-.empty {
-  font-size: 12px;
-  color: #6b7280;
-  font-weight: 700;
-}
-
 /* tone */
-.t-success {
-  color: #16a34a;
-}
-.t-danger {
-  color: #ef4444;
-}
-.t-info {
-  color: #2563eb;
-}
-.t-warning {
-  color: #d97706;
-}
+.tone-good { color: #16a34a; }
+.tone-bad  { color: #ef4444; }
+.tone-neutral { color: #111827; }
 
-/* bar 색은 tone 색과 동일 */
-.bar.t-success {
-  background: #16a34a;
-}
-.bar.t-danger {
-  background: #ef4444;
-}
-.bar.t-info {
-  background: #2563eb;
-}
-.bar.t-warning {
-  background: #d97706;
-}
+.bar.tone-good { background: #22c55e; }
+.bar.tone-bad { background: #ef4444; }
+.bar.tone-neutral { background: #111827; }
 </style>

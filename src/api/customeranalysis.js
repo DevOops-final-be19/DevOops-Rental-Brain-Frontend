@@ -29,6 +29,10 @@ export const getSatisfactionDist = (month) =>
 export const getSegmentDistribution = () =>
   api.get("/customerSummaryAnalysis/segment-distribution");
 
+/** 세그먼트 상세(고객 리스트 포함) */
+export const getSegmentDetailWithCustomers = (segmentId) =>
+  api.get(`/segment/list/${segmentId}`);
+
 /**
  * 만족도(별점)별 고객 목록 조회
  * GET /customerSummaryAnalysis/satisfaction/{star}/customers?page=1&size=10
@@ -58,20 +62,7 @@ export const getMonthlyTrend = (year) =>
     params: year ? { year } : {},
   });
 
-/**
- * ✅ (중요) 고객 만족도 분포 - Support 화면에서 사용
- *
- * ⚠️ 기존에 "/customerSupportAnalysis/satisfaction/distribution" 로 쏴서
- * 백엔드에 없으니 404("No static resource ...")가 났음.
- *
- * 지금은 "존재하는" 요약분석 분포 API를 재사용하도록 연결.
- * 나중에 백엔드에서 support 전용 API 생기면 URL만 바꾸면 됨.
- */
-export const getCustomerSatisfactionDistribution = (month) => {
-  return api.get("/customerSummaryAnalysis/satisfaction", {
-    params: month ? { month } : {},
-  });
-};
+
 
 /**
  * ===========================
@@ -102,4 +93,13 @@ export const getCustomerSegmentDetailCard = (segmentId) =>
 export const getQuoteAnalyze = (month, windowDays = 60, sampleEach = 50) =>
   api.post("/insight/quoteAnalyze", null, {
     params: { month, windowDays, sampleEach },
+  });
+
+  /**
+ * 이탈 위험 사유별 고객 리스트 조회 (Drill-down)
+ * GET /customersegmentanalysis/riskReasonCustomers?month=YYYY-MM&reasonCode=OVERDUE
+ */
+export const getRiskReasonCustomers = (month, reasonCode) =>
+  api.get("/customersegmentanalysis/riskReasonCustomers", {
+    params: { month, reasonCode },
   });

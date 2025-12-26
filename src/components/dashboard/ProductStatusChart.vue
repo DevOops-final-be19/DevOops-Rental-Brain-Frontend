@@ -38,11 +38,14 @@ const option = ref({
       type: "pie",
       radius: ["55%", "80%"],
       center: ["50%", "45%"],
-      label: {
-        show: true,
-        position: "outside",
-        formatter: "{b}",
-      },
+        label: {
+              show: true,
+              position: "outside",
+              formatter: "{d}%",
+              },
+              labelLine: {
+                show: false,
+              },
       labelLine: {
         show: true,
         length: 18,
