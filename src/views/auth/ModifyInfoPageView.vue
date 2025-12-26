@@ -46,7 +46,7 @@
       <el-form ref="formRef" :model="form" :rules="rules" label-width="120px" label-position="left">
         <el-row :gutter="20">
           <el-col :span="12">
-            <el-form-item label="사번번호">
+            <el-form-item label="사원번호">
               <el-input v-model="form.employeeCode" disabled />
             </el-form-item>
           </el-col>
@@ -114,7 +114,7 @@
 
     <!-- 안내 -->
     <el-alert type="warning" show-icon :closable="false" class="notice">
-      사번번호, 부서, 직급은 관리자만 변경할 수 있습니다.
+      부서, 직급은 관리자만 변경할 수 있습니다.
     </el-alert>
 
   </div>
