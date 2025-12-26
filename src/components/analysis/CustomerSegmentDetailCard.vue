@@ -132,7 +132,6 @@ const normalize = (segmentId, data) => {
     segmentName: data?.segmentName ?? data?.name ?? "세그먼트",
     customerCount: Number(data?.customerCount ?? data?.count ?? 0) || 0,
 
-    // ✅ 금액
     totalTradeAmount: Number(
       data?.totalTradeAmount ?? data?.totalAmount ?? data?.totalTrade ?? 0
     ) || 0,
@@ -171,7 +170,6 @@ const normalize = (segmentId, data) => {
       data?.feedbackKeyword ??
       "",
 
-    // ✅ 로딩/에러 표시용
     _loading: false,
     _error: "",
   };
@@ -195,10 +193,6 @@ const fetchAll = async () => {
     _error: "",
   }));
 
-  /**
-   * ✅ 2) 세그먼트별 API 병렬 호출
-   * - 실패해도 다른 카드 렌더링은 계속 진행
-   */
   await Promise.all(
     props.segmentIds.map(async (id) => {
       try {
@@ -241,6 +235,7 @@ const toneClass = (segmentId) => {
   return map[segmentId] ?? "tone-gray";
 };
 </script>
+
 <style scoped>
 /* ✅ 4 + 3 느낌 (반응형 포함) */
 .seg-wrap {

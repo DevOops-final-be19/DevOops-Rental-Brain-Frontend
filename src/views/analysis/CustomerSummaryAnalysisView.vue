@@ -255,6 +255,31 @@ function goTo(key) {
 }
 
 /* =========================
+   ✅ 카드 클릭 이동(사이드바 기준으로 name만 맞추면 끝)
+========================= */
+function goTo(key) {
+  const map = {
+    // 연체관리 탭
+    overdue: { name: "OverdueManagement" },
+
+    // 문의 관리 탭
+    inquiry: { name: "cs-support-list" },
+
+    // 고객분석 > 세그먼트 탭(이 페이지가 탭형이면 query로)
+    // 1) 탭이 query 방식이면 아래처럼:
+    segment: { name: "CustomerSummaryAnalysis", query: { tab: "segment" } },
+
+    CustomerSegmentAnalysisView: { name: "analysis-segment" },
+
+    CustomerSupportAnalysisView: { name: "analysis-support" },
+  };
+
+  const target = map[key];
+  if (!target) return;
+  router.push(target);
+}
+
+/* =========================
    Month (route.query.month)
 ========================= */
 const now = new Date();
