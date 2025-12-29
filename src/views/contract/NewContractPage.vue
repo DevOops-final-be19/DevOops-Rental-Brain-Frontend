@@ -2,6 +2,10 @@
   <!-- 🔹 상위 레이아웃 컨테이너 -->
   <div class="contract-create-page">
     <div class="page-container">
+      <ContractStepIndicator
+        :currentStep="currentStep"
+        @move="goToStep"
+      />
       <!-- Step 1 -->
       <Step1Customer
         v-if="currentStep === 1"
@@ -53,6 +57,7 @@
   import { useRouter } from 'vue-router'
   import { useToastStore } from '@/store/useToast'
   
+  import ContractStepIndicator from './ContractStepIndicator.vue'
   import Step1Customer from './Step1Customer.vue'
   import Step2ContractProduct from './Step2ContractProduct.vue'
   import Step3Payment from './Step3Payment.vue'
@@ -65,6 +70,9 @@ const toastStore = useToastStore();
    Step 상태
 ========================= */
   const currentStep = ref(1)
+  const goToStep = (step) => {
+  currentStep.value = step
+}
   
 /* =========================
    계약 Draft

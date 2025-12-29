@@ -78,33 +78,36 @@
     </section>
 
     <section class="card">
-      <h3 class="section-title">적용 가능한 쿠폰</h3>
+  <h3 class="section-title">적용 가능한 쿠폰</h3>
 
-      <div v-if="coupons.length === 0" class="empty">
-        사용 가능한 쿠폰이 없습니다.
+  <div v-if="coupons.length === 0" class="empty">
+    사용 가능한 쿠폰이 없습니다.
+  </div>
+
+  <ul v-else>
+    <li
+      v-for="c in coupons"
+      :key="c.id"
+      class="coupon-list"
+    >
+      <div class="coupon-text">
+        <strong>{{ c.name }}</strong>
+        <p class="desc">
+          {{ c.content }} ({{ c.rate }}%)
+        </p>
       </div>
-    
-      <ul v-else>
-        <li
-          v-for="c in coupons"
-          :key="c.id"
-          class="coupon-item"
-        >
-          <label>
-            <input
-              type="radio"
-              name="coupon"
-              :value="c"
-              v-model="selectedCoupon"
-            />
-            <strong>{{ c.name }}</strong>
-            <p class="desc">
-              {{ c.content }} ({{ c.rate }}%)
-            </p>
-          </label>
-        </li>
-      </ul>
-    </section>
+
+      <label class="coupon-label">
+        <input
+          type="radio"
+          name="coupon"
+          :value="c"
+          v-model="selectedCoupon"
+        />
+      </label>
+    </li>
+  </ul>
+</section>
 
     <!-- 하단 버튼 -->
     <div class="footer">
@@ -308,5 +311,31 @@
     padding: 8px 16px;
     border-radius: 6px;
   }
+
+  .coupon-list {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin: 20px 0;
+  padding: 16px 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+}
+
+.coupon-text {
+  flex: 1;
+}
+
+.coupon-label {
+  margin-left: 18px;
+  margin-right: 30px;
+}
+
+.coupon-list input[name="coupon"] {
+  accent-color: #248eff;
+  transform: scale(1.5);
+  cursor: pointer;
+}
+
   </style>
   
