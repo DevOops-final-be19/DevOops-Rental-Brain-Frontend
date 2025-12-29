@@ -241,7 +241,6 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '@/api/axios'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useToastStore } from '@/store/useToast'
 import { getContractBasic, getContractItems,getContractPayments,
