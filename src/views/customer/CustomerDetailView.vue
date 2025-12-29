@@ -10,9 +10,22 @@
           {{ customer.name }}
           <el-tag v-if="customer.isDeleted === 'Y'" type="danger" effect="dark" class="ml-2">비활성</el-tag>
         </h2>
-        <el-tag :type="getSegmentColor(customer.segmentName)" effect="light" class="segment-tag">
-          {{ customer.segmentName || '일반' }}
-        </el-tag>
+        
+        <template v-if="isEditMode">
+          <el-select v-model="editForm.segmentName" placeholder="세그먼트 선택" class="ml-2" style="width: 140px;">
+            <el-option label="VIP" value="VIP"></el-option>
+            <el-option label="GOLD" value="GOLD"></el-option>
+            <el-option label="SILVER" value="SILVER"></el-option>
+            <el-option label="REGULAR" value="REGULAR"></el-option>
+            <el-option label="NEW" value="NEW"></el-option>
+            <el-option label="이탈(CHURN)" value="CHURN"></el-option>
+          </el-select>
+        </template>
+        <template v-else>
+          <el-tag :type="getSegmentTagType(customer.segmentName)" effect="light" class="segment-tag">
+            {{ customer.segmentName || '일반' }}
+          </el-tag>
+        </template>
       </div>
 
       <div class="header-right">
@@ -36,7 +49,8 @@
     <el-tabs v-model="activeTab" type="border-card" class="detail-tabs">
       
       <el-tab-pane label="종합 정보" name="general">
-        <div class="info-grid">
+        
+        <div class="info-grid two-columns">
           
           <el-card class="info-card basic-info" shadow="never">
             <template #header><span class="card-title">기본 정보</span></template>
@@ -52,12 +66,12 @@
             </el-descriptions>
 
             <el-form v-else :model="editForm" label-width="80px">
-              <el-form-item label="담당자"><el-input v-model="editForm.inCharge" /></el-form-item>
-              <el-form-item label="부서/직책"><el-input v-model="editForm.dept" /></el-form-item>
-              <el-form-item label="연락처"><el-input v-model="editForm.callNum" /></el-form-item>
-              <el-form-item label="이메일"><el-input v-model="editForm.email" /></el-form-item>
-              <el-form-item label="주소"><el-input v-model="editForm.addr" /></el-form-item>
-              <el-form-item label="기업명" required><el-input v-model="editForm.name" :disabled="!isEditMode" /></el-form-item>
+              <el-form-item label="담당자"><el-input v-model="editForm.inCharge"></el-input></el-form-item>
+              <el-form-item label="부서/직책"><el-input v-model="editForm.dept"></el-input></el-form-item>
+              <el-form-item label="연락처"><el-input v-model="editForm.callNum"></el-input></el-form-item>
+              <el-form-item label="이메일"><el-input v-model="editForm.email"></el-input></el-form-item>
+              <el-form-item label="주소"><el-input v-model="editForm.addr"></el-input></el-form-item>
+              <el-form-item label="기업명" required><el-input v-model="editForm.name" :disabled="!isEditMode"></el-input></el-form-item>
               <div class="edit-buttons">
                 <el-button @click="cancelEdit">취소</el-button>
                 <el-button type="primary" @click="saveEdit">저장</el-button>
@@ -74,50 +88,57 @@
               placeholder="메모 내용이 없습니다."
               :readonly="!isEditMode"
               class="memo-textarea"
-            />
+            ></el-input>
             <div v-if="isEditMode" class="tip-text text-right mt-2">* '저장' 클릭 시 반영됩니다.</div>
           </el-card>
+        </div> 
+        <el-card class="info-card history-info mt-20" shadow="never">
+          <template #header><span class="card-title">고객 대응 히스토리</span></template>
+          <el-scrollbar height="300px">
+            <el-timeline v-if="customer.historyList && customer.historyList.length > 0">
+              <el-timeline-item
+                v-for="(item, index) in customer.historyList"
+                :key="index"
+                :timestamp="formatDate(item.date)"
+                placement="top"
+                :color="getStatusColor(item.status)"
+              >
+                <el-card class="history-item-card" shadow="hover">
+                  <div class="history-header">
+                    <span class="history-type">[{{ item.type }}]</span>
+                    <span class="history-performer">{{ item.performer }}</span>
+                  </div>
+                  <div class="history-content">{{ item.content }}</div>
+                  <div class="history-status">
+                    <el-tag size="small" :type="getStatusType(item.status)">
+                      {{ item.status === '완료' ? '완료' : '진행 중' }}
+                    </el-tag>
+                  </div>
+                </el-card>
+              </el-timeline-item>
+            </el-timeline>
+            <el-empty v-else description="히스토리가 없습니다."></el-empty>
+          </el-scrollbar>
+        </el-card>
 
-          <el-card class="info-card history-info" shadow="never">
-            <template #header><span class="card-title">고객 대응 히스토리</span></template>
-            <el-scrollbar height="400px">
-              <el-timeline v-if="customer.historyList && customer.historyList.length > 0">
-                <el-timeline-item
-                  v-for="(item, index) in customer.historyList"
-                  :key="index"
-                  :timestamp="formatDate(item.date)"
-                  placement="top"
-                  :color="getStatusColor(item.status)"
-                >
-                  <el-card class="history-item-card" shadow="hover">
-                    <div class="history-header">
-                      <span class="history-type">[{{ item.type }}]</span>
-                      <span class="history-performer">{{ item.performer }}</span>
-                    </div>
-                    <div class="history-content">{{ item.content }}</div>
-                    <div class="history-status">
-                      <el-tag size="small" :type="getStatusType(item.status)">
-                        {{ item.status === '완료' ? '완료' : '진행 중' }}
-                      </el-tag>
-                    </div>
-                  </el-card>
-                </el-timeline-item>
-              </el-timeline>
-              <el-empty v-else description="히스토리가 없습니다." />
-            </el-scrollbar>
-          </el-card>
-
-        </div>
       </el-tab-pane>
 
       <el-tab-pane label="문의 내역" name="support">
         <el-table :data="customer.supportList" border stripe style="width: 100%">
-          <el-table-column prop="customerSupportCode" label="문의 번호" width="140" align="center" />
-          <el-table-column prop="createDate" label="접수일자" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
-          <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip />
-          <el-table-column prop="channelName" label="접수 채널" width="100" align="center" />
-          <el-table-column prop="empName" label="담당자" width="100" align="center" />
+          <el-table-column prop="customerSupportCode" label="문의 번호" width="140" align="center"></el-table-column>
+          <el-table-column prop="createDate" label="접수일자" width="120" align="center" :formatter="dateFormatter"></el-table-column>
+          <el-table-column prop="categoryName" label="카테고리" width="120" align="center"></el-table-column>
+          <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip></el-table-column>
+          
+          <el-table-column prop="channelName" label="접수 채널" width="100" align="center">
+            <template #default="{ row }">
+              <el-tag size="small" :style="getChannelTagStyle(row.channelName)">
+                {{ row.channelName || '-' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+
+          <el-table-column prop="empName" label="담당자" width="100" align="center"></el-table-column>
           <el-table-column prop="status" label="진행 상태" width="100" align="center">
             <template #default="{ row }">
               <el-tag :type="getSupportStatusTag(row.status)">{{ formatSupportStatus(row.status) }}</el-tag>
@@ -128,20 +149,20 @@
 
       <el-tab-pane label="견적 내역" name="quote">
         <el-table :data="customer.quoteList" border stripe>
-          <el-table-column prop="quoteCode" label="견적 번호" width="140" align="center" />
-          <el-table-column prop="quoteCounselingDate" label="상담 일자" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="quoteSummary" label="견적 요약" min-width="200" />
-          <el-table-column prop="quoteCounselor" label="상담원" width="100" align="center" />
-          <el-table-column prop="channelName" label="채널" width="100" align="center" />
+          <el-table-column prop="quoteCode" label="견적 번호" width="140" align="center"></el-table-column>
+          <el-table-column prop="quoteCounselingDate" label="상담 일자" width="120" align="center" :formatter="dateFormatter"></el-table-column>
+          <el-table-column prop="quoteSummary" label="견적 요약" min-width="200"></el-table-column>
+          <el-table-column prop="quoteCounselor" label="상담원" width="100" align="center"></el-table-column>
+          <el-table-column prop="channelName" label="채널" width="100" align="center"></el-table-column>
         </el-table>
       </el-tab-pane>
 
       <el-tab-pane label="계약 내역" name="contract">
         <el-table :data="customer.contractList" border stripe>
-          <el-table-column prop="contract_code" label="계약 번호" width="140" align="center" />
-          <el-table-column prop="conName" label="계약명" min-width="180" />
-          <el-table-column prop="start_date" label="계약 시작일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="contract_period" label="기간(개월)" width="100" align="center" />
+          <el-table-column prop="contract_code" label="계약 번호" width="140" align="center"></el-table-column>
+          <el-table-column prop="conName" label="계약명" min-width="180"></el-table-column>
+          <el-table-column prop="start_date" label="계약 시작일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
+          <el-table-column prop="contract_period" label="기간(개월)" width="100" align="center"></el-table-column>
           
           <el-table-column prop="monthly_payment" label="월 납입금" width="150" align="right">
             <template #default="{row}">{{ row.monthly_payment?.toLocaleString() }}원</template>
@@ -157,8 +178,8 @@
 
       <el-tab-pane label="AS / 정기점검" name="as">
         <el-table :data="customer.asList" border stripe>
-          <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center" />
-          <el-table-column prop="dueDate" label="예정일" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center"></el-table-column>
+          <el-table-column prop="dueDate" label="예정일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
           <el-table-column prop="type" label="유형" width="100" align="center">
              <template #default="{row}">
                <el-tag :type="row.type === 'R' ? 'success' : 'warning'" effect="plain">
@@ -166,8 +187,8 @@
                </el-tag>
              </template>
           </el-table-column>
-          <el-table-column prop="contents" label="내용" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="engineer" label="기사님" width="100" align="center" />
+          <el-table-column prop="contents" label="내용" min-width="200" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="engineer" label="기사님" width="100" align="center"></el-table-column>
           <el-table-column prop="status" label="처리 상태" width="100" align="center">
             <template #default="{row}">
                <el-tag :type="getAsStatusTag(row.status)">{{ formatAsStatus(row.status) }}</el-tag>
@@ -178,25 +199,25 @@
 
       <el-tab-pane label="피드백 내역" name="feedback">
         <el-table :data="customer.feedbackList" border stripe>
-          <el-table-column prop="feedbackCode" label="피드백 번호" width="140" align="center" />
-          <el-table-column prop="createDate" label="등록일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
-          <el-table-column prop="title" label="제목" min-width="150" />
-          <el-table-column prop="empName" label="담당자" width="100" align="center" />
+          <el-table-column prop="feedbackCode" label="피드백 번호" width="140" align="center"></el-table-column>
+          <el-table-column prop="createDate" label="등록일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
+          <el-table-column prop="categoryName" label="카테고리" width="120" align="center"></el-table-column>
+          <el-table-column prop="title" label="제목" min-width="150"></el-table-column>
+          <el-table-column prop="empName" label="담당자" width="100" align="center"></el-table-column>
           <el-table-column prop="star" label="만족도" width="140" align="center">
              <template #default="{row}">
-               <el-rate v-model="row.star" disabled show-score text-color="#ff9900" />
+               <el-rate v-model="row.star" disabled show-score text-color="#ff9900"></el-rate>
              </template>
           </el-table-column>
-          <el-table-column prop="action" label="조치 내용" min-width="150" />
+          <el-table-column prop="action" label="조치 내용" min-width="150"></el-table-column>
         </el-table>
       </el-tab-pane>
 
       <el-tab-pane label="캠페인 내역" name="campaign">
-        <h4>🎟️ 보유 쿠폰</h4>
+        <h4>보유 쿠폰</h4>
         <el-table :data="customer.couponList" border stripe class="mb-20">
-          <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center" />
-          <el-table-column prop="name" label="쿠폰명" />
+          <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center"></el-table-column>
+          <el-table-column prop="name" label="쿠폰명"></el-table-column>
           <el-table-column prop="rate" label="할인율" width="100" align="center">
             <template #default="{row}">{{ row.rate }}%</template>
           </el-table-column>
@@ -209,10 +230,10 @@
           </el-table-column>
         </el-table>
 
-        <h4>🎁 프로모션 참여</h4>
+        <h4>프로모션 참여</h4>
         <el-table :data="customer.promotionList" border stripe>
-          <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center" />
-          <el-table-column prop="name" label="프로모션명" />
+          <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center"></el-table-column>
+          <el-table-column prop="name" label="프로모션명"></el-table-column>
           <el-table-column prop="status" label="상태" width="100" align="center">
              <template #default="{row}">
                <el-tag>{{ row.status === 'A' ? '진행중' : '종료' }}</el-tag>
@@ -221,32 +242,32 @@
         </el-table>
       </el-tab-pane>
 
-    <el-tab-pane label="세그먼트 변경 이력" name="history">
-      <el-timeline style="padding: 20px;">
-        <el-timeline-item
-          v-for="(item, index) in customer.segmentHistoryList"
-          :key="index"
-          :timestamp="formatDate(item.historyChangedAt)" 
-          placement="top"
-          color="#409eff"
-        >
-      <el-card shadow="hover">
-        <div class="history-item">
-          <strong>
-            {{ item.previousSegmentName || '가입' }} 
-            <el-icon style="vertical-align: middle;"><Right /></el-icon> 
-            {{ item.currentSegmentName }}
-          </strong>
-          <p class="history-reason">
-            사유: {{ item.historyReason }} 
-            
-            <el-tag size="small" effect="plain" class="ml-2">{{ item.historyTriggerType }}</el-tag>
-          </p>
-        </div>
-      </el-card>
-    </el-timeline-item>
-  </el-timeline>
-</el-tab-pane>
+      <el-tab-pane label="세그먼트 변경 이력" name="history">
+        <el-timeline style="padding: 20px;">
+          <el-timeline-item
+            v-for="(item, index) in customer.segmentHistoryList"
+            :key="index"
+            :timestamp="formatDate(item.historyChangedAt)" 
+            placement="top"
+            :color="getSegmentHexColor(item.currentSegmentName)" 
+          >
+            <el-card shadow="hover">
+              <div class="history-item">
+                <strong>
+                  {{ item.previousSegmentName || '가입' }} 
+                  <el-icon style="vertical-align: middle;"><Right /></el-icon> 
+                  <span :style="{ color: getSegmentHexColor(item.currentSegmentName) }">
+                    {{ item.currentSegmentName }}
+                  </span>
+                </strong>
+                <p class="history-reason">
+                  사유: {{ item.historyReason }} 
+                </p>
+              </div>
+            </el-card>
+          </el-timeline-item>
+        </el-timeline>
+      </el-tab-pane>
 
     </el-tabs>
   </div>
@@ -284,16 +305,25 @@ const fetchData = async () => {
   }
 };
 
-const enableEditMode = () => { editForm.value = { ...customer.value }; isEditMode.value = true; };
+const enableEditMode = () => { 
+    editForm.value = { ...customer.value }; 
+    isEditMode.value = true; 
+};
 const cancelEdit = () => { isEditMode.value = false; editForm.value = {}; };
 const saveEdit = async () => {
-  try { editForm.value.memo = customer.value.memo; await updateCustomer(customerId, editForm.value); ElMessage.success('저장되었습니다.'); isEditMode.value = false; fetchData(); } catch (e) { ElMessage.error('저장 실패: ' + e.message); }
+  try { 
+    editForm.value.memo = customer.value.memo; 
+    await updateCustomer(customerId, editForm.value); 
+    ElMessage.success('저장되었습니다.'); 
+    isEditMode.value = false; 
+    fetchData(); 
+  } catch (e) { ElMessage.error('저장 실패: ' + e.message); }
 };
 const handleDelete = () => { ElMessageBox.confirm('정말 삭제(비활성화) 하시겠습니까?', '경고', { type: 'warning' }).then(async () => { try { await deleteCustomer(customerId); ElMessage.success('비활성화 되었습니다.'); fetchData(); } catch (e) { ElMessage.error('삭제 실패'); } }); };
 const handleRestore = () => { ElMessageBox.confirm('고객을 다시 활성화 하시겠습니까?', '복구 확인', { type: 'success' }).then(async () => { try { await restoreCustomer(customerId); ElMessage.success('고객이 복구되었습니다.'); fetchData(); } catch (e) { ElMessage.error('복구 실패'); } }); };
 const goList = () => router.push('/customers');
 
-// ▼ 상태 코드 변환 함수 ▼
+// 상태 코드 변환 함수
 const formatContractStatus = (status) => {
     const map = { P: '진행 중', C: '완료', W: '승인 대기', R: '반려', T: '해지', I: '만료 임박' };
     return map[status] || status;
@@ -321,15 +351,47 @@ const getAsStatusTag = (status) => {
     return map[status] || 'info';
 };
 
+// 채널 태그 스타일 (견적 페이지와 동일)
+const getChannelTagStyle = (name) => {
+  const styles = {
+    '전화': { color: '#409EFF', backgroundColor: '#ecf5ff', borderColor: '#d9ecff' },
+    '이메일': { color: '#67C23A', backgroundColor: '#f0f9eb', borderColor: '#e1f3d8' },
+    '웹': { color: '#E6A23C', backgroundColor: '#fdf6ec', borderColor: '#faecd8' },
+    '웹(채팅, 게시판)': { color: '#E6A23C', backgroundColor: '#fdf6ec', borderColor: '#faecd8' },
+    'SNS': { color: '#F56C6C', backgroundColor: '#fef0f0', borderColor: '#fde2e2' },
+    '방문': { color: '#909399', backgroundColor: '#f4f4f5', borderColor: '#e9e9eb' }
+  };
+  return styles[name] || styles['방문'];
+};
+
+// 세그먼트별 Hex 색상 (타임라인 점 색상용)
+const getSegmentHexColor = (s) => {
+  if(!s) return '#909399';
+  if(s.includes('VIP')) return '#F56C6C';
+  if(s.includes('GOLD')) return '#E6A23C';
+  if(s.includes('SILVER')) return '#A0CFFF';
+  if(s.includes('REGULAR')) return '#409EFF';
+  if(s.includes('NEW')) return '#67C23A';
+  if(s.includes('CHURN') || s.includes('이탈')) return '#909399';
+  return '#409EFF';
+};
+
+// 세그먼트 태그 타입 (상단 헤더용)
+const getSegmentTagType = (s) => { 
+  if(!s) return 'info'; 
+  if(s.includes('VIP')) return 'danger'; 
+  if(s.includes('GOLD')) return 'warning';
+  if(s.includes('이탈')) return 'info'; 
+  if(s.includes('신규')) return 'success'; 
+  return 'primary'; 
+};
+
 // 유틸
 const formatDate = (d) => d ? d.substring(0, 10) : '';
 const dateFormatter = (row, col, val) => formatDate(val);
 const formatPhone = (v) => v ? v.replace(/(^02|^0505|^1[0-9]{3}|^0[0-9]{2})([0-9]+)?([0-9]{4})$/,"$1-$2-$3") : '-';
-const getSegmentColor = (s) => { if(!s) return 'info'; if(s.includes('VIP')) return 'warning'; if(s.includes('이탈')) return 'danger'; if(s.includes('신규')) return 'success'; return ''; };
-// 색상 결정 (타임라인 점 색상)
-const getStatusColor = (status) => status === '완료' ? '#0bbd87' : '#ff9900'; // 완료: 초록, 그외: 주황
-// 태그 타입 결정 (Tag 색상)
-const getStatusType = (status) => status === '완료' ? 'success' : 'warning'; // 완료: 초록(success), 그외: 주황(warning)
+const getStatusColor = (status) => status === '완료' ? '#0bbd87' : '#ff9900'; 
+const getStatusType = (status) => status === '완료' ? 'success' : 'warning'; 
 
 onMounted(fetchData);
 </script>
@@ -342,15 +404,19 @@ onMounted(fetchData);
 .ml-2 { margin-left: 10px; }
 .segment-tag { margin-left: 10px; }
 
-/* 3단 그리드 레이아웃 */
-.info-grid {
+/* 2단 그리드 레이아웃 */
+.info-grid.two-columns {
   display: grid;
-  grid-template-columns: 1.2fr 1fr 1.2fr;
+  grid-template-columns: 1fr 1fr; /* 1:1 비율 */
   gap: 20px;
   align-items: stretch;
 }
+
 .info-card { height: 100%; display: flex; flex-direction: column; }
 .card-title { font-weight: 700; font-size: 16px; }
+
+/* 하단 마진 유틸리티 */
+.mt-20 { margin-top: 20px; }
 
 /* 텍스트 영역 스타일 */
 .memo-textarea :deep(.el-textarea__inner),
