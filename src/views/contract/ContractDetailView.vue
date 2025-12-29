@@ -207,7 +207,9 @@
             
               <!-- 납부 불가 -->
               <template v-else>
-                <span class="text-muted">납부 불가</span>
+                <span class="text-muted">
+                  {{ row.paymentStatus === 'N' ? '연체' : '완납' }}
+                </span>
               </template>
             </template>
           </el-table-column>
@@ -334,10 +336,10 @@ async function fetchPayments() {
     const res = await getContractPayments(route.params.id)
     payments.value = (res.data ?? []).map(p => ({
     id: p.id,
-    paymentDue: p.payment_due,
-    paymentActual: p.payment_actual,
-    paymentStatus: p.payment_status,
-    overdueDays: p.overdue_days,
+    paymentDue: p.paymentDue,
+    paymentActual: p.paymentActual,
+    paymentStatus: p.paymentStatus,
+    overdueDays: p.overdueDays,
 
     // 🔹 프론트 전용 필드
     _editPaymentActual: null
