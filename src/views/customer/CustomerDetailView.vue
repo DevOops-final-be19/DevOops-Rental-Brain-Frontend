@@ -12,18 +12,24 @@
         </h2>
         
         <template v-if="isEditMode">
-          <el-select v-model="editForm.segmentName" placeholder="세그먼트 선택" class="ml-2" style="width: 140px;">
-            <el-option label="VIP" value="VIP"></el-option>
-            <el-option label="GOLD" value="GOLD"></el-option>
-            <el-option label="SILVER" value="SILVER"></el-option>
-            <el-option label="REGULAR" value="REGULAR"></el-option>
-            <el-option label="NEW" value="NEW"></el-option>
-            <el-option label="이탈(CHURN)" value="CHURN"></el-option>
+          <el-select v-model="editForm.segmentId" placeholder="세그먼트 선택" class="ml-2" style="width: 220px;">
+            <el-option label="잠재 고객" value="1" />
+            <el-option label="신규 고객" value="2" />
+            <el-option label="일반 고객" value="3" />
+            <el-option label="이탈 위험 고객" value="4" />
+            <el-option label="VIP 고객" value="5" />
+            <el-option label="블랙리스트 고객" value="6" />
+            <el-option label="확장 의사 고객" value="7" />
           </el-select>
         </template>
         <template v-else>
-          <el-tag :type="getSegmentTagType(customer.segmentName)" effect="light" class="segment-tag">
-            {{ customer.segmentName || '일반' }}
+          <el-tag 
+            :color="getSegmentHexColor(customer.segmentName)" 
+            effect="dark" 
+            class="segment-tag" 
+            style="border: none; color: #fff;"
+          >
+            {{ customer.segmentName || '일반 고객' }}
           </el-tag>
         </template>
       </div>
@@ -66,12 +72,12 @@
             </el-descriptions>
 
             <el-form v-else :model="editForm" label-width="80px">
-              <el-form-item label="담당자"><el-input v-model="editForm.inCharge"></el-input></el-form-item>
-              <el-form-item label="부서/직책"><el-input v-model="editForm.dept"></el-input></el-form-item>
-              <el-form-item label="연락처"><el-input v-model="editForm.callNum"></el-input></el-form-item>
-              <el-form-item label="이메일"><el-input v-model="editForm.email"></el-input></el-form-item>
-              <el-form-item label="주소"><el-input v-model="editForm.addr"></el-input></el-form-item>
-              <el-form-item label="기업명" required><el-input v-model="editForm.name" :disabled="!isEditMode"></el-input></el-form-item>
+              <el-form-item label="담당자"><el-input v-model="editForm.inCharge" /></el-form-item>
+              <el-form-item label="부서/직책"><el-input v-model="editForm.dept" /></el-form-item>
+              <el-form-item label="연락처"><el-input v-model="editForm.callNum" /></el-form-item>
+              <el-form-item label="이메일"><el-input v-model="editForm.email" /></el-form-item>
+              <el-form-item label="주소"><el-input v-model="editForm.addr" /></el-form-item>
+              <el-form-item label="기업명" required><el-input v-model="editForm.name" :disabled="!isEditMode" /></el-form-item>
               <div class="edit-buttons">
                 <el-button @click="cancelEdit">취소</el-button>
                 <el-button type="primary" @click="saveEdit">저장</el-button>
@@ -88,7 +94,7 @@
               placeholder="메모 내용이 없습니다."
               :readonly="!isEditMode"
               class="memo-textarea"
-            ></el-input>
+            />
             <div v-if="isEditMode" class="tip-text text-right mt-2">* '저장' 클릭 시 반영됩니다.</div>
           </el-card>
         </div> 
@@ -117,7 +123,7 @@
                 </el-card>
               </el-timeline-item>
             </el-timeline>
-            <el-empty v-else description="히스토리가 없습니다."></el-empty>
+            <el-empty v-else description="히스토리가 없습니다." />
           </el-scrollbar>
         </el-card>
 
@@ -125,10 +131,10 @@
 
       <el-tab-pane label="문의 내역" name="support">
         <el-table :data="customer.supportList" border stripe style="width: 100%">
-          <el-table-column prop="customerSupportCode" label="문의 번호" width="140" align="center"></el-table-column>
-          <el-table-column prop="createDate" label="접수일자" width="120" align="center" :formatter="dateFormatter"></el-table-column>
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center"></el-table-column>
-          <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip></el-table-column>
+          <el-table-column prop="customerSupportCode" label="문의 번호" width="140" align="center" />
+          <el-table-column prop="createDate" label="접수일자" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
+          <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip />
           
           <el-table-column prop="channelName" label="접수 채널" width="100" align="center">
             <template #default="{ row }">
@@ -138,7 +144,7 @@
             </template>
           </el-table-column>
 
-          <el-table-column prop="empName" label="담당자" width="100" align="center"></el-table-column>
+          <el-table-column prop="empName" label="담당자" width="100" align="center" />
           <el-table-column prop="status" label="진행 상태" width="100" align="center">
             <template #default="{ row }">
               <el-tag :type="getSupportStatusTag(row.status)">{{ formatSupportStatus(row.status) }}</el-tag>
@@ -149,20 +155,20 @@
 
       <el-tab-pane label="견적 내역" name="quote">
         <el-table :data="customer.quoteList" border stripe>
-          <el-table-column prop="quoteCode" label="견적 번호" width="140" align="center"></el-table-column>
-          <el-table-column prop="quoteCounselingDate" label="상담 일자" width="120" align="center" :formatter="dateFormatter"></el-table-column>
-          <el-table-column prop="quoteSummary" label="견적 요약" min-width="200"></el-table-column>
-          <el-table-column prop="quoteCounselor" label="상담원" width="100" align="center"></el-table-column>
-          <el-table-column prop="channelName" label="채널" width="100" align="center"></el-table-column>
+          <el-table-column prop="quoteCode" label="견적 번호" width="140" align="center" />
+          <el-table-column prop="quoteCounselingDate" label="상담 일자" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="quoteSummary" label="견적 요약" min-width="200" />
+          <el-table-column prop="quoteCounselor" label="상담원" width="100" align="center" />
+          <el-table-column prop="channelName" label="채널" width="100" align="center" />
         </el-table>
       </el-tab-pane>
 
       <el-tab-pane label="계약 내역" name="contract">
         <el-table :data="customer.contractList" border stripe>
-          <el-table-column prop="contract_code" label="계약 번호" width="140" align="center"></el-table-column>
-          <el-table-column prop="conName" label="계약명" min-width="180"></el-table-column>
-          <el-table-column prop="start_date" label="계약 시작일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
-          <el-table-column prop="contract_period" label="기간(개월)" width="100" align="center"></el-table-column>
+          <el-table-column prop="contract_code" label="계약 번호" width="140" align="center" />
+          <el-table-column prop="conName" label="계약명" min-width="180" />
+          <el-table-column prop="start_date" label="계약 시작일" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="contract_period" label="기간(개월)" width="100" align="center" />
           
           <el-table-column prop="monthly_payment" label="월 납입금" width="150" align="right">
             <template #default="{row}">{{ row.monthly_payment?.toLocaleString() }}원</template>
@@ -178,8 +184,8 @@
 
       <el-tab-pane label="AS / 정기점검" name="as">
         <el-table :data="customer.asList" border stripe>
-          <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center"></el-table-column>
-          <el-table-column prop="dueDate" label="예정일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
+          <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center" />
+          <el-table-column prop="dueDate" label="예정일" width="120" align="center" :formatter="dateFormatter" />
           <el-table-column prop="type" label="유형" width="100" align="center">
              <template #default="{row}">
                <el-tag :type="row.type === 'R' ? 'success' : 'warning'" effect="plain">
@@ -187,8 +193,8 @@
                </el-tag>
              </template>
           </el-table-column>
-          <el-table-column prop="contents" label="내용" min-width="200" show-overflow-tooltip></el-table-column>
-          <el-table-column prop="engineer" label="기사님" width="100" align="center"></el-table-column>
+          <el-table-column prop="contents" label="내용" min-width="200" show-overflow-tooltip />
+          <el-table-column prop="engineer" label="기사님" width="100" align="center" />
           <el-table-column prop="status" label="처리 상태" width="100" align="center">
             <template #default="{row}">
                <el-tag :type="getAsStatusTag(row.status)">{{ formatAsStatus(row.status) }}</el-tag>
@@ -199,25 +205,25 @@
 
       <el-tab-pane label="피드백 내역" name="feedback">
         <el-table :data="customer.feedbackList" border stripe>
-          <el-table-column prop="feedbackCode" label="피드백 번호" width="140" align="center"></el-table-column>
-          <el-table-column prop="createDate" label="등록일" width="120" align="center" :formatter="dateFormatter"></el-table-column>
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center"></el-table-column>
-          <el-table-column prop="title" label="제목" min-width="150"></el-table-column>
-          <el-table-column prop="empName" label="담당자" width="100" align="center"></el-table-column>
+          <el-table-column prop="feedbackCode" label="피드백 번호" width="140" align="center" />
+          <el-table-column prop="createDate" label="등록일" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
+          <el-table-column prop="title" label="제목" min-width="150" />
+          <el-table-column prop="empName" label="담당자" width="100" align="center" />
           <el-table-column prop="star" label="만족도" width="140" align="center">
              <template #default="{row}">
-               <el-rate v-model="row.star" disabled show-score text-color="#ff9900"></el-rate>
+               <el-rate v-model="row.star" disabled show-score text-color="#ff9900" />
              </template>
           </el-table-column>
-          <el-table-column prop="action" label="조치 내용" min-width="150"></el-table-column>
+          <el-table-column prop="action" label="조치 내용" min-width="150" />
         </el-table>
       </el-tab-pane>
 
       <el-tab-pane label="캠페인 내역" name="campaign">
         <h4>보유 쿠폰</h4>
         <el-table :data="customer.couponList" border stripe class="mb-20">
-          <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center"></el-table-column>
-          <el-table-column prop="name" label="쿠폰명"></el-table-column>
+          <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center" />
+          <el-table-column prop="name" label="쿠폰명" />
           <el-table-column prop="rate" label="할인율" width="100" align="center">
             <template #default="{row}">{{ row.rate }}%</template>
           </el-table-column>
@@ -232,8 +238,8 @@
 
         <h4>프로모션 참여</h4>
         <el-table :data="customer.promotionList" border stripe>
-          <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center"></el-table-column>
-          <el-table-column prop="name" label="프로모션명"></el-table-column>
+          <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center" />
+          <el-table-column prop="name" label="프로모션명" />
           <el-table-column prop="status" label="상태" width="100" align="center">
              <template #default="{row}">
                <el-tag>{{ row.status === 'A' ? '진행중' : '종료' }}</el-tag>
@@ -364,26 +370,17 @@ const getChannelTagStyle = (name) => {
   return styles[name] || styles['방문'];
 };
 
-// 세그먼트별 Hex 색상 (타임라인 점 색상용)
+// [수정] 세그먼트별 Hex 색상 (CustomerListView와 매핑 일치)
 const getSegmentHexColor = (s) => {
-  if(!s) return '#909399';
-  if(s.includes('VIP')) return '#F56C6C';
-  if(s.includes('GOLD')) return '#E6A23C';
-  if(s.includes('SILVER')) return '#A0CFFF';
-  if(s.includes('REGULAR')) return '#409EFF';
-  if(s.includes('NEW')) return '#67C23A';
-  if(s.includes('CHURN') || s.includes('이탈')) return '#909399';
-  return '#409EFF';
-};
-
-// 세그먼트 태그 타입 (상단 헤더용)
-const getSegmentTagType = (s) => { 
-  if(!s) return 'info'; 
-  if(s.includes('VIP')) return 'danger'; 
-  if(s.includes('GOLD')) return 'warning';
-  if(s.includes('이탈')) return 'info'; 
-  if(s.includes('신규')) return 'success'; 
-  return 'primary'; 
+  if(!s) return '#409EFF'; // 기본값 (일반)
+  if(s.includes('VIP')) return '#E6A23C';       // warning (오렌지)
+  if(s.includes('이탈')) return '#F56C6C';      // danger (빨강)
+  if(s.includes('블랙')) return '#909399';      // info (회색)
+  if(s.includes('신규')) return '#67C23A';      // success (초록)
+  if(s.includes('확장')) return '#409EFF'; // primary (파랑)
+  if(s.includes('잠재')) return '#909399';      // 잠재 (회색)
+  if(s.includes('일반')) return '#409EFF';      // 일반 (파랑)
+  return '#409EFF'; 
 };
 
 // 유틸
