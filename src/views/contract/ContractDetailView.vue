@@ -13,6 +13,16 @@
           <p class="sub">{{ vm.contractCode }}</p>
         </div>
       </div>
+      <div class="header-right">
+        <el-button
+          v-if="vm.contractStatus === 'P' || vm.contractStatus === 'I'"
+          type="danger"
+          plain
+          @click="openTerminateModal"
+        >
+          계약 해지
+        </el-button>
+      </div>
     </div>
 
     <!-- ===== Progress / KPI ===== -->
@@ -218,6 +228,33 @@
 
     </el-tabs>
   </div>
+  <el-dialog
+  v-model="terminateDialogVisible"
+  title="계약 해지 확인"
+  width="420px"
+  :close-on-click-modal="false"
+>
+  <div class="terminate-desc">
+    <p><strong>해당 계약을 해지하시겠습니까?</strong></p>
+    <p class="warn">
+      계약 해지 시 렌탈 중인 상품은 즉시 <b>연체 상태</b>로 변경됩니다.<br />
+      (수리 중인 상품은 제외)
+    </p>
+  </div>
+
+  <template #footer>
+      <el-button @click="terminateDialogVisible = false">
+        취소
+      </el-button>
+      <el-button
+        type="danger"
+        :loading="terminateLoading"
+        @click="confirmTerminate"
+      >
+        해지
+      </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
@@ -225,7 +262,10 @@ import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useToastStore } from '@/store/useToast'
-import { getContractBasic, getContractItems, getContractPayments, patchCompletePayment} from '@/api/contract'
+import { getContractBasic, getContractItems, getContractPayments, patchCompletePayment, patchTerminateContract} from '@/api/contract'
+
+const terminateDialogVisible = ref(false)
+const terminateLoading = ref(false)
 
 const itemSummary = ref([])
 const selectedItemName = ref(null)
@@ -267,9 +307,38 @@ function initVm() {
   }
 }
 
+
+
 /* =========================
    API
 ========================= */
+function openTerminateModal() {
+  terminateDialogVisible.value = true
+}
+
+async function confirmTerminate() {
+  try {
+    terminateLoading.value = true
+
+    await patchTerminateContract(route.params.id)
+
+    toastStore.showToast('계약이 해지되었습니다.')
+
+    terminateDialogVisible.value = false
+
+    // 상세 재조회 (또는 목록 이동 중 택1)
+    basicLoaded.value = false
+
+    router.push({ name: 'contract-list' })
+
+  } catch (e) {
+    console.error(e)
+  } finally {
+    terminateLoading.value = false
+  }
+}
+
+
 async function fetchBasic(contractId) {
   if (!contractId || basicLoaded.value) return
 
@@ -290,6 +359,7 @@ async function fetchBasic(contractId) {
       totalAmount: b.overview.totalAmount,
       payMethodLabel: payMethodMap[b.overview.payMethod] ?? '-',
       specialContent: b.overview.specialContent,
+      contractStatus: b.overview.contractStatus,
       productCount: b.productCount,
       progressRate: b.progress?.progressRate ?? 0,
       overdueCount: b.overdueCount ?? 0
@@ -456,6 +526,20 @@ const paymentStatusTag = s => ({ P: 'info', C: 'success', N: 'danger' }[s] ?? 'i
 .kpi-value { font-size: 20px; font-weight: 700; }
 .kpi.danger .kpi-value { color: #d32f2f; }
 .detail-tabs { margin-top: 20px; }
+.header-right {
+  margin-left: auto;
+}
+
+.terminate-desc {
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.terminate-desc .warn {
+  margin-top: 10px;
+  color: #d32f2f;
+}
+
 /* ===== 계약 개요 그리드 ===== */
 
 .overview-card {
