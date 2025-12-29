@@ -184,14 +184,15 @@
           <el-table-column label="납부 처리" width="260">
             <template #default="{ row }">
             
-              <!-- 예정(P) / 연체(N)만 완납 가능 -->
-              <template v-if="row.paymentStatus === 'P' || row.paymentStatus === 'N'">
+              <!-- 납부 가능 조건 -->
+              <template v-if="canPay(row)">
                 <el-date-picker
                   v-model="row._editPaymentActual"
                   type="date"
                   size="small"
                   placeholder="납부일 선택"
                   style="width: 140px"
+                  :disabled="false"
                 />
               
                 <el-button
@@ -204,31 +205,10 @@
                 </el-button>
               </template>
             
-              <!-- 완료(C) -->
+              <!-- 납부 불가 -->
               <template v-else>
-                {{ formatDate(row.paymentActual) }}
+                <span class="text-muted">납부 불가</span>
               </template>
-            
-            </template>
-          </el-table-column>
-
-          <el-table-column label="미납 처리" width="120" align="center">
-            <template #default="{ row }">
-            
-              <!-- 예정(P)만 미납 처리 가능 -->
-              <el-button
-                v-if="row.paymentStatus === 'P'"
-                size="small"
-                type="danger"
-                plain
-                @click="markAsNonPayment(row)"
-              >
-                미납
-              </el-button>
-            
-              <!-- 그 외 상태 -->
-              <span v-else>-</span>
-            
             </template>
           </el-table-column>
         </el-table>
@@ -241,11 +221,9 @@
 <script setup>
 import { ref, onMounted, watch, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import api from '@/api/axios'
 import { ArrowLeft } from '@element-plus/icons-vue'
 import { useToastStore } from '@/store/useToast'
-import { getContractBasic, getContractItems,getContractPayments,
-  patchCompletePayment, patchMarkAsNonPayment} from '@/api/contract'
+import { getContractBasic, getContractItems, getContractPayments, patchCompletePayment} from '@/api/contract'
 
 const itemSummary = ref([])
 const selectedItemName = ref(null)
@@ -393,28 +371,18 @@ async function completePayment(row) {
   }
 }
 
-async function markAsNonPayment(row) {
-  try {
-    loading.value = true
+function canPay(row) {
+  if (row.paymentStatus !== 'P') return false
 
-    await patchMarkAsNonPayment(row.id)
+  const today = new Date()
+  const dueDate = new Date(row.paymentDue)
 
-    toastStore.showToast('미납 처리되었습니다.')
+  // 날짜만 비교
+  today.setHours(0, 0, 0, 0)
+  dueDate.setHours(0, 0, 0, 0)
 
-    paymentsLoaded.value = false
-    payments.value = []
-    await fetchPayments()
-
-    basicLoaded.value = false
-    await fetchBasic(route.params.id)
-  } catch (e) {
-    console.error(e)
-  } finally {
-    loading.value = false
-  }
+  return today <= dueDate
 }
-
-
 
 /* =========================
    Tab Handler
