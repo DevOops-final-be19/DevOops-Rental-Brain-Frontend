@@ -150,6 +150,7 @@
       v-model:visible="createModalVisible"
       @created="fetchCouponList"
     />
+
     <CouponDetailModal
       v-model:visible="detailModalVisible"
       :coupon-code="selectedCouponCode"
