@@ -1,10 +1,17 @@
 <template>
+    <div class="header">
+      <div>
+        <h1>쿠폰</h1>
+        <p>금액 · 비율할인 쿠폰 통합 관리</p>
+      </div>
+    </div>
+
   <div class="coupon-page">
     <!-- 상단 검색 / 필터 / 추가 버튼 -->
     <div class="toolbar">
       <el-input
         v-model="searchKeyword"
-        placeholder="쿠폰명, 코드로 검색..."
+        placeholder="쿠폰명, 쿠폰ID로 검색..."
         class="search-input"
         clearable
         @keyup.enter="handleSearch"
@@ -21,9 +28,8 @@
         @change="handleTypeFilter"
       >
         <el-option label="전체 유형" value="ALL" />
-        <!-- 예시: R=비율 할인, F=정액 할인 등 프로젝트 규칙에 맞게 수정 -->
         <el-option label="비율 할인" value="R" />
-        <el-option label="금액 할인" value="F" />
+        <el-option label="금액 할인" value="A" />
       </el-select>
 
       <el-select
@@ -38,8 +44,8 @@
         <!-- 필요하면 더 추가 -->
       </el-select>
 
-      <el-button type="primary" @click="openCreateModal">
-        + 쿠폰 추가
+      <el-button style="display: flex; margin-left: auto;" type="primary" @click="openCreateModal">
+        + 쿠폰 등록
       </el-button>
     </div>
 
@@ -48,9 +54,10 @@
       :data="couponList"
       v-loading="loading"
       style="width: 100%"
+      class="coupon-table"
     >
       <!-- 쿠폰 번호 -->
-      <el-table-column label="쿠폰 번호" width="140">
+      <el-table-column label="쿠폰 ID" width="140">
         <template #default="{ row }">
           <div class="code-cell">
             <div class="main">{{ row.couponCode }}</div>
@@ -60,11 +67,10 @@
       </el-table-column>
 
       <!-- 쿠폰명 -->
-      <el-table-column label="쿠폰명" min-width="220">
+      <el-table-column label="쿠폰명" min-width="180">
         <template #default="{ row }">
           <div class="name-cell">
             <div class="title">{{ row.name }}</div>
-            <div class="subtitle">{{ row.content }}</div>
           </div>
         </template>
       </el-table-column>
@@ -73,20 +79,22 @@
       <el-table-column label="할인" width="120" align="center">
         <template #default="{ row }">
           <el-tag type="warning" effect="light">
-            {{ row.rate }}%
+            {{ getRateLabel(row.rate, row.type) }}
           </el-tag>
         </template>
       </el-table-column>
 
       <!-- 유형 -->
-      <el-table-column label="유형" width="120" align="center">
+      <el-table-column label="유형" width="90" align="center">
         <template #default="{ row }">
-          <span>{{ getTypeLabel(row.type) }}</span>
+            <el-tag type="primary" effect="light">
+                {{ getTypeLabel(row.type) }}
+            </el-tag>
         </template>
       </el-table-column>
 
       <!-- 최소 렌탈료 -->
-      <el-table-column label="최소 렌탈료" width="140" align="right">
+      <el-table-column label="최소 렌탈료" width="120" align="right">
         <template #default="{ row }">
           {{ formatToManWon(row.minFee) }}
         </template>
@@ -95,9 +103,7 @@
       <!-- 대상 세그먼트 -->
       <el-table-column label="대상 세그먼트" min-width="150">
         <template #default="{ row }">
-          <el-tag type="info" effect="plain">
-            {{ row.segmentName }}
-          </el-tag>
+          <span>{{ row.segmentName }}</span>
         </template>
       </el-table-column>
 
@@ -111,7 +117,7 @@
       </el-table-column>
 
       <!-- 유효기간 -->
-      <el-table-column label="유효기간" width="150">
+      <el-table-column label="유효기간" width="120">
         <template #default="{ row }">
           <span v-if="row.endDate">
             {{ formatDate(row.endDate) }}
@@ -123,26 +129,34 @@
       <!-- 액션 -->
       <el-table-column label="액션" width="120" align="center">
         <template #default="{ row }">
-          <el-button type="primary" link @click="openDetailModal(row)">
+          <el-button type="primary" style="font-size: 13px;" link @click="openDetailModal(row)">
             상세보기
           </el-button>
         </template>
       </el-table-column>
     </el-table>
+    <!-- 페이지네이션 -->
+  <div class="pagination-area">
+    <el-pagination 
+        layout="prev, pager, next" 
+        :total="totalCount" 
+        v-model:current-page="page"
+        :page-size="pageSize"
+        @current-change="fetchCouponList"
+    />
+  </div>
 
-    <!-- TODO: 쿠폰 등록/상세 모달은 이후 작성 -->
-    <!--
     <CouponCreateModal
       v-model:visible="createModalVisible"
       @created="fetchCouponList"
     />
+
     <CouponDetailModal
       v-model:visible="detailModalVisible"
       :coupon-code="selectedCouponCode"
       @updated="fetchCouponList"
       @deleted="fetchCouponList"
     />
-    -->
   </div>
 </template>
 
@@ -151,6 +165,8 @@ import { ref, onMounted } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
+import CouponCreateModal from './CouponCreateModal.vue';
+import CouponDetailModal from './CouponDetailModal.vue';
 
 const couponList = ref([]);
 const loading = ref(false);
@@ -162,6 +178,10 @@ const selectedType = ref('ALL');
 const createModalVisible = ref(false);
 const detailModalVisible = ref(false);
 const selectedCouponCode = ref(null);
+
+const totalCount = ref(0);
+const page = ref(1);
+const pageSize = ref(7);
 
 // 금액 포맷 (만원 단위)
 const formatToManWon = (value) => {
@@ -175,15 +195,20 @@ const formatToManWon = (value) => {
   return `${fixed}만원`;
 };
 
+const getRateLabel = (rate, type) => {
+  return type === 'R' ? rate+'%' : rate+'원'
+};
+
 const getTypeLabel = (type) => {
   if (type === 'R') return '비율 할인';
-  if (type === 'F') return '금액 할인';
+  if (type === 'A') return '금액 할인';
   return '기타';
 };
 
 const getStatusLabel = (status) => {
   if (status === 'A') return '사용 가능';
-  if (status === 'C') return '종료';
+  if (status === 'P') return '시작 전';
+  if (status === 'C') return '기간 만료';
   return '알수없음';
 };
 
@@ -202,8 +227,14 @@ const formatDate = (iso) => {
 const fetchCouponList = async () => {
   loading.value = true;
   try {
-    const res = await api.get('/coupon/read-list');
+    const res = await api.get('/coupon/read-list', {
+    params: {
+        page: page.value,
+        size: pageSize.value,
+      }
+      });
     couponList.value = res.data.contents || [];
+    totalCount.value = res.data.totalCount;
   } catch (e) {
     ElMessage.error('쿠폰 목록을 불러오지 못했습니다.');
     console.error(e);
@@ -220,8 +251,14 @@ const handleStatusFilter = async () => {
   }
   loading.value = true;
   try {
-    const res = await api.get(`/coupon/filter-status/${selectedStatus.value}`);
+    const res = await api.get(`/coupon/filter-status/${selectedStatus.value}`, {
+    params: {
+        page: page.value,
+        size: pageSize.value,
+      }
+      });
     couponList.value = res.data.contents || [];
+    totalCount.value = res.data.totalCount;
   } catch (e) {
     ElMessage.error('상태 필터 적용 중 오류가 발생했습니다.');
     console.error(e);
@@ -238,8 +275,15 @@ const handleTypeFilter = async () => {
   }
   loading.value = true;
   try {
-    const res = await api.get(`/coupon/filter-type/${selectedType.value}`);
+    console.log('쿠폰 유형:', selectedType.value);
+    const res = await api.get(`/coupon/filter-type/${selectedType.value}`, {
+    params: {
+        page: page.value,
+        size: pageSize.value,
+      }
+      });
     couponList.value = res.data.contents || [];
+    totalCount.value = res.data.totalCount;
   } catch (e) {
     ElMessage.error('유형 필터 적용 중 오류가 발생했습니다.');
     console.error(e);
@@ -257,8 +301,14 @@ const handleSearch = async () => {
   }
   loading.value = true;
   try {
-    const res = await api.get(`/coupon/search/${encodeURIComponent(keyword)}`);
+    const res = await api.get(`/coupon/search/${encodeURIComponent(keyword)}`, {
+    params: {
+        page: page.value,
+        size: pageSize.value,
+      }
+      });
     couponList.value = res.data.contents || [];
+    totalCount.value = res.data.totalCount;
   } catch (e) {
     ElMessage.error('검색 중 오류가 발생했습니다.');
     console.error(e);
@@ -284,6 +334,34 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.header {
+  display: flex;
+  padding-left: 24px;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  color: #222;
+}
+
+.header h1 {
+  font-size: 30px;
+  font-weight: 600;
+}
+
+.header p {
+  font-size: 15px;
+  color: #999;
+}
+
+.coupon-table :deep(.el-table__row) {
+  height: 52px;           /* 기본 48px 정도 → 64px처럼 늘리기 */
+}
+
+.coupon-table :deep(.el-table__cell) {
+  padding-top: 12px;      /* 위아래 패딩도 같이 조절 */
+  padding-bottom: 12px;
+}
+
 .coupon-page {
   padding: 16px 24px;
 }
@@ -296,7 +374,7 @@ onMounted(() => {
 }
 
 .search-input {
-  width: 320px;
+  width: 500px;
 }
 
 .filter-select {
@@ -319,5 +397,14 @@ onMounted(() => {
 .name-cell .subtitle {
   font-size: 12px;
   color: #999;
+}
+
+.toolbar { 
+    display: flex; align-items: center; 
+    margin-bottom: 20px; padding: 20px; background: #fff; border-radius: 8px; border: 1px solid #eee;
+    gap: 10px; align-items: center; flex-wrap: wrap;
+}
+.pagination-area {
+    display: flex; justify-content: center; margin-top: 10px; margin-bottom: 10px;
 }
 </style>
