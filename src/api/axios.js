@@ -3,13 +3,15 @@ import { useToastStore } from '@/store/useToast';
 import axios from 'axios'
 
 const api = axios.create({
-    // baseURL: import.meta.env.VITE_API_BASE_URL,
-    baseURL: 'http://localhost:5000',
+    baseURL: import.meta.env.PROD
+        ? '/api'
+        : 'http://localhost:5000',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json'
     }
 })
+
 
 // JWT 토큰 자동 첨부
 api.interceptors.request.use(
