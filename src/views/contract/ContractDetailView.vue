@@ -70,12 +70,13 @@
             <el-descriptions :column="3" border>
               <el-descriptions-item label="계약 코드">{{ vm.contractCode }}</el-descriptions-item>
               <el-descriptions-item label="고객 코드">{{ vm.customerCode }}</el-descriptions-item>
+              <el-descriptions-item label="고객명">{{ vm.customerName }}</el-descriptions-item> 
+              
               <el-descriptions-item label="담당자">{{ vm.inCharge }}</el-descriptions-item>
-            
               <el-descriptions-item label="연락처">{{ formatPhone(vm.callNum) }}</el-descriptions-item>
               <el-descriptions-item label="계약 시작일">{{ formatDate(vm.startDate) }}</el-descriptions-item>
+              
               <el-descriptions-item label="계약 기간">{{ vm.contractPeriod }} 개월</el-descriptions-item>
-            
               <el-descriptions-item label="결제 방식">{{ vm.payMethodLabel }}</el-descriptions-item>
               <el-descriptions-item label="렌탈 자산 수">{{ vm.productCount }} 종</el-descriptions-item>
             </el-descriptions>
@@ -353,6 +354,7 @@ async function fetchBasic(contractId) {
       contractPeriod: b.overview.contractPeriod,
       startDate: b.overview.startDate,
       customerCode: b.overview.customerCode,
+      customerName: b.overview.customerName,
       inCharge: b.overview.inCharge,
       callNum: b.overview.callNum,
       monthlyPayment: b.overview.monthlyPayment,
@@ -491,7 +493,13 @@ watch(
    Utils
 ========================= */
 const goList = () => router.push({ name: 'contract-list' })
-const money = v => (typeof v === 'number' ? v.toLocaleString() + '원' : '-')
+const money = v => {
+  if (typeof v !== 'number') return '-'
+  if (v >= 100000000) {
+    return (v / 100000000).toLocaleString('ko-KR') + '억원'
+  }
+  return (v / 10000).toLocaleString('ko-KR') + '만원'
+}
 const formatDate = v => (v ? String(v).substring(0, 10) : '-')
 
 const summaryRowClass = ({ row }) => {
