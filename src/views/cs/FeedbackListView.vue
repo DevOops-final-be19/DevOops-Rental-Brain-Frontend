@@ -38,28 +38,29 @@
           v-model="search.star" 
           placeholder="별점" 
           style="width: 150px;"
+          class="star-filter" 
           clearable
           @change="handleSearch"
         >
           <el-option label="★★★★★ (5점)" :value="5">
-            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★★★</span>
-            <span style="color: #666; font-size: 12px; margin-left: 5px;">5점</span>
+            <span style="color: #ff9900; font-weight: bold;">★★★★★</span>
+            <span style="color: #888; font-size: 12px; margin-left: 8px;">5점</span>
           </el-option>
           <el-option label="★★★★ (4점)" :value="4">
-            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★★</span>
-            <span style="color: #666; font-size: 12px; margin-left: 5px;">4점</span>
+            <span style="color: #ff9900; font-weight: bold;">★★★★</span>
+            <span style="color: #888; font-size: 12px; margin-left: 8px;">4점</span>
           </el-option>
           <el-option label="★★★ (3점)" :value="3">
-            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★</span>
-            <span style="color: #666; font-size: 12px; margin-left: 5px;">3점</span>
+            <span style="color: #ff9900; font-weight: bold;">★★★</span>
+            <span style="color: #888; font-size: 12px; margin-left: 8px;">3점</span>
           </el-option>
           <el-option label="★★ (2점)" :value="2">
-            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★</span>
-            <span style="color: #666; font-size: 12px; margin-left: 5px;">2점</span>
+            <span style="color: #ff9900; font-weight: bold;">★★</span>
+            <span style="color: #888; font-size: 12px; margin-left: 8px;">2점</span>
           </el-option>
           <el-option label="★ (1점)" :value="1">
-            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★</span>
-            <span style="color: #666; font-size: 12px; margin-left: 5px;">1점</span>
+            <span style="color: #ff9900; font-weight: bold;">★</span>
+            <span style="color: #888; font-size: 12px; margin-left: 8px;">1점</span>
           </el-option>
         </el-select>
 
@@ -147,7 +148,6 @@
       destroy-on-close
     >
       <el-form :model="createForm" label-width="100px" class="create-form">
-        
         <el-form-item label="기업 선택" required>
           <el-select
             v-model="createForm.customerId"
@@ -256,7 +256,8 @@
           <el-descriptions-item label="담당자">{{ selectedFeedback.empName || '미배정' }}</el-descriptions-item>
           <el-descriptions-item label="카테고리">{{ selectedFeedback.categoryName }}</el-descriptions-item>
           <el-descriptions-item label="채널">{{ selectedFeedback.channelName }}</el-descriptions-item>
-          <el-descriptions-item label="평점" :span="2"> <el-rate v-model="selectedFeedback.star" disabled text-color="#ff9900" />
+          <el-descriptions-item label="평점" :span="2"> 
+            <el-rate v-model="selectedFeedback.star" disabled text-color="#ff9900" />
           </el-descriptions-item>
           <el-descriptions-item label="제목" :span="2">{{ selectedFeedback.title }}</el-descriptions-item>
         </el-descriptions>
@@ -295,7 +296,6 @@ import { getFeedbackList, getFeedbackKpi, createFeedback, updateFeedback, delete
 import { getCustomerList } from '@/api/customerlist'; 
 import { getInChargeList } from '@/api/customersupport';
 
-// 상태 변수들
 const loading = ref(false);
 const feedbackList = ref([]);
 const kpi = ref({ total: 0, complaints: 0 });
@@ -303,36 +303,31 @@ const customerSearchLoading = ref(false);
 const customerOptions = ref([]); 
 const inChargeList = ref([]); 
 
-// 수정 모드 상태
 const isEditMode = ref(false);
 
-// 검색 조건
+// [수정] 검색 상태에 star 추가 (필터 작동 핵심)
 const search = reactive({
   keyword: '',
   category: '',
   status: '',
-  star: '' // [수정] 별점 검색 추가
+  star: '' 
 });
 
-// 페이지네이션
 const page = reactive({
   currentPage: 1,
   pageSize: 10,
   totalCount: 0
 });
 
-// 정렬 상태
 const sortState = reactive({
   sortBy: 'id',
   sortOrder: 'desc'
 });
 
-// 모달 상태
 const createModalVisible = ref(false);
 const detailModalVisible = ref(false);
 const selectedFeedback = ref(null);
 
-// 등록/수정 폼 데이터
 const createForm = reactive({
   customerId: null,
   empId: null,
@@ -349,9 +344,7 @@ const createForm = reactive({
 const fetchInChargeList = async () => {
   try {
     const res = await getInChargeList();
-    if (res.data) {
-        inChargeList.value = res.data;
-    }
+    if (res.data) inChargeList.value = res.data;
   } catch (error) {
     console.error('담당자 목록 로드 실패:', error);
   }
@@ -363,17 +356,19 @@ const fetchData = async () => {
     const kpiRes = await getFeedbackKpi();
     if(kpiRes.data) kpi.value = kpiRes.data;
 
-    // 빈 문자열일 경우 null로 보내서 400 Bad Request 방지
+    // [수정] params에 star 파라미터 전송 (백엔드로 값 전달)
     const params = {
       page: page.currentPage,
       amount: page.pageSize, 
       keyword: search.keyword,
       category: search.category || null,
       status: search.status || null,
-      star: search.star || null, // [수정] 별점 파라미터 추가
+      star: search.star ? Number(search.star) : null,
       sortBy: sortState.sortBy,
       sortOrder: sortState.sortOrder
     };
+
+    console.log('검색 요청 파라미터:', params);
 
     const res = await getFeedbackList(params);
     
@@ -407,7 +402,6 @@ const handleSortChange = ({ prop, order }) => {
     sortState.sortBy = 'id';
     sortState.sortOrder = 'desc';
   } else {
-    // 프론트의 prop 이름과 백엔드 정렬 기준 매핑
     if (prop === 'feedbackCode') {
       sortState.sortBy = 'id'; 
     } else {
@@ -443,7 +437,6 @@ const searchCustomers = async (query) => {
   }
 };
 
-// 등록 모달 열기
 const openCreateModal = () => {
   isEditMode.value = false;
   Object.keys(createForm).forEach(key => createForm[key] = null);
@@ -451,22 +444,18 @@ const openCreateModal = () => {
   createForm.content = '';
   createForm.star = 5;
   createForm.action = '';
-  
   createModalVisible.value = true;
   searchCustomers(''); 
 };
 
-// 상세 모달 열기
 const openDetailModal = (row) => {
   selectedFeedback.value = row;
   detailModalVisible.value = true;
 };
 
-// 수정 모달 열기
 const openEditModal = () => {
     isEditMode.value = true;
     const item = selectedFeedback.value;
-    
     Object.assign(createForm, {
         customerId: item.cumId, 
         empId: item.empId,
@@ -477,26 +466,19 @@ const openEditModal = () => {
         content: item.content,
         action: item.action,
     });
-    
     if(item.customerName) {
         customerOptions.value = [{ id: item.cumId || 0, name: item.customerName }]; 
     }
-
     detailModalVisible.value = false;
     createModalVisible.value = true;
 };
 
-// 등록/수정 제출
 const submitCreate = async () => {
   if (!createForm.title || !createForm.content) {
     ElMessage.warning('제목과 내용은 필수입니다.');
     return;
   }
-  // 백엔드 DTO(cumId)와 맞추기 위해 데이터 변환
-  const payload = {
-      ...createForm,
-      cumId: createForm.customerId // customerId 값을 cumId에 담아 전송
-  };
+  const payload = { ...createForm, cumId: createForm.customerId };
   try {
     if (isEditMode.value) {
         await updateFeedback(selectedFeedback.value.id, payload);
@@ -512,7 +494,6 @@ const submitCreate = async () => {
   }
 };
 
-// 삭제 핸들러
 const handleDelete = async () => {
     if (!selectedFeedback.value) return;
     ElMessageBox.confirm('정말 삭제하시겠습니까?', '경고', { type: 'warning' })
@@ -576,4 +557,21 @@ onMounted(() => {
 .dialog-footer-left { margin-right: auto; }
 .dialog-footer-right { display: flex; gap: 10px; }
 :deep(.el-dialog__footer) { display: flex; justify-content: space-between; }
+
+.star-filter {
+  /* Element Plus 입력창 텍스트 색상 변수를 황금색으로 변경 */
+  --el-input-text-color: #ff9900 !important;
+  font-weight: bold;
+}
+
+:deep(.star-filter .el-input__inner::placeholder) {
+  color: #a8abb2 !important;
+  -webkit-text-fill-color: #a8abb2 !important; /* Safari/Chrome 호환성 */
+  font-weight: normal;
+}
+
+:deep(.star-filter .el-input__inner) {
+    color: #ff9900 !important;
+    -webkit-text-fill-color: #ff9900 !important; 
+}
 </style>
