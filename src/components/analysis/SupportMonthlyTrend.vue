@@ -17,7 +17,13 @@
       <div class="hint">트렌드 데이터가 없습니다.</div>
     </div>
 
-    <v-chart v-else :option="option" autoresize class="chart" />
+    <v-chart
+      v-else
+      :option="option"
+      autoresize
+      class="chart"
+      @click="onChartClick"
+    />
   </BaseCard>
 </template>
 
@@ -40,10 +46,16 @@ defineProps({
   title: { type: String, default: "월별 응대 트렌드" },
 });
 
+/** ✅ 부모에게 "선택한 점" 전달 */
+const emit = defineEmits(["select-point"]);
+
 const route = useRoute();
 const loading = ref(false);
 const error = ref("");
 const raw = ref(null);
+
+/** ✅ 클릭된 점(월+타입) 상태 */
+const selected = ref({ idx: -1, key: "" }); // idx:0~11, key: quote|support|feedback|survey
 
 const year = computed(() => {
   const qYear = Number(route.query.year);
@@ -58,13 +70,6 @@ const monthLabels = computed(() =>
   Array.from({ length: 12 }, (_, i) => `${i + 1}월`)
 );
 
-/**
- * ✅ 백엔드 응답
- * {
- *   year: 2025,
- *   monthly: [{ month, quoteCount, SupportCount, feedbackCount, surveyCount }, ...]
- * }
- */
 const seriesData = computed(() => {
   const init = {
     quote: Array(12).fill(0),
@@ -97,6 +102,46 @@ const hasData = computed(() => {
 
 const option = computed(() => {
   const s = seriesData.value;
+  const selIdx = selected.value.idx;
+  const selKey = selected.value.key;
+
+  const makeLine = (name, key, data) => ({
+    name,
+    type: "line",
+    smooth: true,
+    data,
+    symbol: "circle",
+    symbolSize: (value, params) =>
+      params.dataIndex === selIdx && key === selKey ? 14 : 8,
+    emphasis: {
+      focus: "series",
+      itemStyle: { shadowBlur: 12, shadowColor: "rgba(0,0,0,0.25)" },
+      lineStyle: { width: 3 },
+    },
+  });
+
+  const effect = [];
+  if (selIdx >= 0 && selKey) {
+    const y =
+      selKey === "quote"
+        ? s.quote[selIdx]
+        : selKey === "support"
+        ? s.support[selIdx]
+        : selKey === "feedback"
+        ? s.feedback[selIdx]
+        : s.survey[selIdx];
+
+    effect.push({
+      name: "selected",
+      type: "effectScatter",
+      zlevel: 10,
+      coordinateSystem: "cartesian2d",
+      data: [{ value: [monthLabels.value[selIdx], Number(y ?? 0) || 0] }],
+      rippleEffect: { brushType: "stroke", scale: 3.2, period: 2.6 },
+      symbolSize: 18,
+      tooltip: { show: false },
+    });
+  }
 
   return {
     tooltip: { trigger: "axis" },
@@ -116,10 +161,11 @@ const option = computed(() => {
     },
     yAxis: { type: "value", min: 0, splitLine: { lineStyle: { type: "dashed" } } },
     series: [
-      { name: "견적상담", type: "line", smooth: true, data: s.quote, symbol: "circle", symbolSize: 8 },
-      { name: "문의", type: "line", smooth: true, data: s.support, symbol: "circle", symbolSize: 8 },
-      { name: "피드백", type: "line", smooth: true, data: s.feedback, symbol: "circle", symbolSize: 8 },
-      { name: "설문조사", type: "line", smooth: true, data: s.survey, symbol: "circle", symbolSize: 8 },
+      makeLine("견적상담", "quote", s.quote),
+      makeLine("문의", "support", s.support),
+      makeLine("피드백", "feedback", s.feedback),
+      makeLine("설문조사", "survey", s.survey),
+      ...effect,
     ],
   };
 });
@@ -137,48 +183,45 @@ const fetchTrend = async () => {
   }
 };
 
+const seriesNameToKey = (name) => {
+  if (name === "견적상담") return "quote";
+  if (name === "문의") return "support";
+  if (name === "피드백") return "feedback";
+  if (name === "설문조사") return "survey";
+  return "";
+};
+
+const onChartClick = (params) => {
+  const idx = Number(params?.dataIndex);
+  if (Number.isNaN(idx) || idx < 0 || idx > 11) return;
+
+  const key = seriesNameToKey(params?.seriesName ?? "");
+  if (!key) return;
+
+  selected.value = { idx, key };
+
+  const mm = String(idx + 1).padStart(2, "0");
+  const ym = `${year.value}-${mm}`;
+
+  emit("select-point", { ym, key });
+};
+
 onMounted(fetchTrend);
-watch(year, fetchTrend);
+watch(year, () => {
+  selected.value = { idx: -1, key: "" };
+  fetchTrend();
+});
 </script>
 
 <style scoped>
-.trend-card {
-  width: 100%;
-}
-
-.card-title {
-  margin: 0;
-  font-size: 14px;
-  font-weight: 900;
-  color: #111827;
-}
-
-.chart {
-  width: 100%;
-  height: 320px;
-}
-
+.trend-card { width: 100%; }
+.card-title { margin: 0; font-size: 14px; font-weight: 900; color: #111827; }
+.chart { width: 100%; height: 320px; }
 .chart-placeholder {
-  height: 320px;
-  border: 1px dashed #e5e7eb;
-  border-radius: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  align-items: center;
-  justify-content: center;
+  height: 320px; border: 1px dashed #e5e7eb; border-radius: 10px;
+  display: flex; flex-direction: column; gap: 6px; align-items: center; justify-content: center;
   background: #fafafa;
 }
-
-.hint {
-  color: #6b7280;
-  font-size: 13px;
-  font-weight: 700;
-}
-
-.error {
-  color: #ef4444;
-  font-size: 12px;
-  font-weight: 800;
-}
+.hint { color: #6b7280; font-size: 13px; font-weight: 700; }
+.error { color: #ef4444; font-size: 12px; font-weight: 800; }
 </style>
