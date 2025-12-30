@@ -123,7 +123,7 @@
     <div class="trend-ai-row">
       <div class="trend-col">
         <!-- ✅ 차트 월 클릭 → 페이지 전체(month) 갱신 -->
-        <SupportMonthlyTrend @select-month="onSelectMonth" />
+        <SupportMonthlyTrend @select-month="applyMonthFromTrend" />
       </div>
 
       <div class="ai-col">
@@ -298,8 +298,15 @@ const addMonths = (baseYM, diff) => {
   return ym(d);
 };
 
+/** ✅ route query month 갱신(여기서 페이지 전체 갱신이 트리거됨) */
 const setMonthQuery = (m) => {
-  router.replace({ query: { ...route.query, month: m } });
+  router.replace({
+    query: {
+      ...route.query,
+      month: m,
+      year: String(m).slice(0, 4), // (선택) year도 같이 맞춰두면 trend쪽 year 계산이 안정적
+    },
+  });
 };
 
 const setThisMonth = () => {
@@ -322,8 +329,8 @@ const applyPickedMonth = () => {
   setMonthQuery(pickedMonth.value);
 };
 
-/** ✅ 차트에서 월 클릭하면 여기로 들어옴 */
-const onSelectMonth = (selectedYm) => {
+/** ✅ 차트에서 월 클릭하면 여기로 들어옴 (템플릿의 applyMonthFromTrend와 연결) */
+const applyMonthFromTrend = (selectedYm) => {
   if (!selectedYm) return;
   mode.value = "pick";
   pickedMonth.value = selectedYm;

@@ -17,6 +17,7 @@
       <div class="hint">트렌드 데이터가 없습니다.</div>
     </div>
 
+    <!-- ✅ 클릭 이벤트 -->
     <v-chart
       v-else
       :option="option"
@@ -46,16 +47,13 @@ defineProps({
   title: { type: String, default: "월별 응대 트렌드" },
 });
 
-/** ✅ 부모에게 "선택한 점" 전달 */
-const emit = defineEmits(["select-point"]);
+/** ✅ 부모에게 YYYY-MM 전달 */
+const emit = defineEmits(["select-month"]);
 
 const route = useRoute();
 const loading = ref(false);
 const error = ref("");
 const raw = ref(null);
-
-/** ✅ 클릭된 점(월+타입) 상태 */
-const selected = ref({ idx: -1, key: "" }); // idx:0~11, key: quote|support|feedback|survey
 
 const year = computed(() => {
   const qYear = Number(route.query.year);
@@ -87,7 +85,7 @@ const seriesData = computed(() => {
     if (idx < 0 || idx > 11) return;
 
     init.quote[idx] = Number(row.quoteCount ?? 0) || 0;
-    init.support[idx] = Number(row.SupportCount ?? row.supportCount ?? 0) || 0; // 대문자 S 방어
+    init.support[idx] = Number(row.SupportCount ?? row.supportCount ?? 0) || 0;
     init.feedback[idx] = Number(row.feedbackCount ?? 0) || 0;
     init.survey[idx] = Number(row.surveyCount ?? 0) || 0;
   });
@@ -102,46 +100,6 @@ const hasData = computed(() => {
 
 const option = computed(() => {
   const s = seriesData.value;
-  const selIdx = selected.value.idx;
-  const selKey = selected.value.key;
-
-  const makeLine = (name, key, data) => ({
-    name,
-    type: "line",
-    smooth: true,
-    data,
-    symbol: "circle",
-    symbolSize: (value, params) =>
-      params.dataIndex === selIdx && key === selKey ? 14 : 8,
-    emphasis: {
-      focus: "series",
-      itemStyle: { shadowBlur: 12, shadowColor: "rgba(0,0,0,0.25)" },
-      lineStyle: { width: 3 },
-    },
-  });
-
-  const effect = [];
-  if (selIdx >= 0 && selKey) {
-    const y =
-      selKey === "quote"
-        ? s.quote[selIdx]
-        : selKey === "support"
-        ? s.support[selIdx]
-        : selKey === "feedback"
-        ? s.feedback[selIdx]
-        : s.survey[selIdx];
-
-    effect.push({
-      name: "selected",
-      type: "effectScatter",
-      zlevel: 10,
-      coordinateSystem: "cartesian2d",
-      data: [{ value: [monthLabels.value[selIdx], Number(y ?? 0) || 0] }],
-      rippleEffect: { brushType: "stroke", scale: 3.2, period: 2.6 },
-      symbolSize: 18,
-      tooltip: { show: false },
-    });
-  }
 
   return {
     tooltip: { trigger: "axis" },
@@ -161,11 +119,10 @@ const option = computed(() => {
     },
     yAxis: { type: "value", min: 0, splitLine: { lineStyle: { type: "dashed" } } },
     series: [
-      makeLine("견적상담", "quote", s.quote),
-      makeLine("문의", "support", s.support),
-      makeLine("피드백", "feedback", s.feedback),
-      makeLine("설문조사", "survey", s.survey),
-      ...effect,
+      { name: "견적상담", type: "line", smooth: true, data: s.quote, symbol: "circle", symbolSize: 8 },
+      { name: "문의", type: "line", smooth: true, data: s.support, symbol: "circle", symbolSize: 8 },
+      { name: "피드백", type: "line", smooth: true, data: s.feedback, symbol: "circle", symbolSize: 8 },
+      { name: "설문조사", type: "line", smooth: true, data: s.survey, symbol: "circle", symbolSize: 8 },
     ],
   };
 });
@@ -183,34 +140,18 @@ const fetchTrend = async () => {
   }
 };
 
-const seriesNameToKey = (name) => {
-  if (name === "견적상담") return "quote";
-  if (name === "문의") return "support";
-  if (name === "피드백") return "feedback";
-  if (name === "설문조사") return "survey";
-  return "";
-};
-
+/** ✅ 차트 클릭 → 해당 월(YYYY-MM) 부모로 전달 */
 const onChartClick = (params) => {
   const idx = Number(params?.dataIndex);
   if (Number.isNaN(idx) || idx < 0 || idx > 11) return;
 
-  const key = seriesNameToKey(params?.seriesName ?? "");
-  if (!key) return;
-
-  selected.value = { idx, key };
-
   const mm = String(idx + 1).padStart(2, "0");
   const ym = `${year.value}-${mm}`;
-
-  emit("select-point", { ym, key });
+  emit("select-month", ym);
 };
 
 onMounted(fetchTrend);
-watch(year, () => {
-  selected.value = { idx: -1, key: "" };
-  fetchTrend();
-});
+watch(year, fetchTrend);
 </script>
 
 <style scoped>
