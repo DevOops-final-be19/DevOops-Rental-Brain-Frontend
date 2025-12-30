@@ -24,7 +24,7 @@
         <el-select 
           v-model="search.category" 
           placeholder="카테고리" 
-          style="width: 160px;"
+          style="width: 140px;"
           clearable
           @change="handleSearch"
         >
@@ -32,6 +32,35 @@
           <el-option label="제품 불량" :value="6" />
           <el-option label="제품 품질" :value="7" />
           <el-option label="AS 관련" :value="8" />
+        </el-select>
+
+        <el-select 
+          v-model="search.star" 
+          placeholder="별점" 
+          style="width: 150px;"
+          clearable
+          @change="handleSearch"
+        >
+          <el-option label="★★★★★ (5점)" :value="5">
+            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★★★</span>
+            <span style="color: #666; font-size: 12px; margin-left: 5px;">5점</span>
+          </el-option>
+          <el-option label="★★★★ (4점)" :value="4">
+            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★★</span>
+            <span style="color: #666; font-size: 12px; margin-left: 5px;">4점</span>
+          </el-option>
+          <el-option label="★★★ (3점)" :value="3">
+            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★★</span>
+            <span style="color: #666; font-size: 12px; margin-left: 5px;">3점</span>
+          </el-option>
+          <el-option label="★★ (2점)" :value="2">
+            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★★</span>
+            <span style="color: #666; font-size: 12px; margin-left: 5px;">2점</span>
+          </el-option>
+          <el-option label="★ (1점)" :value="1">
+            <span style="color: #FFD700; font-weight: bold; font-size: 1.1em;">★</span>
+            <span style="color: #666; font-size: 12px; margin-left: 5px;">1점</span>
+          </el-option>
         </el-select>
 
         <el-select 
@@ -71,7 +100,6 @@
       >
         <el-table-column prop="feedbackCode" label="ID" width="140" align="center" sortable="custom" />
         <el-table-column prop="customerName" label="기업명" width="150" show-overflow-tooltip />
-        <el-table-column prop="empName" label="담당자" width="100" align="center" />
         <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
         
         <el-table-column label="평점" width="150" align="center" prop="star" sortable="custom">
@@ -89,13 +117,6 @@
         <el-table-column label="내용" min-width="200">
           <template #default="{ row }">
             <span class="truncated-text">{{ truncateText(row.content, 30) }}</span>
-          </template>
-        </el-table-column>
-
-        <el-table-column prop="action" label="조치 사항" min-width="150" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span v-if="row.action" class="action-text">{{ row.action }}</span>
-            <el-tag v-else type="info" size="small">미조치</el-tag>
           </template>
         </el-table-column>
 
@@ -289,7 +310,8 @@ const isEditMode = ref(false);
 const search = reactive({
   keyword: '',
   category: '',
-  status: '' 
+  status: '',
+  star: '' // [수정] 별점 검색 추가
 });
 
 // 페이지네이션
@@ -348,6 +370,7 @@ const fetchData = async () => {
       keyword: search.keyword,
       category: search.category || null,
       status: search.status || null,
+      star: search.star || null, // [수정] 별점 파라미터 추가
       sortBy: sortState.sortBy,
       sortOrder: sortState.sortOrder
     };
@@ -375,6 +398,7 @@ const resetSearch = () => {
   search.keyword = '';
   search.category = '';
   search.status = '';
+  search.star = ''; // [수정] 초기화 시 별점도 초기화
   handleSearch();
 };
 
@@ -468,7 +492,7 @@ const submitCreate = async () => {
     ElMessage.warning('제목과 내용은 필수입니다.');
     return;
   }
-// [수정] 백엔드 DTO(cumId)와 맞추기 위해 데이터 변환
+  // 백엔드 DTO(cumId)와 맞추기 위해 데이터 변환
   const payload = {
       ...createForm,
       cumId: createForm.customerId // customerId 값을 cumId에 담아 전송
