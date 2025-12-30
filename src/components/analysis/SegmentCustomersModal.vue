@@ -48,7 +48,7 @@
                     <td class="name">{{ c.customerName ?? "-" }}</td>
                     <td>{{ c.inCharge ?? "-" }}</td>
                     <td>{{ c.dept ?? "-" }}</td>
-                    <td class="mono">{{ c.callNum ?? "-" }}</td>
+                    <td class="mono">{{ formatPhone(c.callNum ?? "-") }}</td>
                     <td>
                       <span v-if="c.star != null">⭐ {{ c.star }}</span>
                       <span v-else>-</span>
@@ -97,6 +97,24 @@ const customers = computed(() => {
 });
 
 const fmt = (n) => (Number(n) || 0).toLocaleString();
+
+/* 연락처 포맷: 02-6100-0060 / 010-1234-5678 */
+const formatPhone = (value) => {
+  if (!value) return '-'
+  const d = String(value).replace(/\D/g, '')
+
+  // 02 지역번호
+  if (d.startsWith('02')) {
+    if (d.length === 9)  return d.replace(/^(\d{2})(\d{3})(\d{4})$/, '$1-$2-$3')   // 02-123-4567
+    if (d.length === 10) return d.replace(/^(\d{2})(\d{4})(\d{4})$/, '$1-$2-$3')  // 02-1234-5678
+  }
+
+  // 휴대폰/기타 지역번호(3자리)
+  if (d.length === 10) return d.replace(/^(\d{3})(\d{3})(\d{4})$/, '$1-$2-$3')    // 031-123-4567
+  if (d.length === 11) return d.replace(/^(\d{3})(\d{4})(\d{4})$/, '$1-$2-$3')    // 010-1234-5678
+
+  return value
+}
 
 const goCustomerDetail = (customerId) => {
   if (!customerId) return;

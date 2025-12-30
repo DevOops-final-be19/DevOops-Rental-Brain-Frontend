@@ -31,10 +31,8 @@
           <QuarterCustomerChart />
         </div>
 
-        <div>
-          <h2>이탈 위험 요약 및 고객 수?</h2>
-        </div>
-        <!-- <div
+        <!-- 미가동 자산 추정 매출 기회 -->
+        <div
           class="panel clickable"
           role="button"
           tabindex="0"
@@ -42,8 +40,8 @@
           @keydown.enter.prevent="goTo('product')"
           @keydown.space.prevent="goTo('product')"
         >
-          <ProductStatusChart />
-        </div> -->
+          <ProductStatus />
+        </div>
       </section>
 
       <!-- 3단: WORKBENCH (2열) -->
@@ -71,7 +69,7 @@
 import { useRouter } from "vue-router";
 
 import DashboardKpi from "@/components/dashboard/DashboardKpi.vue";
-// import ProductStatusChart from "@/components/dashboard/ProductStatusChart.vue";
+import ProductStatus from "@/components/dashboard/ProductStatus.vue";
 import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
 import QuarterCustomerChart from "@/components/dashboard/QuarterCustomerChart.vue";
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
