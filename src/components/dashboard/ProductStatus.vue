@@ -1,50 +1,37 @@
 <template>
   <div class="mix-card" v-loading="loadingProduct">
-    <!-- Header -->
-    <div class="mix-head">
-      <div class="mix-title">고객 확보가 필요한 매출</div>
-      <div class="mix-desc">
-        장비가 놀고 있어요 · 채울 고객을 만들면 매출이 늘어납니다
-      </div>
-    </div>
+    <!-- KPI 영역: 숫자 중심 -->
+    <div class="kpi-area">
+      <div class="kpi-title">미가동 자산 추정 매출 기회</div>
 
-    <!-- KPI -->
-    <div class="mix-kpi">
-      <div class="mix-value">{{ utilizationKpi.lossText }}</div>
+      <div class="kpi-value">{{ utilizationKpi.lossText }}</div>
 
-      <div class="mix-sub">
+      <div class="kpi-sub">
         가동률 {{ utilizationKpi.rate }}%
         <span class="sep">·</span>
-        최대 가능 {{ utilizationKpi.potentialText }}
+        최대 가능 매출 {{ utilizationKpi.potentialText }}
         <span class="sep">·</span>
-        현재 {{ utilizationKpi.actualText }}
+        실제 발생 매출 {{ utilizationKpi.actualText }}
       </div>
     </div>
 
-    <div class="mix-divider"></div>
+    <div class="divider"></div>
 
-    <!-- CRM Workbench row -->
+    <!-- Workbench 1행: 액션 + 근거 -->
     <div class="wb-row">
       <div class="wb-left">
         <span class="dot dot-high" aria-hidden="true"></span>
 
         <div class="wb-text">
-          <div class="wb-main">신규/휴면 고객 캠페인 추천</div>
-          <div class="wb-sub">
-            놀고 있는 자산이 많아 “고객 확보”가 필요합니다
-          </div>
+          <div class="wb-main">자산 가동률 개선 필요</div>
           <div class="wb-meta">
-            근거: 미가동으로 {{ utilizationKpi.lossText }} 기회 발생
+            근거: 미가동 자산으로 인한 매출 기회 손실 {{ utilizationKpi.lossText }} 감지
           </div>
         </div>
       </div>
 
-      <button
-        class="wb-btn wb-btn--primary"
-        type="button"
-        @click.stop="goCampaign"
-      >
-        캠페인 만들기
+      <button class="wb-btn wb-btn--primary" type="button" @click="goLowUtilizationCampaign">
+        저가동 자산 캠페인 생성
       </button>
     </div>
   </div>
@@ -58,8 +45,11 @@ import { getProductNameList } from "@/api/product";
 const router = useRouter();
 
 const loadingProduct = ref(false);
+
+// ✅ 응답을 contents 배열로 맞춰 담기
 const productRes = ref({ contents: [] });
 
+/** ✅ 억/만원 포맷: 150,000,000 -> 1억 5000만원 */
 const formatMoneyEokMan = (value) => {
   const n = Number(value);
   if (!Number.isFinite(n) || n <= 0) return "-";
@@ -76,16 +66,19 @@ const formatMoneyEokMan = (value) => {
   return `${man}만원`;
 };
 
+/** ✅ KPI 계산 */
 const utilizationKpi = computed(() => {
   const rows = productRes.value?.contents ?? [];
 
-  let totalPotential = 0;
-  let actual = 0;
+  let totalPotential = 0; // Σ(monthlyPrice × stockAmount)
+  let actual = 0;         // Σ(monthlyPrice × rentalAmount)
 
   for (const p of rows) {
     const price = Number(p.monthlyPrice ?? 0);
     const stock = Number(p.stockAmount ?? 0);
     const rented = Number(p.rentalAmount ?? 0);
+
+    if (!Number.isFinite(price) || !Number.isFinite(stock) || !Number.isFinite(rented)) continue;
 
     totalPotential += price * stock;
     actual += price * rented;
@@ -105,10 +98,12 @@ const utilizationKpi = computed(() => {
   };
 });
 
+/** ✅ 데이터 로드 (product.js 재사용) */
 const fetchProductList = async () => {
   loadingProduct.value = true;
   try {
     const { data } = await getProductNameList();
+    // data가 {contents: []} 또는 [] 둘 다 대응
     productRes.value.contents = data?.contents ?? data ?? [];
   } catch (e) {
     console.error("제품 현황 조회 실패", e);
@@ -117,19 +112,17 @@ const fetchProductList = async () => {
   }
 };
 
-onMounted(fetchProductList);
-
-/** CRM 액션으로 이동 */
-const goCampaign = () => {
-  router.push({
-    name: "campaign-setting",
-    query: { type: "FILL_IDLE_ASSET" }, // 라벨만
-  });
+const goLowUtilizationCampaign = () => {
+  // ✅ 라우트 이름은 프로젝트에 맞게 바꿔줘
+  // 캠페인 설정/프로모션/쿠폰 어디든 연결 가능
+  router.push({ name: "campaign-setting", query: { type: "LOW_UTILIZATION" } });
 };
+
+onMounted(fetchProductList);
 </script>
 
 <style scoped>
-/* 카드 전체 */
+/* ✅ 카드 외형: 워크벤치(wb-card) 톤에 맞춤 */
 .mix-card {
   background: #fff;
   border: 1px solid #eee;
@@ -139,41 +132,32 @@ const goCampaign = () => {
   overflow: hidden;
 }
 
-.mix-head {
-  padding: 16px 16px 10px;
+/* KPI 영역 */
+.kpi-area {
+  padding: 16px 16px 14px;
 }
 
-.mix-title {
+.kpi-title {
   font-size: 14px;
   font-weight: 800;
   color: #111827;
   letter-spacing: -0.2px;
+  margin-bottom: 10px;
 }
 
-.mix-desc {
-  margin-top: 6px;
-  font-size: 12px;
-  color: #6b7280;
-  line-height: 1.35;
-}
-
-.mix-kpi {
-  padding: 0 16px 14px;
-}
-
-.mix-value {
-  font-size: 34px;
+.kpi-value {
+  font-size: 32px;
   font-weight: 800;
   color: #111827;
-  letter-spacing: -0.5px;
-  line-height: 1.05;
+  letter-spacing: -0.4px;
+  line-height: 1.1;
   margin-bottom: 8px;
 }
 
-.mix-sub {
+.kpi-sub {
   font-size: 12px;
   color: #6b7280;
-  line-height: 1.4;
+  line-height: 1.35;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -184,12 +168,13 @@ const goCampaign = () => {
   color: #cbd5e1;
 }
 
-.mix-divider {
+/* Divider */
+.divider {
   height: 1px;
   background: #f1f1f1;
 }
 
-/* Workbench row */
+/* Workbench 1행 */
 .wb-row {
   display: flex;
   align-items: center;
@@ -205,22 +190,14 @@ const goCampaign = () => {
   min-width: 0;
 }
 
-.wb-text { min-width: 0; }
+.wb-text {
+  min-width: 0;
+}
 
 .wb-main {
   font-size: 13px;
   font-weight: 750;
   color: #111827;
-  line-height: 1.3;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.wb-sub {
-  margin-top: 4px;
-  font-size: 12px;
-  color: #6b7280;
   line-height: 1.3;
   white-space: nowrap;
   overflow: hidden;
@@ -247,7 +224,7 @@ const goCampaign = () => {
 }
 .dot-high { background: #ef4444; }
 
-/* Buttons */
+/* Button (워크벤치 톤) */
 .wb-btn {
   font-size: 12px;
   font-weight: 750;
@@ -269,17 +246,13 @@ const goCampaign = () => {
   color: #fff;
 }
 
+/* Responsive */
 @media (max-width: 700px) {
   .wb-row {
     align-items: flex-start;
     flex-direction: column;
   }
   .wb-btn { width: 100%; }
-  .mix-sub,
-  .wb-main,
-  .wb-sub,
-  .wb-meta {
-    white-space: normal;
-  }
+  .kpi-sub { white-space: normal; }
 }
 </style>
