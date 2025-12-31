@@ -2,6 +2,7 @@ import { useAuthStore } from '@/store/auth.store';
 import { useToastStore } from '@/store/useToast';
 import axios from 'axios'
 
+
 const api = axios.create({
     // baseURL: import.meta.env.PROD
     //     ? '/api'
