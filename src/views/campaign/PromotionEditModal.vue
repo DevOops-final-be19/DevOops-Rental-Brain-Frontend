@@ -79,7 +79,6 @@
           v-model="form.segmentName"
           placeholder="대상 선택"
         >
-          <el-option label="블랙리스트 고객" value="블랙리스트 고객" />
           <el-option label="잠재 고객" value="잠재 고객" />
           <el-option label="신규 고객" value="신규 고객" />
           <el-option label="일반 고객" value="일반 고객" />
