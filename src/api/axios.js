@@ -5,7 +5,7 @@ import axios from 'axios'
 
 const api = axios.create({
     baseURL: import.meta.env.PROD
-        ? 'http://devoops-alb-1109881305.ap-northeast-2.elb.amazonaws.com'
+        ? 'https://devoops-alb-1109881305.ap-northeast-2.elb.amazonaws.com'
         : 'http://localhost:5000',
     withCredentials: true,
     headers: {
