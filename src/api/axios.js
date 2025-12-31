@@ -3,9 +3,10 @@ import { useToastStore } from '@/store/useToast';
 import axios from 'axios'
 
 const api = axios.create({
-    baseURL: import.meta.env.PROD
-        ? '/api'
-        : 'http://localhost:5000',
+    // baseURL: import.meta.env.PROD
+    //     ? '/api'
+    //     : 'http://localhost:5000',
+    baseURL: 'devoops-alb-1109881305.ap-northeast-2.elb.amazonaws.com',
     withCredentials: true,
     headers: {
         'Content-Type': 'application/json'
