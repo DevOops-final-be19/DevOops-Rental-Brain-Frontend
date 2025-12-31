@@ -113,14 +113,10 @@ function goTo(key) {
   width: 100%;
 }
 
-/* =========================
-   ✅ 그리드 클래스 분리
-========================= */
-
 /* 2단: 3열 (균등) */
 .grid-3 {
   display: grid;
-  grid-template-columns: 2fr 1fr 2fr;
+  grid-template-columns: 3fr 1fr 1fr;
   gap: 16px;
   align-items: stretch;
 }
