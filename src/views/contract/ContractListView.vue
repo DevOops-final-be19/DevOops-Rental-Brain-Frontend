@@ -92,11 +92,7 @@
 
         <el-table-column label="월 납부액" width="140" align="right">
           <template #default="{ row }">
-<<<<<<< HEAD
-            {{ fmtWon(row.monthlyPayment) }}원
-=======
             {{ fmtWon(row.monthlyPayment) }}만원
->>>>>>> develop
           </template>
         </el-table-column>
 
@@ -163,14 +159,10 @@ const kpi = ref({
   thisMonthContracts: 0
 })
 
-<<<<<<< HEAD
-const fmtWon = (v) => (Number(v) || 0).toLocaleString('ko-KR')
-=======
 const fmtWon = (v) => {
   const value = Number(v) || 0
   return (value / 10000).toLocaleString('ko-KR')
 }
->>>>>>> develop
 
 const fetchKpi = async () => {
   const res = await getContractStatus()
