@@ -114,7 +114,7 @@
         </el-table-column>
       <el-table-column label="총 거래액" width="130" align="right">
         <template #default="{ row }">
-          {{ formatMoneyMan(row.totalTransactionAmount) }}
+          {{ formatMoneyMan(row.totalTransactionAmount) }} <!-- 새 금액 표시 포맷 --> 
         </template>
       </el-table-column>
         <el-table-column prop="contractCount" label="계약 수" width="80" align="center" />
