@@ -7,29 +7,31 @@
         </el-button>
         <h2 class="page-title">문의 상세 정보</h2>
       </div>
-      <div class="button-area">
-        <el-button type="danger" plain @click="handleDelete">삭제</el-button>
-        <el-button type="primary" @click="openEditModal">수정</el-button>
-      </div>
     </div>
 
     <el-card shadow="never" class="detail-card">
-      <div class="info-header mb-4">
-        <el-tag :type="supportInfo.status === '완료' || supportInfo.status === 'C' ? 'success' : 'warning'" size="large">
-          {{ (supportInfo.status === '완료' || supportInfo.status === 'C') ? '처리 완료' : '진행 중' }}
-        </el-tag>
-        <span class="date-text">접수일시: {{ formatDateTime(supportInfo.createDate) }}</span>
-      </div>
-
+      
       <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="문의 번호">{{ supportInfo.customerSupportCode }}</el-descriptions-item>
         <el-descriptions-item label="담당자">{{ supportInfo.empName || '미배정' }}</el-descriptions-item>
         <el-descriptions-item label="기업명">{{ supportInfo.customerName || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="연락처">{{ supportInfo.phone || '-' }}</el-descriptions-item>
         <el-descriptions-item label="카테고리">{{ supportInfo.categoryName }}</el-descriptions-item>
+        
         <el-descriptions-item label="유입 채널">{{ supportInfo.channelName }}</el-descriptions-item>
-        <el-descriptions-item label="이메일" :span="2">{{ supportInfo.email || '-' }}</el-descriptions-item>
-        <el-descriptions-item label="제목" :span="2"><strong>{{ supportInfo.title }}</strong></el-descriptions-item>
+        
+        <el-descriptions-item label="상태">
+          <el-tag :type="supportInfo.status === '완료' || supportInfo.status === 'C' ? 'success' : 'warning'">
+            {{ (supportInfo.status === '완료' || supportInfo.status === 'C') ? '처리 완료' : '진행 중' }}
+          </el-tag>
+        </el-descriptions-item>
+
+        <el-descriptions-item label="접수일시" :span="2">
+          {{ formatDateTime(supportInfo.createDate) }}
+        </el-descriptions-item>
+
+        <el-descriptions-item label="제목" :span="2">
+            <strong>{{ supportInfo.title }}</strong>
+        </el-descriptions-item>
       </el-descriptions>
 
       <div class="content-section mt-4">
@@ -47,21 +49,26 @@
       </div>
 
       <div class="action-footer mt-4">
-        <el-button 
-          v-if="supportInfo.status === 'C' || supportInfo.status === '완료'"
-          type="warning" 
-          @click="handleReopen"
-        >
-          진행 중으로 변경
-        </el-button>
+        <div class="button-group-right">
+           <el-button type="danger" plain @click="handleDelete" class="mr-2">삭제</el-button>
+           <el-button type="primary" plain @click="openEditModal" class="mr-2">수정</el-button>
+           
+           <el-button 
+            v-if="supportInfo.status === 'C' || supportInfo.status === '완료'"
+            type="warning" 
+            @click="handleReopen"
+          >
+            진행 중으로 변경
+          </el-button>
 
-        <el-button 
-          v-else
-          type="success" 
-          @click="handleComplete"
-        >
-          처리 완료로 변경
-        </el-button>
+          <el-button 
+            v-else
+            type="success" 
+            @click="handleComplete"
+          >
+            처리 완료로 변경
+          </el-button>
+        </div>
       </div>
     </el-card>
 
@@ -112,7 +119,6 @@ const editForm = reactive({
   title: '',
   content: '',
   action: '',
-  // 필요한 경우 다른 필드 추가
 });
 
 const fetchData = async () => {
@@ -132,8 +138,12 @@ const fetchData = async () => {
 };
 
 const fetchInCharge = async () => {
-    const res = await getInChargeList();
-    if(res.data) inChargeList.value = res.data;
+    try {
+        const res = await getInChargeList();
+        if(res.data) inChargeList.value = res.data;
+    } catch(e) {
+        console.error("담당자 목록 로드 실패");
+    }
 }
 
 const formatDateTime = (dateStr) => {
@@ -153,7 +163,12 @@ const openEditModal = () => {
 
 const submitUpdate = async () => {
   try {
-    await updateSupport(supportInfo.value.id, editForm); // API 호출 시 ID 사용 주의 (supportInfo.value.id)
+    // DTO에 맞게 필드 구성 (기본 필드 외에 ID 등은 유지)
+    const payload = {
+        ...editForm,
+        // 필요시 DTO에 맞는 추가 필드 매핑
+    };
+    await updateSupport(supportInfo.value.id, payload);
     ElMessage.success('수정되었습니다.');
     editModalVisible.value = false;
     fetchData();
@@ -205,14 +220,16 @@ onMounted(() => {
 .mr-3 { margin-right: 12px; }
 
 .detail-card { border-radius: 8px; padding: 20px; }
-.info-header { display: flex; justify-content: space-between; align-items: center; }
-.date-text { color: #888; font-size: 14px; }
 
 .section-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 10px; border-left: 4px solid #409eff; padding-left: 10px; }
 .content-box { padding: 20px; border: 1px solid #eee; border-radius: 4px; min-height: 100px; white-space: pre-wrap; line-height: 1.6; color: #555; }
 .bg-gray { background-color: #f9fafb; }
 
+/* [변경] 버튼을 우측 정렬하기 위한 스타일 */
 .action-footer { display: flex; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 20px; }
+.button-group-right { display: flex; gap: 8px; }
+
 .mt-4 { margin-top: 24px; }
 .mb-4 { margin-bottom: 16px; }
+.mr-2 { margin-right: 8px; }
 </style>

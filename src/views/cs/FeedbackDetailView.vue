@@ -7,30 +7,30 @@
         </el-button>
         <h2 class="page-title">피드백 상세 정보</h2>
       </div>
-      <div class="button-area">
-        <el-button type="danger" plain @click="handleDelete">삭제</el-button>
-        <el-button type="primary" @click="openEditModal">수정</el-button>
-      </div>
     </div>
 
     <el-card shadow="never" class="detail-card">
-      <div class="info-header mb-4">
-        <div class="rate-box">
-          <span class="label mr-2">고객 평점:</span>
-          <el-rate v-model="feedbackInfo.star" disabled text-color="#ff9900" show-score score-template="{value}점" />
-        </div>
-        <span class="date-text">접수일시: {{ feedbackInfo.createDate }}</span>
-      </div>
-
       <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="피드백 번호">{{ feedbackInfo.feedbackCode }}</el-descriptions-item>
         <el-descriptions-item label="담당자">{{ feedbackInfo.empName || '미배정' }}</el-descriptions-item>
         <el-descriptions-item label="기업명">{{ feedbackInfo.customerName || '-' }}</el-descriptions-item>
         <el-descriptions-item label="카테고리">{{ feedbackInfo.categoryName }}</el-descriptions-item>
         <el-descriptions-item label="유입 채널">{{ feedbackInfo.channelName }}</el-descriptions-item>
+        
         <el-descriptions-item label="상태">
-           <el-tag :type="feedbackInfo.status === 'C' ? 'success' : 'info'">{{ feedbackInfo.status === 'C' ? '조치 완료' : '미조치' }}</el-tag>
+           <el-tag :type="hasAction(feedbackInfo.action) ? 'success' : 'info'">
+             {{ hasAction(feedbackInfo.action) ? '조치 완료' : '미조치' }}
+           </el-tag>
         </el-descriptions-item>
+        
+        <el-descriptions-item label="평점">
+           <el-rate v-model="feedbackInfo.star" disabled text-color="#ff9900" show-score score-template="{value}점" />
+        </el-descriptions-item>
+
+        <el-descriptions-item label="접수일시">
+            {{ formatDateTime(feedbackInfo.createDate) }}
+        </el-descriptions-item>
+
         <el-descriptions-item label="제목" :span="2"><strong>{{ feedbackInfo.title }}</strong></el-descriptions-item>
       </el-descriptions>
 
@@ -46,6 +46,13 @@
         <div class="content-box bg-gray">
           {{ feedbackInfo.action || '아직 조치 내용이 등록되지 않았습니다.' }}
         </div>
+      </div>
+
+      <div class="action-footer mt-4">
+         <div class="button-group-right">
+            <el-button type="danger" plain @click="handleDelete" class="mr-2">삭제</el-button>
+            <el-button type="primary" @click="openEditModal">수정</el-button>
+         </div>
       </div>
     </el-card>
 
@@ -64,7 +71,7 @@
           <el-input v-model="editForm.content" type="textarea" :rows="5" />
         </el-form-item>
         <el-form-item label="조치사항">
-          <el-input v-model="editForm.action" type="textarea" :rows="3" placeholder="내용 입력 시 조치 완료 처리" />
+          <el-input v-model="editForm.action" type="textarea" :rows="3" placeholder="내용 입력 시 자동으로 '조치 완료' 상태로 표시됩니다." />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -95,6 +102,11 @@ const editForm = reactive({
   action: ''
 });
 
+// 조치사항 유무 체크 함수 (빈 공백만 있는 경우도 미조치로 간주)
+const hasAction = (action) => {
+  return action && action.trim().length > 0;
+};
+
 const fetchData = async () => {
   loading.value = true;
   try {
@@ -111,6 +123,11 @@ const fetchData = async () => {
   }
 };
 
+const formatDateTime = (dateStr) => {
+  if (!dateStr) return '-';
+  return dateStr.replace('T', ' ');
+};
+
 const openEditModal = () => {
   Object.assign(editForm, {
     star: feedbackInfo.value.star,
@@ -123,12 +140,25 @@ const openEditModal = () => {
 
 const submitUpdate = async () => {
   try {
-    await updateFeedback(feedbackInfo.value.id, editForm);
+    const payload = {
+        title: editForm.title,
+        content: editForm.content,
+        star: editForm.star,
+        action: editForm.action,
+        // 필수 ID값 매핑 (500 에러 방지)
+        empId: feedbackInfo.value.empId, 
+        cumId: feedbackInfo.value.cumId, 
+        categoryId: feedbackInfo.value.categoryId,
+        channelId: feedbackInfo.value.channelId
+    };
+
+    await updateFeedback(feedbackInfo.value.id, payload);
     ElMessage.success('수정되었습니다.');
     editModalVisible.value = false;
-    fetchData();
+    fetchData(); // 데이터 재조회 (화면 갱신)
   } catch (e) {
-    ElMessage.error('수정 실패');
+    console.error(e);
+    ElMessage.error('수정 실패: ' + (e.response?.data?.message || '서버 오류'));
   }
 };
 
@@ -147,17 +177,20 @@ onMounted(() => {
 </script>
 
 <style scoped>
-/* SupportDetailView와 동일한 스타일 사용 권장 */
 .page-container { padding: 20px; max-width: 1000px; margin: 0 auto; }
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
 .title-area { display: flex; align-items: center; gap: 10px; }
 .page-title { margin: 0; font-size: 22px; font-weight: 700; color: #333; }
 .detail-card { border-radius: 8px; padding: 20px; }
-.info-header { display: flex; justify-content: space-between; align-items: center; }
-.rate-box { display: flex; align-items: center; }
+
 .section-title { font-size: 16px; font-weight: 600; color: #333; margin-bottom: 10px; border-left: 4px solid #409eff; padding-left: 10px; }
 .content-box { padding: 20px; border: 1px solid #eee; border-radius: 4px; min-height: 100px; white-space: pre-wrap; line-height: 1.6; color: #555; }
 .bg-gray { background-color: #f9fafb; }
+
+/* 버튼 우측 정렬 */
+.action-footer { display: flex; justify-content: flex-end; border-top: 1px solid #eee; padding-top: 20px; }
+.button-group-right { display: flex; gap: 8px; }
+
 .mt-4 { margin-top: 24px; }
 .mb-4 { margin-bottom: 16px; }
 .mr-2 { margin-right: 8px; }
