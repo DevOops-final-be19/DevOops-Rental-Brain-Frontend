@@ -92,9 +92,10 @@
       <SegmentDistribution @select-segment="openSegmentModal" />
     </div>
 
-    <SegmentAnalysisChart />
-    <!-- <CustomerSegmentDetailCard /> -->
+     <!-- 세그먼트 분석 차트 -->
+    <SegmentAnalysisChart @select-segment="openSegmentModal" />
 
+  
     <SegmentCustomersModal
       :open="segModalOpen"
       :segmentId="segModalSegmentId"
@@ -110,18 +111,15 @@
     />
   </div>
 </template>
-
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getRiskKpi, getRiskReasonKpi, getRiskCustomersByMonth } from "@/api/customeranalysis";
+import { getRiskKpi, getRiskReasonKpi } from "@/api/customeranalysis";
 
 import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
-import CustomerSegmentDetailCard from "@/components/analysis/CustomerSegmentDetailCard.vue";
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
 import RiskMonthlyRate from "@/components/analysis/RiskMonthlyRate.vue";
 import RiskCustomersModal from "@/components/analysis/RiskCustomersModal.vue";
-
 import SegmentCustomersModal from "@/components/analysis/SegmentCustomersModal.vue";
 import RiskReasonCustomersModal from "@/components/analysis/RiskReasonCustomersModal.vue";
 import AnalysisSummary from "@/components/analysis/AnalysisSummary.vue";
@@ -129,97 +127,53 @@ import AnalysisSummary from "@/components/analysis/AnalysisSummary.vue";
 const route = useRoute();
 const router = useRouter();
 
-// ✅ 모달 상태
-const showRiskModal = ref(false);
-const selectedMonth = ref("");
-const loadingRiskCustomers = ref(false);
-const riskCustomers = ref([]);
-const riskTotalCount = ref(0);
-const riskError = ref("");
-
+/* =========================
+   ✅ 모달 상태 (정리)
+========================= */
+// ✅ 월별 위험고객 모달
 const riskModalOpen = ref(false);
+const selectedMonth = ref("");
 
-// 한줄평
+// ✅ 세그먼트 고객 리스트 모달
+const RISK_SEGMENT_ID = 4;
+const segModalOpen = ref(false);
+const segModalSegmentId = ref(RISK_SEGMENT_ID);
+
+// ✅ 사유별 위험고객 모달
+const reasonModalOpen = ref(false);
+const selectedReasonCode = ref("OVERDUE");
+
+const emit = defineEmits(["select-segment"]);
+
 
 /* =========================
-   One-line summary (front-only)
+   ✅ 차트 클릭 -> 위험고객 모달 오픈 (핵심 연결)
 ========================= */
-const segmentSummary = computed(() => {
-  const r = risk.value;
-  if (!r) return { text: "세그먼트 지표를 불러오는 중입니다.", tone: "neutral", icon: "ℹ️" };
-
-  const riskRate = Number(r?.curRiskRate ?? 0);
-  const momP = Number(r?.momDiffRate ?? r?.momDiffP ?? 0);
-  const riskCnt  = Number(r?.curRiskCustomerCount ?? 0);
-
-  if (riskRate >= 8 || momP >= 3) {
-    return {
-      text: `이탈 위험 고객 비중 ${round1(riskRate)}%(${fmt(riskCnt)}개사)로 증가 중입니다. 우선순위 케어 액션이 필요합니다.`,
-      tone: "danger",
-      icon: "🔴",
-    };
-  }
-
-  if (riskRate >= 4) {
-    return {
-      text: `이탈 위험 고객 ${round1(riskRate)}%가 감지됩니다. 조기 케어/재계약 유도 액션을 추천합니다.`,
-      tone: "warn",
-      icon: "🟡",
-    };
-  }
-
-  return {
-    text: `현재 이탈 위험 고객 세그먼트 비중은 낮고, 고객 분포는 전반적으로 안정적입니다.`,
-    tone: "good",
-    icon: "🟢",
-  };
-});
-
-
-const openRiskCustomersModal = async (month) => {
-
-  // 이탈 차트 오픈
-  selectedMonth.value = month;
-  riskModalOpen.value = true;   
-
-  // 1. 클릭한 월 저장
-  selectedMonth.value = month;
-
-  // 2. 모달 열기
-  showRiskModal.value = true;
-
-  // 3. 초기화
-  loadingRiskCustomers.value = true;
-  riskError.value = "";
-  riskCustomers.value = [];
-  riskTotalCount.value = 0;
-
-  try {
-    // 4. API 호출
-    const res = await getRiskCustomersByMonth(month);
-    const body = res?.data ?? res;
-
-    /*
-      기대 응답 형태:
-      {
-        month: "2026-01",
-        totalCount: 22,
-        customers: [...]
-      }
-    */
-    riskCustomers.value = body.customers ?? [];
-    riskTotalCount.value = body.totalCount ?? riskCustomers.value.length;
-
-  } catch (e) {
-    riskError.value =
-      e?.response?.data?.message ??
-      e?.message ??
-      "이탈 위험 고객을 불러오지 못했습니다.";
-  } finally {
-    loadingRiskCustomers.value = false;
-  }
+const openRiskCustomersModal = (m) => {
+  if (!m) return;
+  selectedMonth.value = m;     // YYYY-MM
+  riskModalOpen.value = true;  // ✅ 이것만으로 모달이 열리고,
+                               //    모달 내부 watch에서 fetch함
 };
 
+/* =========================
+   KPI 클릭
+========================= */
+const openRiskSegmentModal = () => {
+  segModalSegmentId.value = RISK_SEGMENT_ID;
+  segModalOpen.value = true;
+};
+
+const openRiskReasonModal = (code = "OVERDUE") => {
+  selectedReasonCode.value = code;
+  reasonModalOpen.value = true;
+};
+
+// 세그먼트 차트/카드 클릭 모달
+const openSegmentModal = (segmentId) => {
+  segModalSegmentId.value = Number(segmentId);
+  segModalOpen.value = true;
+};
 
 /* =========================
    Month (route.query.month)
@@ -239,30 +193,6 @@ const addMonths = (baseYM, diff) => {
   const [y, m] = String(baseYM).split("-").map(Number);
   const d = new Date(y, m - 1 + diff, 1);
   return ym(d);
-};
-
-const RISK_SEGMENT_ID = 4; // 이탈 위험 고객
-
-/* =========================
-   KPI1: 이탈 위험 고객 리스트(세그먼트 4) 모달
-========================= */
-const segModalOpen = ref(false);
-const segModalSegmentId = ref(RISK_SEGMENT_ID);
-
-const openRiskSegmentModal = () => {
-  segModalSegmentId.value = RISK_SEGMENT_ID;
-  segModalOpen.value = true;
-};
-
-/* =========================
-   KPI2: 이탈 사유별 고객 리스트 모달
-========================= */
-const reasonModalOpen = ref(false);
-const selectedReasonCode = ref("OVERDUE");
-
-const openRiskReasonModal = (code = "OVERDUE") => {
-  selectedReasonCode.value = code;
-  reasonModalOpen.value = true;
 };
 
 const setMonthQuery = (m) => {
@@ -305,13 +235,6 @@ watch(
   { immediate: true }
 );
 
-// 클릭 모달 추가
-const openSegmentModal = (segmentId) => {
-  segModalSegmentId.value = Number(segmentId);
-  segModalOpen.value = true;
-};
-
-
 /* =========================
    API
 ========================= */
@@ -326,6 +249,40 @@ const fetchAll = async () => {
 
 onMounted(fetchAll);
 watch(month, fetchAll);
+
+/* =========================
+   One-line summary
+========================= */
+const segmentSummary = computed(() => {
+  const r = risk.value;
+  if (!r) return { text: "세그먼트 지표를 불러오는 중입니다.", tone: "neutral", icon: "ℹ️" };
+
+  const riskRate = Number(r?.curRiskRate ?? 0);
+  const momP = Number(r?.momDiffRate ?? r?.momDiffP ?? 0);
+  const riskCnt = Number(r?.curRiskCustomerCount ?? 0);
+
+  if (riskRate >= 8 || momP >= 3) {
+    return {
+      text: `이탈 위험 고객 비중 ${round1(riskRate)}%(${fmt(riskCnt)}개사)로 증가 중입니다. 우선순위 케어 액션이 필요합니다.`,
+      tone: "danger",
+      icon: "🔴",
+    };
+  }
+
+  if (riskRate >= 4) {
+    return {
+      text: `이탈 위험 고객 ${round1(riskRate)}%가 감지됩니다. 조기 케어/재계약 유도 액션을 추천합니다.`,
+      tone: "warn",
+      icon: "🟡",
+    };
+  }
+
+  return {
+    text: `현재 이탈 위험 고객 세그먼트 비중은 낮고, 고객 분포는 전반적으로 안정적입니다.`,
+    tone: "good",
+    icon: "🟢",
+  };
+});
 
 /* =========================
    Utils
