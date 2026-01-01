@@ -35,7 +35,7 @@
          KPI Summary
     ========================== -->
 
-        <!-- ✅ 한 줄 요약 -->
+        <!-- 한 줄 요약 -->
     <AnalysisSummary :text="segmentSummary.text" :tone="segmentSummary.tone" />
 
     <div class="grid-2">
@@ -84,24 +84,15 @@
       </div>
     </div>
 
-    <!-- =========================
-         Insight Charts
-         ⚠️ 내부 컴포넌트가 카드 역할
-    ========================== -->
     <div class="grid-2 insight-charts">
       <RiskMonthlyRate />
-      <SegmentDistribution />
+      <!-- 클릭 추가 -->
+      <SegmentDistribution @select-segment="openSegmentModal" />
     </div>
 
-    <!-- =========================
-         Detail Analysis
-    ========================== -->
     <SegmentAnalysisChart />
-    <CustomerSegmentDetailCard />
+    <!-- <CustomerSegmentDetailCard /> -->
 
-    <!-- =========================
-         Modals
-    ========================== -->
     <SegmentCustomersModal
       :open="segModalOpen"
       :segmentId="segModalSegmentId"
@@ -257,6 +248,13 @@ watch(
   },
   { immediate: true }
 );
+
+// 클릭 모달 추가
+const openSegmentModal = (segmentId) => {
+  segModalSegmentId.value = Number(segmentId);
+  segModalOpen.value = true;
+};
+
 
 /* =========================
    API
