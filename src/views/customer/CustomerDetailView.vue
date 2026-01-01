@@ -165,13 +165,15 @@
 
       <el-tab-pane label="계약 내역" name="contract">
         <el-table :data="customer.contractList" border stripe>
-          <el-table-column prop="contract_code" label="계약 번호" width="140" align="center" />
+          <el-table-column prop="contractCode" label="계약 번호" width="140" align="center" />
           <el-table-column prop="conName" label="계약명" min-width="180" />
-          <el-table-column prop="start_date" label="계약 시작일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="contract_period" label="기간(개월)" width="100" align="center" />
+          <el-table-column prop="startDate" label="계약 시작일" width="120" align="center" :formatter="dateFormatter" />
+          <el-table-column prop="contractPeriod" label="기간(개월)" width="100" align="center" />
           
-          <el-table-column prop="monthly_payment" label="월 납입금" width="150" align="right">
-            <template #default="{row}">{{ row.monthly_payment?.toLocaleString() }}원</template>
+          <el-table-column prop="monthlyPayment" label="월 납입금" width="150" align="right">
+            <template #default="{row}">
+              {{ formatMoneyMan(row.monthlyPayment) }}
+            </template>
           </el-table-column>
           
           <el-table-column prop="status" label="계약 상태" width="100" align="center">
@@ -220,7 +222,7 @@
       </el-tab-pane>
 
       <el-tab-pane label="캠페인 내역" name="campaign">
-        <h4>보유 쿠폰</h4>
+        <h4>쿠폰 사용 이력</h4>
         <el-table :data="customer.couponList" border stripe class="mb-20">
           <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center" />
           <el-table-column prop="name" label="쿠폰명" />
@@ -230,13 +232,13 @@
           <el-table-column prop="status" label="사용 여부" width="100" align="center">
              <template #default="{row}">
                 <el-tag :type="row.status === 'Y' ? 'info' : 'success'">
-                  {{ row.status === 'Y' ? '사용 완료' : '사용 가능' }}
+                  {{ row.status === 'Y' ? '사용 완료' : '사용 완료' }}
                 </el-tag>
              </template>
           </el-table-column>
         </el-table>
 
-        <h4>프로모션 참여</h4>
+        <h4>프로모션 참여 이력</h4>
         <el-table :data="customer.promotionList" border stripe>
           <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center" />
           <el-table-column prop="name" label="프로모션명" />
@@ -370,16 +372,16 @@ const getChannelTagStyle = (name) => {
   return styles[name] || styles['방문'];
 };
 
-// [수정] 세그먼트별 Hex 색상 (CustomerListView와 매핑 일치)
+// 세그먼트별 Hex 색상
 const getSegmentHexColor = (s) => {
-  if(!s) return '#409EFF'; // 기본값 (일반)
-  if(s.includes('VIP')) return '#E6A23C';       // warning (오렌지)
-  if(s.includes('이탈')) return '#F56C6C';      // danger (빨강)
-  if(s.includes('블랙')) return '#909399';      // info (회색)
-  if(s.includes('신규')) return '#67C23A';      // success (초록)
-  if(s.includes('확장')) return '#409EFF'; // primary (파랑)
-  if(s.includes('잠재')) return '#909399';      // 잠재 (회색)
-  if(s.includes('일반')) return '#409EFF';      // 일반 (파랑)
+  if(!s) return '#409EFF'; 
+  if(s.includes('VIP')) return '#E6A23C';       
+  if(s.includes('이탈')) return '#F56C6C';      
+  if(s.includes('블랙')) return '#909399';      
+  if(s.includes('신규')) return '#67C23A';      
+  if(s.includes('확장')) return '#409EFF'; 
+  if(s.includes('잠재')) return '#909399';      
+  if(s.includes('일반')) return '#409EFF';      
   return '#409EFF'; 
 };
 
@@ -389,6 +391,29 @@ const dateFormatter = (row, col, val) => formatDate(val);
 const formatPhone = (v) => v ? v.replace(/(^02|^0505|^1[0-9]{3}|^0[0-9]{2})([0-9]+)?([0-9]{4})$/,"$1-$2-$3") : '-';
 const getStatusColor = (status) => status === '완료' ? '#0bbd87' : '#ff9900'; 
 const getStatusType = (status) => status === '완료' ? 'success' : 'warning'; 
+
+/* [추가] 금액 포맷 함수 */
+const formatMoneyMan = (value) => {
+  const n = Number(value)
+  if (!Number.isFinite(n) || n <= 0) return '-'
+
+  const EOK = 100_000_000   
+  const MAN = 10_000        
+
+  const eok = Math.floor(n / EOK)
+  const rest = n % EOK
+  const man = Math.floor(rest / MAN)
+
+  if (eok > 0 && man > 0) {
+    return `${eok}억 ${man}만원`
+  }
+
+  if (eok > 0 && man === 0) {
+    return `${eok}억`
+  }
+
+  return `${man}만원`
+}
 
 onMounted(fetchData);
 </script>
