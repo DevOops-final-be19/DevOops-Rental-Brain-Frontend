@@ -27,7 +27,7 @@
           <button class="apply-btn" @click="applyPickedMonth">적용</button>
         </div>
 
-        <div class="month-badge">{{ risk?.targetMonth ?? month }} 기준</div>
+        <div class="month-badge">{{ risk?.snapshotMonth ?? month }} 기준</div>
       </div>
     </div>
 
@@ -44,12 +44,12 @@
         <div class="kpi-head">
           <div>
             <div class="kpi-title">이탈 위험 고객 비중</div>
-            <div class="kpi-value">{{ round1(risk?.currentRiskRate) }}%</div>
+            <div class="kpi-value">{{ round1(risk?.curRiskRate) }}%</div>
           </div>
         </div>
 
         <div class="kpi-subline">
-          {{ fmt(risk?.currentRiskCustomerCount) }}개사 관리 필요 / 전체 대비
+          {{ fmt(risk?.curRiskCustomerCount) }}개사 관리 필요 / 전체 대비
         </div>
 
         <div class="kpi-sub">
@@ -85,8 +85,10 @@
     </div>
 
     <div class="grid-2 insight-charts">
-      <RiskMonthlyRate />
-      <!-- 클릭 추가 -->
+      <RiskMonthlyRate @monthClick="openRiskCustomersModal" />
+      <!-- 모달 컴포넌트 추가 -->
+      <RiskCustomersModal v-model:open="riskModalOpen" :month="selectedMonth" />
+
       <SegmentDistribution @select-segment="openSegmentModal" />
     </div>
 
@@ -112,12 +114,13 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { getRiskKpi, getRiskReasonKpi } from "@/api/customeranalysis";
+import { getRiskKpi, getRiskReasonKpi, getRiskCustomersByMonth } from "@/api/customeranalysis";
 
 import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
 import CustomerSegmentDetailCard from "@/components/analysis/CustomerSegmentDetailCard.vue";
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
 import RiskMonthlyRate from "@/components/analysis/RiskMonthlyRate.vue";
+import RiskCustomersModal from "@/components/analysis/RiskCustomersModal.vue";
 
 import SegmentCustomersModal from "@/components/analysis/SegmentCustomersModal.vue";
 import RiskReasonCustomersModal from "@/components/analysis/RiskReasonCustomersModal.vue";
@@ -125,6 +128,16 @@ import AnalysisSummary from "@/components/analysis/AnalysisSummary.vue";
 
 const route = useRoute();
 const router = useRouter();
+
+// ✅ 모달 상태
+const showRiskModal = ref(false);
+const selectedMonth = ref("");
+const loadingRiskCustomers = ref(false);
+const riskCustomers = ref([]);
+const riskTotalCount = ref(0);
+const riskError = ref("");
+
+const riskModalOpen = ref(false);
 
 // 한줄평
 
@@ -135,13 +148,13 @@ const segmentSummary = computed(() => {
   const r = risk.value;
   if (!r) return { text: "세그먼트 지표를 불러오는 중입니다.", tone: "neutral", icon: "ℹ️" };
 
-  const riskRate = Number(r?.riskRate ?? r?.rate ?? 0);
+  const riskRate = Number(r?.curRiskRate ?? 0);
   const momP = Number(r?.momDiffRate ?? r?.momDiffP ?? 0);
-  const riskCnt = Number(r?.riskCustomerCount ?? r?.customerCount ?? 0);
+  const riskCnt  = Number(r?.curRiskCustomerCount ?? 0);
 
   if (riskRate >= 8 || momP >= 3) {
     return {
-      text: `이탈 위험 고객 비중 ${round1(riskRate)}%(${fmt(riskCnt)}명/개사)로 증가 중입니다. 우선순위 케어 액션이 필요합니다.`,
+      text: `이탈 위험 고객 비중 ${round1(riskRate)}%(${fmt(riskCnt)}개사)로 증가 중입니다. 우선순위 케어 액션이 필요합니다.`,
       tone: "danger",
       icon: "🔴",
     };
@@ -156,13 +169,56 @@ const segmentSummary = computed(() => {
   }
 
   return {
-    text: `현재 리스크 세그먼트 비중은 낮고, 고객 분포는 전반적으로 안정적입니다.`,
+    text: `현재 이탈 위험 고객 세그먼트 비중은 낮고, 고객 분포는 전반적으로 안정적입니다.`,
     tone: "good",
     icon: "🟢",
   };
 });
 
 
+const openRiskCustomersModal = async (month) => {
+
+  // 이탈 차트 오픈
+  selectedMonth.value = month;
+  riskModalOpen.value = true;   
+
+  // 1. 클릭한 월 저장
+  selectedMonth.value = month;
+
+  // 2. 모달 열기
+  showRiskModal.value = true;
+
+  // 3. 초기화
+  loadingRiskCustomers.value = true;
+  riskError.value = "";
+  riskCustomers.value = [];
+  riskTotalCount.value = 0;
+
+  try {
+    // 4. API 호출
+    const res = await getRiskCustomersByMonth(month);
+    const body = res?.data ?? res;
+
+    /*
+      기대 응답 형태:
+      {
+        month: "2026-01",
+        totalCount: 22,
+        customers: [...]
+      }
+    */
+    riskCustomers.value = body.customers ?? [];
+    riskTotalCount.value = body.totalCount ?? riskCustomers.value.length;
+
+  } catch (e) {
+    riskError.value =
+      e?.response?.data?.message ??
+      e?.message ??
+      "이탈 위험 고객을 불러오지 못했습니다.";
+  } finally {
+    loadingRiskCustomers.value = false;
+  }
+};
 
 
 /* =========================
@@ -301,7 +357,7 @@ const reasonLabel = (code) => {
 
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 }
 
 /* 헤더 */
