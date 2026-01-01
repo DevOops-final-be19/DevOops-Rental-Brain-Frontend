@@ -171,7 +171,6 @@ import { ElMessage } from 'element-plus';
 import { Search, Plus } from '@element-plus/icons-vue';
 
 import { getQuoteList, getQuoteKpi } from '@/api/quote';
-import QuoteDetailModal from './QuoteDetailModal.vue';
 // 등록 모달 import
 import QuoteCreateModal from './QuoteCreateModal.vue';
 
