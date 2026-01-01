@@ -44,7 +44,14 @@
     
     <!-- KPI 5개 -->
     <div class="kpi-wrapper">
-      <div class="kpi-box">
+        <div
+          class="kpi-box clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('customerList')"
+          @keydown.enter.prevent="goTo('customerList')"
+          @keydown.space.prevent="goTo('customerList')"
+        >
         <div class="kpi-title">거래중 고객 / 총 고객 수</div>
         <div class="kpi-value">{{ fmt(kpi.tradeCustomerCount) }}개사 / {{ fmt(kpi.totalCustomerCount) }}개사</div>
         <div class="kpi-sub">
@@ -53,7 +60,14 @@
         </div>
       </div>
       
-      <div class="kpi-box">
+        <div
+            class="kpi-box clickable"
+            role="button"
+            tabindex="0"
+            @click="goTo('contractList')"
+            @keydown.enter.prevent="goTo('contractList')"
+            @keydown.space.prevent="goTo('contractList')"
+        >
         <div class="kpi-title">평균 거래액</div>
         <div class="kpi-value">{{ fmtManwon(kpi.avgTradeAmount) }}</div>
         <div class="kpi-sub">
@@ -62,7 +76,14 @@
         </div>
       </div>
 
-      <div class="kpi-box">
+      <div
+          class="kpi-box clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('customerList')"
+          @keydown.enter.prevent="goTo('customerList')"
+          @keydown.space.prevent="goTo('customerList')"
+        >
         <div class="kpi-title">평균 만족도</div>
         <div class="kpi-value">{{ round1(kpi.avgStar) }}점</div>
         <div class="kpi-sub">
@@ -73,7 +94,14 @@
         </div>
       </div>
 
-      <div class="kpi-box">
+      <div
+          class="kpi-box clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('customerList')"
+          @keydown.enter.prevent="goTo('customerList')"
+          @keydown.space.prevent="goTo('customerList')"
+        >
         <div class="kpi-title">안정 고객 비율</div>
         <div class="kpi-value">{{ round1(kpi.stableCustomerRate) }}%</div>
         <div class="kpi-sub">
@@ -81,7 +109,14 @@
         </div>
       </div>
 
-      <div class="kpi-box">
+      <div
+          class="kpi-box clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('customerList')"
+          @keydown.enter.prevent="goTo('customerList')"
+          @keydown.space.prevent="goTo('customerList')"
+        >
         <div class="kpi-title">이탈 위험률</div>
         <div class="kpi-value danger">{{ round1(kpi.riskRate) }}%</div>
         <div class="kpi-sub">
