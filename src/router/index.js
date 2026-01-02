@@ -1,10 +1,12 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import GlobalLayout from "@/layouts/GlobalLayout.vue";
+import { useAuthStore } from '@/store/auth.store';
 
 const routes = [
   {
     path: '/',
     component: GlobalLayout,
+    meta: { requiresAuth: true },
     children: [
       // --- Dashboard ---
       {
@@ -29,22 +31,13 @@ const routes = [
       {
         path: 'cs/supports',
         name: 'cs-support-list',
-        component: () => import('@/views/cs/SupportListView.vue'),
+        component: () => import('@/views/cs/SupportListView.vue'), // 문의 관리
       },
-      {
-        path: 'cs/supports/:id', // 문의 상세 페이지
-        name: 'cs-support-detail',
-        component: () => import('@/views/cs/SupportDetailView.vue'),
-      },
+
       {
         path: 'cs/feedbacks',
         name: 'cs-feedback-list',
-        component: () => import('@/views/cs/FeedbackListView.vue'),
-      },
-      {
-        path: 'cs/feedbacks/:id', // 피드백 상세 페이지
-        name: 'cs-feedback-detail',
-        component: () => import('@/views/cs/FeedbackDetailView.vue'),
+        component: () => import('@/views/cs/FeedbackListView.vue'), // 피드백 관리
       },
 
       {
@@ -106,11 +99,7 @@ const routes = [
         name: 'quote-list',
         component: () => import('@/views/business/QuoteListView.vue'),
       },
-      {
-        path: 'quote/:id',
-        name: 'quote-detail',
-        component: () => import('@/views/business/QuoteDetailView.vue'),
-      },
+
       // --- 계약 ---
       {
         path: 'contracts',
@@ -190,16 +179,6 @@ const routes = [
           },
         ],
       },
-      {
-        path: 'admin/roles',
-        name: 'admin-role',
-        component: () => import('@/views/systemmenu/RolePermissionMatrixView.vue'),
-      },
-      {
-        path: 'admin/users',
-        name: 'admin-users',
-        component: () => import('@/views/systemmenu/UserManageView.vue'),
-      },
       // --- 사용자 페이지 ---
       {
         path: 'mypage',
@@ -230,6 +209,28 @@ const routes = [
 const router = createRouter({
   history: createWebHistory(),
   routes,
+});
+
+router.beforeEach((to, from, next) => {
+  const authStore = useAuthStore();
+  const token = authStore.token;
+
+  // 로그인 페이지는 항상 허용
+  if (to.name === "login") {
+    next();
+    return;
+  }
+
+  // 인증 필요한 페이지인데 토큰 없으면
+  if (to.matched.some((route) => route.meta.requiresAuth) && !token) {
+    next({
+      name: "login",
+      query: { redirect: to.fullPath },
+    });
+    return;
+  }
+
+  next();
 });
 
 export default router;
