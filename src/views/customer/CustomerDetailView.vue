@@ -146,7 +146,7 @@
             </div>
           </template>
 
-          <el-scrollbar height="400px">
+          <el-scrollbar height="700px">
             <el-timeline v-if="filteredHistoryList.length > 0">
               <el-timeline-item
                 v-for="(item, index) in filteredHistoryList"
@@ -155,7 +155,11 @@
                 placement="top"
                 :color="getHistoryDotColor(item)"
               >
-                <el-card class="history-item-card" shadow="hover">
+                <el-card 
+                  class="history-item-card clickable-card" 
+                  shadow="hover"
+                  @click="handleHistoryClick(item)"
+                >
                   <div class="history-header">
                     <span class="history-type">[{{ item.type }}]</span>
                     <span class="history-performer">{{ item.performer }}</span>
@@ -374,7 +378,7 @@ const fetchData = async () => {
     const res = await getCustomerDetail(customerId);
     customer.value = res.data;
 
-    // [추가] 계약 내역을 히스토리에 병합
+    // 계약 내역을 히스토리에 병합
     if (customer.value.contractList && customer.value.contractList.length > 0) {
       const contractHistory = customer.value.contractList.map(c => ({
         date: c.startDate ? c.startDate + ' 00:00:00' : null, // 시작일을 기준으로
@@ -399,6 +403,31 @@ const fetchData = async () => {
   } finally {
     loading.value = false;
   }
+};
+
+/* [추가] 히스토리 카드 클릭 핸들러 (탭 이동) */
+const handleHistoryClick = (item) => {
+  const type = item.type || '';
+  if (!type) return;
+
+  if (type === '계약') {
+    activeTab.value = 'contract';
+  } else if (type.includes('문의')) {
+    activeTab.value = 'support';
+  } else if (type.includes('AS') || type.includes('점검')) {
+    activeTab.value = 'as';
+  } else if (type.includes('피드백')) {
+    activeTab.value = 'feedback';
+  } else if (type.includes('견적')) {
+    activeTab.value = 'quote';
+  } else if (type.includes('세그먼트')) {
+    activeTab.value = 'history';
+  } else if (type.includes('쿠폰') || type.includes('프로모션')) {
+    activeTab.value = 'campaign';
+  }
+  
+  // 탭 이동 후 안내 메시지 (선택 사항)
+  ElMessage.info(`'${type}' 상세 정보 탭으로 이동했습니다.`);
 };
 
 /* 히스토리 상태 텍스트 로직 */
@@ -645,7 +674,7 @@ onMounted(fetchData);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap; /* 작은 화면 대응 */
+  flex-wrap: wrap;  /* 작은 화면 대응 */
   gap: 10px;
 }
 .history-filter-group {
@@ -662,7 +691,9 @@ onMounted(fetchData);
 }
 
 /* 히스토리 아이템 스타일 */
-.history-item-card { margin-bottom: 5px; }
+.history-item-card { margin-bottom: 5px; transition: all 0.2s; } /* transition 추가 */
+.clickable-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); } /* hover 효과 */
+
 .history-header { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 13px; color: #666; }
 .history-type { font-weight: bold; color: #409eff; }
 .history-content { font-size: 14px; font-weight: 500; margin-bottom: 8px; color: #333; word-break: break-all; }
