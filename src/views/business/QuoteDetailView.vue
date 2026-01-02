@@ -103,13 +103,50 @@
         <!-- 액션 버튼 -->
         <div class="action-footer mt-4">
           <div class="button-group-right">
-            <el-button type="danger" plain @click="handleDelete">
-              삭제
-            </el-button>
-            <el-button type="primary" plain @click="openEditModal">
-              수정
-            </el-button>
-          </div>
+  <!-- 삭제 -->
+  <el-tooltip
+    v-if="!canModifyQuote"
+    content="견적 처리 권한이 없습니다"
+    placement="top"
+  >
+    <span>
+      <el-button type="danger" plain disabled>
+        삭제
+      </el-button>
+    </span>
+  </el-tooltip>
+
+  <el-button
+    v-else
+    type="danger"
+    plain
+    @click="handleDelete"
+  >
+    삭제
+  </el-button>
+
+  <!-- 수정 -->
+  <el-tooltip
+    v-if="!canModifyQuote"
+    content="견적 처리 권한이 없습니다"
+    placement="top"
+  >
+    <span>
+      <el-button type="primary" plain disabled>
+        수정
+      </el-button>
+    </span>
+  </el-tooltip>
+
+  <el-button
+    v-else
+    type="primary"
+    plain
+    @click="openEditModal"
+  >
+    수정
+  </el-button>
+</div>
         </div>
   
       </el-card>
@@ -126,19 +163,21 @@
   </template>
   
   <script setup>
-  import { ref, onMounted } from 'vue'
+  import { ref, onMounted, computed } from 'vue'
   import { useRoute, useRouter } from 'vue-router'
   import { ArrowLeft } from '@element-plus/icons-vue'
   import { ElMessage, ElMessageBox } from 'element-plus'
   
   import { getQuoteDetail, deleteQuote } from '@/api/quote'
   import QuoteCreateModal from './QuoteCreateModal.vue'
+import { useAuthStore } from '@/store/auth.store'
   
   /* =========================
      Router
   ========================= */
   const route = useRoute()
   const router = useRouter()
+  const authStore = useAuthStore();
   
   /* =========================
      State
@@ -168,6 +207,11 @@
   /* =========================
      Actions
   ========================= */
+
+  const canModifyQuote = computed(() =>
+  authStore.hasAuth('QUOTE_WRITE')
+)
+
   const openEditModal = () => {
     editModalVisible.value = true
   }

@@ -220,12 +220,15 @@
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
-      <el-menu-item index="/admin/menus">
-        <el-icon>
-          <Setting />
-        </el-icon>
-        관리자 메뉴
-      </el-menu-item>
+      <el-menu-item
+  v-if="hasAdminPermission"
+  index="/admin/menus"
+>
+  <el-icon>
+    <Setting />
+  </el-icon>
+  관리자 메뉴
+</el-menu-item>
 
     </el-menu>
 
@@ -346,6 +349,16 @@ const getIcon = (type) => {
       return Bell;
   }
 };
+
+const hasAdminPermission = computed(() => {
+  const list = authStore.auth || [];
+
+  return list.some(p =>
+    typeof p === "string"
+      ? p === "ADMIN_READ" || p === "ADMIN_MANAGE"
+      : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
+  );
+});
 </script>
 
 <style scoped>
