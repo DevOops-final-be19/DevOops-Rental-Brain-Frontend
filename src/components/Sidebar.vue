@@ -238,7 +238,7 @@
   <el-icon>
     <Setting />
   </el-icon>
-  관리자 메뉴
+  <span>관리자 메뉴</span>
 </el-menu-item>
 
       </el-menu>
@@ -286,6 +286,8 @@ import {
   Headset,
   Ticket,
   Avatar,
+  ArrowLeft,
+  ArrowRight
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
