@@ -112,11 +112,11 @@
             </el-tag>
           </template>
         </el-table-column>
-      <el-table-column label="총 거래액" width="130" align="right">
-        <template #default="{ row }">
-          {{ formatMoneyMan(row.totalTransactionAmount) }}
-        </template>
-      </el-table-column>
+        <el-table-column label="총 거래액" width="130" align="right">
+          <template #default="{ row }">
+            {{ formatMoneyMan(row.totalTransactionAmount) }}
+          </template>
+        </el-table-column>
         <el-table-column prop="contractCount" label="계약 수" width="80" align="center" />
         <el-table-column label="관리" width="100" align="center">
           <template #default="{ row }">
