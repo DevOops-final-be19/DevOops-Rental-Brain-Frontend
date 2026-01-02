@@ -116,7 +116,7 @@ function goTo(key) {
 /* 2단: 3열 (균등) */
 .grid-3 {
   display: grid;
-  grid-template-columns: 3fr 1fr 1fr;
+  grid-template-columns: 2fr 1fr 1fr; /* ✅ 여기만 3fr → 2fr */
   gap: 16px;
   align-items: stretch;
 }
@@ -134,6 +134,7 @@ function goTo(key) {
   width: 100%;
   height: 100%;
   display: flex;
+  min-width: 0;          /* ✅ 핵심: 그리드/플렉스 overflow 튐 방지 */
 }
 
 .panel > * {
