@@ -144,7 +144,7 @@
                 :key="index"
                 :timestamp="formatDate(item.date)"
                 placement="top"
-                :color="getStatusColor(item.status)"
+                :color="getHistoryDotColor(item)"
               >
                 <el-card class="history-item-card" shadow="hover">
                   <div class="history-header">
@@ -153,8 +153,8 @@
                   </div>
                   <div class="history-content" v-html="highlightKeyword(item.content)"></div>
                   <div class="history-status">
-                    <el-tag size="small" :type="getStatusType(item.status)">
-                      {{ item.status === '완료' ? '완료' : '진행 중' }}
+                    <el-tag size="small" :type="getHistoryStatusType(item)">
+                      {{ getHistoryStatusText(item) }}
                     </el-tag>
                   </div>
                 </el-card>
@@ -316,11 +316,11 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue'; // computed 추가
+import { ref, onMounted, computed } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { getCustomerDetail, updateCustomer, deleteCustomer, restoreCustomer } from '@/api/customerlist';
 import { ElMessage, ElMessageBox } from 'element-plus';
-import { ArrowLeft, Edit, Delete, RefreshLeft, Right, Search } from '@element-plus/icons-vue'; // Search 아이콘 추가
+import { ArrowLeft, Edit, Delete, RefreshLeft, Right, Search } from '@element-plus/icons-vue';
 
 const route = useRoute();
 const router = useRouter();
@@ -352,7 +352,41 @@ const fetchData = async () => {
   }
 };
 
-// [추가] 히스토리 필터링 로직 (Computed)
+/* [수정] 히스토리 상태 텍스트 로직 */
+const getHistoryStatusText = (item) => {
+  const type = item.type || '';
+  const status = item.status || '';
+
+  // 1. 완료 고정 (견적, 피드백, 세그먼트)
+  if (type.includes('견적') || type.includes('피드백') || type.includes('세그먼트')) {
+    return '완료';
+  }
+
+  // 2. 문의 (상태값 'C'가 처리 완료)
+  if (type.includes('문의')) {
+    return status === 'C' ? '완료' : '진행 중';
+  }
+
+  // 3. AS (상태값 'C'가 처리 완료)
+  if (type.includes('AS') || type.includes('점검')) {
+    return status === 'C' ? '완료' : '진행 중';
+  }
+
+  // 기본값 (혹시 몰라 원본 status가 완료/C인 경우 처리)
+  return (status === '완료' || status === 'C') ? '완료' : '진행 중';
+};
+
+/* [수정] 히스토리 태그 색상 (완료=success, 진행중=warning) */
+const getHistoryStatusType = (item) => {
+  return getHistoryStatusText(item) === '완료' ? 'success' : 'warning';
+};
+
+/* [수정] 타임라인 점 색상 */
+const getHistoryDotColor = (item) => {
+  return getHistoryStatusText(item) === '완료' ? '#0bbd87' : '#ff9900';
+};
+
+// 히스토리 필터링 로직 (상태 필터링 시 수정된 getHistoryStatusText 활용)
 const filteredHistoryList = computed(() => {
   let list = customer.value.historyList || [];
 
@@ -370,11 +404,12 @@ const filteredHistoryList = computed(() => {
     });
   }
 
-  // 2. 상태 필터
+  // 2. 상태 필터 (getHistoryStatusText 결과값으로 필터링)
   if (historyFilterStatus.value !== 'ALL') {
     list = list.filter(item => {
-      if (historyFilterStatus.value === 'DONE') return item.status === '완료';
-      if (historyFilterStatus.value === 'ING') return item.status !== '완료'; // 완료가 아닌 모든 것
+      const statusText = getHistoryStatusText(item);
+      if (historyFilterStatus.value === 'DONE') return statusText === '완료';
+      if (historyFilterStatus.value === 'ING') return statusText === '진행 중';
       return true;
     });
   }
@@ -474,8 +509,6 @@ const getSegmentHexColor = (s) => {
 const formatDate = (d) => d ? d.substring(0, 10) : '';
 const dateFormatter = (row, col, val) => formatDate(val);
 const formatPhone = (v) => v ? v.replace(/(^02|^0505|^1[0-9]{3}|^0[0-9]{2})([0-9]+)?([0-9]{4})$/,"$1-$2-$3") : '-';
-const getStatusColor = (status) => status === '완료' ? '#0bbd87' : '#ff9900'; 
-const getStatusType = (status) => status === '완료' ? 'success' : 'warning'; 
 
 const formatMoneyMan = (value) => {
   const n = Number(value)
