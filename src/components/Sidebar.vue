@@ -18,7 +18,6 @@
       <el-avatar size="large" class="avatar">
         <el-icon><Avatar /></el-icon>
       </el-avatar>
-
       <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
@@ -241,7 +240,6 @@
         <span>관리자 메뉴</span>
       </el-menu-item>
 
-
       </el-menu>
     </div>
   </aside>
@@ -394,6 +392,7 @@ const hasAdminPermission = computed(() => {
       : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
   );
 });
+
 </script>
 
 <style scoped>
