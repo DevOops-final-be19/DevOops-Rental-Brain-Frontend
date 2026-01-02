@@ -235,11 +235,12 @@
   v-if="hasAdminPermission"
   index="/admin/menus"
 >
-  <el-icon>
-    <Setting />
-  </el-icon>
-  <span>관리자 메뉴</span>
-</el-menu-item>
+        <el-icon>
+          <Setting />
+        </el-icon>
+        <span>관리자 메뉴</span>
+      </el-menu-item>
+
 
       </el-menu>
     </div>
