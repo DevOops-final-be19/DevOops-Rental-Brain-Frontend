@@ -27,37 +27,90 @@ const routes = [
 
       // --- 고객응대 ---
       {
-        path: 'cs',
-        name: 'cs-list',
-        component: () => import('@/views/cs/CsListView.vue'),
+        path: 'cs/supports',
+        name: 'cs-support-list',
+        component: () => import('@/views/cs/SupportListView.vue'),
+      },
+      {
+        path: 'cs/supports/:id', // 문의 상세 페이지
+        name: 'cs-support-detail',
+        component: () => import('@/views/cs/SupportDetailView.vue'),
+      },
+      {
+        path: 'cs/feedbacks',
+        name: 'cs-feedback-list',
+        component: () => import('@/views/cs/FeedbackListView.vue'),
+      },
+      {
+        path: 'cs/feedbacks/:id', // 피드백 상세 페이지
+        name: 'cs-feedback-detail',
+        component: () => import('@/views/cs/FeedbackDetailView.vue'),
+      },
+
+      {
+        path: 'cs/survey',
+        name: 'cs-survey-list',
+        component: () => import('@/views/cs/SurveyView.vue'), // 설문 관리
+        children:[
+          {
+        path: 'cs/survey/result',
+        name: 'cs-survey-result',
+        component: () => import('@/views/cs/SurveyAiResultView.vue'), // 설문 결과
+      },
+        ]
+      },
+
+      {
+        path: 'cs/survey/create',
+        name: 'cs-survey-create',
+        component: () => import('@/views/cs/SurveyCreateView.vue'), // 설문 생성
       },
 
       // --- 고객분석 ---
       {
-        path: 'analysis/overview',
-        name: 'analysis-overview',
-        component: () => import('@/views/analysis/CustomerOverviewView.vue'),
+        path: 'analysis/summary',
+        name: 'analysis-summary',
+        component: () => import('@/views/analysis/CustomerSummaryAnalysisView.vue'),
+      },
+      {
+        path: 'analysis/support',
+        name: 'analysis-support',
+        component: () => import('@/views/analysis/CustomerSupportAnalysisView.vue'),
       },
       {
         path: 'analysis/segment',
         name: 'analysis-segment',
-        component: () => import('@/views/analysis/SegmentAnalysisView.vue'),
+        component: () => import('@/views/analysis/CustomerSegmentAnalysisView.vue'),
       },
 
       // --- 연체관리 ---
       {
         path: 'customer/risk',
         name: 'customer-risklist',
-        component: () => import('@/views/customer/RiskListView.vue'),
+        component: () => import('@/views/customer/overdue/RiskListView.vue'),
+      },
+      {
+        path: 'customer/risks/pay/:overdueId',
+        name: 'customer-pay-overdue-detail',
+        component: () => import('@/views/customer/overdue/PayOverdueDetailView.vue'),
+      },
+      {
+        path: 'customer/risks/item/:overdueId',
+        name: 'customer-item-overdue-detail',
+        component: () => import('@/views/customer/overdue/ItemOverdueDetailView.vue'),
       },
 
       // --- 견적 ---
       {
-        path: 'quotes',
+        path: 'quote',
         name: 'quote-list',
         component: () => import('@/views/business/QuoteListView.vue'),
       },
-
+      {
+        path: 'quote/:id',
+        name: 'quote-detail',
+        component: () => import('@/views/business/QuoteDetailView.vue'),
+      },
       // --- 계약 ---
       {
         path: 'contracts',
@@ -69,7 +122,11 @@ const routes = [
         name: 'contract-detail',
         component: () => import('@/views/contract/ContractDetailView.vue'),
       },
-
+      {
+        path: '/contracts/new',
+        name: 'ContractCreate',
+        component: () => import('@/views/contract/NewContractPage.vue')
+      },
       // --- 캠페인 ---
       {
         path: 'campaign/promotions',
@@ -115,6 +172,23 @@ const routes = [
         path: 'admin/menus',
         name: 'admin-menu',
         component: () => import('@/views/systemmenu/AdminMenuListView.vue'),
+        children: [
+          {
+            path: ":id/auth",
+            name: "admin-user-auth",
+            component: () => import("@/views/systemmenu/UserAuthView.vue"),
+          },
+          {
+            path: ":id/edit",
+            name: "admin-user-edit",
+            component: () => import("@/views/systemmenu/UserEditView.vue"),
+          },
+          {
+            path: 'create',
+            name: 'admin-create-emp',
+            component: () => import('@/views/systemmenu/CreateEmpView.vue'),
+          },
+        ],
       },
       {
         path: 'admin/roles',
@@ -125,6 +199,22 @@ const routes = [
         path: 'admin/users',
         name: 'admin-users',
         component: () => import('@/views/systemmenu/UserManageView.vue'),
+      },
+      // --- 사용자 페이지 ---
+      {
+        path: 'mypage',
+        name: 'my-page',
+        component: () => import('@/views/auth/MyPageView.vue'),
+      },
+      {
+        path: 'modifyinfo',
+        name: 'modify-info-page',
+        component: () => import('@/views/auth/ModifyInfoPageView.vue'),
+      },
+      {
+        path: 'modifypwd',
+        name: 'modify-pwd-page',
+        component: () => import('@/views/auth/ModifyPwdView.vue'),
       },
     ],
   },

@@ -1,117 +1,184 @@
 <template>
-  <div class="dashboard">
+  <div class="page-container">
+    <div class="dashboard-grid">
+      <!-- 1단: KPI -->
+      <section class="row-full">
+        <DashboardKpi />
+      </section>
 
-    <!-- KPI 카드 -->
-    <DashboardCards />
+      <!-- 2단: SNAPSHOT (3열) -->
+      <section class="grid-3 snapshot-row">
+        
+        <div
+          class="panel clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('segment')"
+          @keydown.enter.prevent="goTo('segment')"
+          @keydown.space.prevent="goTo('segment')"
+        >
+          <SegmentDistribution />
+        </div>
 
-    <div class="middle-row">
-      <CustomerSegmentChart />
-      <PriorityAlert />
+        <div
+          class="panel clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('acquisition')"
+          @keydown.enter.prevent="goTo('acquisition')"
+          @keydown.space.prevent="goTo('acquisition')"
+          >
+          <QuarterCustomerChart />
+        </div>
+
+        <!-- 미가동 자산 추정 매출 기회 -->
+        <div
+          class="panel clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('product')"
+          @keydown.enter.prevent="goTo('product')"
+          @keydown.space.prevent="goTo('product')"
+        >
+          <ProductStatus />
+        </div>
+      </section>
+
+      <!-- 3단: WORKBENCH (2열) -->
+      <section class="grid-2 workbench-row">
+        <div
+          class="panel clickable"
+          role="button"
+          tabindex="0"
+          @click="goTo('segment')"
+          @keydown.enter.prevent="goTo('segment')"
+          @keydown.space.prevent="goTo('segment')"
+        >
+          <SegmentAnalysisChart />
+        </div>
+        <div>
+          <CampaignWorkbenchMock />
+        </div>
+
+      </section>
     </div>
-
-    <div class="bottom-row">
-      <QuarterCustomerChart />
-      <AiInsight />
-      <ProductStatusChart />
-    </div>
-
   </div>
 </template>
 
 <script setup>
-import DashboardCards from "@/components/dashboard/DashboardCards.vue";
-import CustomerSegmentChart from "@/components/dashboard/CustomerSegmentChart.vue";
-import PriorityAlert from "@/components/dashboard/PriorityAlert.vue";
+import { useRouter } from "vue-router";
+
+import DashboardKpi from "@/components/dashboard/DashboardKpi.vue";
+import ProductStatus from "@/components/dashboard/ProductStatus.vue";
+import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue";
 import QuarterCustomerChart from "@/components/dashboard/QuarterCustomerChart.vue";
-import AiInsight from "@/components/dashboard/AiInsight.vue";
-import ProductStatusChart from "@/components/dashboard/ProductStatusChart.vue";
+import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
+import CampaignWorkbenchMock from "@/components/dashboard/CampaignWorkbenchMock.vue";
+
+const router = useRouter();
+
+function goTo(key) {
+  const map = {
+    overdue: { name: "customer-risklist" },
+    insight: { name: "promotion-list" },      // 캠페인/프로모션 관리
+    product: { name: "asset-list" },          // 자산/제품
+    segment: { name: "analysis-summary" },    // 고객분석 요약
+    acquisition: { name: "~~" },              // 유입 탭(미정)
+  };
+
+  const target = map[key];
+  if (!target) return;
+  router.push(target);
+}
 </script>
 
 <style scoped>
-.dashboard {
+.page-container {
+  padding: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
 }
 
-/* 중간 컴포넌트 (2개) */
-.middle-row {
+.dashboard-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.row-full {
+  width: 100%;
+}
+
+/* 2단: 3열 (균등) */
+.grid-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr; /* ✅ 여기만 3fr → 2fr */
+  gap: 16px;
+  align-items: stretch;
+}
+
+/* 3단: 2열 (워크벤치가 더 넓게) */
+.grid-2 {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 25px;
+  gap: 16px;
+  align-items: stretch;
 }
 
-/* 하단 컴포넌트 (3개) */
-.bottom-row {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  gap: 25px;
+/* 패널이 row 높이를 꽉 채우도록 */
+.panel {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  min-width: 0;          /* ✅ 핵심: 그리드/플렉스 overflow 튐 방지 */
 }
 
-/* 1500px 이하 — 3개 → 2개로 재배치 */
-@media (max-width: 1500px) {
-  .bottom-row {
-    grid-template-columns: 1fr 1fr;
-  }
+.panel > * {
+  width: 100%;
+  height: 100%;
 }
 
-/* 1200px 이하 — 중간행도 1열로 변경 */
+/* 클릭 공통 */
+.clickable {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease;
+  will-change: transform;
+  border-radius: 14px;
+}
+
+.clickable:hover {
+  transform: translateY(-3px);
+  filter: drop-shadow(0 10px 24px rgba(17, 24, 39, 0.10));
+}
+
+.clickable:active {
+  transform: translateY(-1px) scale(0.99);
+  filter: drop-shadow(0 6px 14px rgba(17, 24, 39, 0.08));
+}
+
+.clickable:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+/* 섹션 간 간격 */
+.snapshot-row { margin-top: 2px; }
+.workbench-row { margin-top: 6px; }
+
+/* =========================
+   Responsive
+========================= */
 @media (max-width: 1200px) {
-  .middle-row {
-    grid-template-columns: 1fr;
-  }
-
-  .bottom-row {
-    grid-template-columns: 1fr 1fr;
-  }
+  .grid-3 { grid-template-columns: 1fr 1fr; }
+  .grid-2 { grid-template-columns: 1fr; }
 }
 
-/* 992px 이하 — 하단도 1열로 변경 */
-@media (max-width: 992px) {
-  .bottom-row {
-    grid-template-columns: 1fr;
-  }
-}
-
-/* 768px 이하 — 전체 대시보드 모바일 최적화 */
-@media (max-width: 768px) {
-  .dashboard {
-    gap: 18px;
-    padding: 0 10px;
-  }
-
-  .middle-row,
-  .bottom-row {
-    grid-template-columns: 1fr;
-    gap: 18px;
-  }
-}
-
-/* KPI (위쪽 카드 4개) */
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 24px;
-}
-
-/* 중간 카드 섹션 */
-.middle-row {
-  display: grid;
-  grid-template-columns: minmax(500px, 2fr) minmax(300px, 1fr);
-  gap: 24px;
-}
-
-/* 하단 카드 3개 */
-.bottom-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 24px;
-}
-
-/* 모바일 감소 영역 */
-@media (max-width: 1024px) {
-  .middle-row {
-    grid-template-columns: 1fr;
-  }
+@media (max-width: 900px) {
+  .grid-3 { grid-template-columns: 1fr; }
 }
 </style>
+
