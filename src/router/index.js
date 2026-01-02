@@ -206,7 +206,11 @@ const routes = [
       {
         path: '/contracts/new',
         name: 'ContractCreate',
-        component: () => import('@/views/contract/NewContractPage.vue')
+        component: () => import('@/views/contract/NewContractPage.vue'),
+        meta: {
+          requiresAuth: true,
+          permissions: ["CONTRACT_WRITE"],
+        },
       },
       // --- 캠페인 ---
       {
