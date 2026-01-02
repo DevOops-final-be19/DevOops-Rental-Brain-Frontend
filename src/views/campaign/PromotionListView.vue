@@ -178,6 +178,11 @@ const route = useRoute()
 const router = useRouter()
 
 const recommendId = ref(null)
+const authStore = useAuthStore();
+
+const canCreatePromotion = computed(() =>
+  authStore.hasAuth('CAMPAIGN_MANAGE')
+)
 
 
 // 상태 / 유형 라벨 매핑

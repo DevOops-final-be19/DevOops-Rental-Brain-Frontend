@@ -175,6 +175,11 @@ const route = useRoute();
 const router = useRouter();
 
 const recommendId = ref(null);
+const authStore = useAuthStore();
+
+const canCreateCoupon = computed(() =>
+  authStore.hasAuth('CAMPAIGN_MANAGE')
+)
 
 // 금액 포맷 (만원 단위)
 const formatToManWon = (value) => {

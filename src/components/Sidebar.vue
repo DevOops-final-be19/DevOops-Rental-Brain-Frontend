@@ -392,16 +392,6 @@ const hasAdminPermission = computed(() => {
       : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
   );
 });
-
-const hasAdminPermission = computed(() => {
-  const list = authStore.auth || [];
-
-  return list.some(p =>
-    typeof p === "string"
-      ? p === "ADMIN_READ" || p === "ADMIN_MANAGE"
-      : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
-  );
-});
 </script>
 
 <style scoped>
