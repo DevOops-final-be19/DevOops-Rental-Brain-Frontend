@@ -36,7 +36,7 @@
 
     <!-- KPI 3개 -->
     <div class="kpi-row-3">
-      <!-- 1) 총 응대 건수 -->
+      <!-- 1) 총 응대 건수 (카드 전체는 클릭 X, row만 클릭) -->
       <div class="card kpi-card">
         <div class="kpi-head">
           <div>
@@ -50,7 +50,16 @@
         </div>
 
         <div class="type-list">
-          <div v-for="t in mergedTypeRows" :key="t.type" class="type-row">
+          <div
+            v-for="t in mergedTypeRows"
+            :key="t.type"
+            class="type-row type-row--clickable"
+            role="button"
+            tabindex="0"
+            @click="goType(t.type)"
+            @keydown.enter.prevent="goType(t.type)"
+            @keydown.space.prevent="goType(t.type)"
+          >
             <span class="type-left">
               <span class="type-label">{{ typeLabel(t.type) }}</span>
               <span class="type-total">{{ fmt(t.ytdCount) }}건</span>
@@ -65,8 +74,15 @@
         </div>
       </div>
 
-      <!-- 2) 응대 처리 효율 -->
-      <div class="card kpi-card">
+      <!-- 2) 응대 처리 효율 (카드 클릭으로 이동) -->
+      <div
+        class="card kpi-card clickable"
+        role="button"
+        tabindex="0"
+        @click="goToKey('efficiency')"
+        @keydown.enter.prevent="goToKey('efficiency')"
+        @keydown.space.prevent="goToKey('efficiency')"
+      >
         <div class="kpi-head">
           <div>
             <div class="kpi-title">응대 처리 완료율</div>
@@ -89,8 +105,15 @@
         </div>
       </div>
 
-      <!-- 3) 고객 만족도 지수 -->
-      <div class="card kpi-card">
+      <!-- 3) 고객 만족도 지수 (카드 클릭으로 이동) -->
+      <div
+        class="card kpi-card clickable"
+        role="button"
+        tabindex="0"
+        @click="goToKey('satisfaction')"
+        @keydown.enter.prevent="goToKey('satisfaction')"
+        @keydown.space.prevent="goToKey('satisfaction')"
+      >
         <div class="kpi-head">
           <div>
             <div class="kpi-title">고객 만족도 지수</div>
@@ -156,6 +179,7 @@ import CustomerSatisfactionCard from "@/components/analysis/CustomerSatisfaction
 import SatisfactionDetailModal from "@/components/analysis/SatisfactionDetailModal.vue";
 import InsightTopListCard from "@/components/analysis/InsightTopListCard.vue";
 import AnalysisSummary from "@/components/analysis/AnalysisSummary.vue";
+import { getTopKeywords } from "@/api/customersupport";
 
 const route = useRoute();
 const router = useRouter();
@@ -215,21 +239,12 @@ const DEFAULT_INSIGHT_SECTIONS = [
     title: "견적 상담 성공/실패 요인",
     blocks: [
       {
-        subtitle: "성공 요인 TOP 3",
-        tone: "good",
+        subtitle: "",
+        tone: "neutral",
         items: [
           { rank: 1, label: "맞춤형 제품 제안", count: 28 },
           { rank: 2, label: "경쟁력 있는 가격", count: 24 },
           { rank: 3, label: "빠른 견적 응답", count: 21 },
-        ],
-      },
-      {
-        subtitle: "실패 요인 TOP 3",
-        tone: "bad",
-        items: [
-          { rank: 1, label: "예산 초과", count: 18 },
-          { rank: 2, label: "경쟁사 선택", count: 15 },
-          { rank: 3, label: "의사결정 지연", count: 12 },
         ],
       },
     ],
@@ -266,6 +281,48 @@ const DEFAULT_INSIGHT_SECTIONS = [
   },
 ];
 
+const buildInsightSections = (data) => {
+  const toItems = (arr = []) =>
+    arr.map((it, idx) => ({
+      rank: idx + 1,
+      label: it.keyword,
+      count: Number(it.count) || 0,
+    }));
+
+  return [
+    {
+      title: "문의 키워드 TOP",
+      blocks: [
+        {
+          subtitle: "",
+          tone: "neutral",
+          items: toItems(data?.inquiryKeywords),
+        },
+      ],
+    },
+    {
+      title: "긍정 피드백 키워드 TOP",
+      blocks: [
+        {
+          subtitle: "",
+          tone: "good",
+          items: toItems(data?.positiveFeedbackKeywords),
+        },
+      ],
+    },
+    {
+      title: "컴플레인 키워드 TOP",
+      blocks: [
+        {
+          subtitle: "",
+          tone: "bad",
+          items: toItems(data?.complaintKeywords),
+        },
+      ],
+    },
+  ];
+};
+
 const clone = (v) => {
   try {
     return structuredClone(v);
@@ -274,7 +331,7 @@ const clone = (v) => {
   }
 };
 
-const insightSections = ref(clone(DEFAULT_INSIGHT_SECTIONS));
+const insightSections = ref();
 
 // 모달 상태
 const satModalOpen = ref(false);
@@ -283,6 +340,59 @@ const satStar = ref(null);
 const openSatisfactionModal = (star) => {
   satStar.value = star;
   satModalOpen.value = true;
+};
+
+/** =========================
+ *  ✅ Navigation
+ *  - KPI 카드/Row 클릭 시 이동
+ *  - month 쿼리를 같이 넘겨서 리스트에서 필터링 가능하게
+ ========================= */
+const pushWithMonth = (to) => {
+  router.push({
+    ...to,
+    query: {
+      ...route.query,
+      month: month.value,
+      year: String(month.value).slice(0, 4),
+    },
+  });
+};
+
+const goToKey = (key) => {
+  // ⚠️ 여기 라우트 name은 프로젝트에 맞게 조정
+  const map = {
+    // KPI 카드 2) 처리 효율: 문의 관리로 보내는 예시
+    efficiency: { name: "cs-support-list" },
+
+    // KPI 카드 3) 만족도: 피드백 관리로 보내는 예시
+    satisfaction: { name: "cs-feedback-list" },
+  };
+
+  const target = map[key];
+  if (!target) return;
+  pushWithMonth(target);
+};
+
+const goType = (type) => {
+  // ⚠️ type별 이동처(원하면 query로 type도 같이 넘겨서 필터 걸기)
+  const map = {
+    QUOTE: { name: "contract-list" },      // 견적 -> 계약/견적 리스트(프로젝트 기준에 맞게 수정)
+    INQUIRY: { name: "cs-support-list" },  // 문의 -> 문의 관리
+    FEEDBACK: { name: "cs-feedback-list" } // 피드백 -> 피드백 관리
+  };
+
+  const target = map[type];
+  if (!target) return;
+
+  router.push({
+    ...target,
+    query: {
+      ...route.query,
+      month: month.value,
+      year: String(month.value).slice(0, 4),
+      supportType: type, // (선택) 리스트에서 이 값으로 필터링
+    },
+  });
 };
 
 /** 토글 모드 */
@@ -304,7 +414,7 @@ const setMonthQuery = (m) => {
     query: {
       ...route.query,
       month: m,
-      year: String(m).slice(0, 4), // (선택) year도 같이 맞춰두면 trend쪽 year 계산이 안정적
+      year: String(m).slice(0, 4),
     },
   });
 };
@@ -329,7 +439,7 @@ const applyPickedMonth = () => {
   setMonthQuery(pickedMonth.value);
 };
 
-/** ✅ 차트에서 월 클릭하면 여기로 들어옴 (템플릿의 applyMonthFromTrend와 연결) */
+/**  차트에서 월 클릭하면 여기로 들어옴 */
 const applyMonthFromTrend = (selectedYm) => {
   if (!selectedYm) return;
   mode.value = "pick";
@@ -429,8 +539,18 @@ const fetchSatisfactionDist = async () => {
   }
 };
 
+const fetchTopKeywords = async ()=>{
+  try{
+    const res = await getTopKeywords(month.value);
+    console.log(res);
+    insightSections.value = buildInsightSections(res.data);
+  } catch(e){
+    console.error("인사이트 키워드 조회 실패", e);
+  }
+}
+
 const fetchAll = async () => {
-  await Promise.all([fetchKpi(), fetchSatisfactionDist()]);
+  await Promise.all([fetchKpi(), fetchSatisfactionDist(), fetchTopKeywords()]);
 };
 
 onMounted(fetchAll);
@@ -450,7 +570,9 @@ const mergedTypeRows = computed(() => {
     FEEDBACK: Number(c.ytdFeedback ?? 0) || 0,
   };
 
-  const stats = typeRows.value.length ? typeRows.value : [{ type: "QUOTE" }, { type: "INQUIRY" }, { type: "FEEDBACK" }];
+  const stats = typeRows.value.length
+    ? typeRows.value
+    : [{ type: "QUOTE" }, { type: "INQUIRY" }, { type: "FEEDBACK" }];
 
   return stats.map((s) => ({
     type: s.type,
@@ -490,7 +612,7 @@ const typeLabel = (t) => {
   margin: 0 auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 10px;
 }
 
 /* 헤더 */
@@ -685,5 +807,47 @@ const typeLabel = (t) => {
   margin-top: 12px;
   padding-top: 10px;
   border-top: 1px dashed #e5e7eb;
+}
+
+/* ✅ 클릭 wrapper (KPI 카드 2,3에만 붙임) */
+.clickable {
+  cursor: pointer;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  will-change: transform;
+  border-radius: 14px;
+}
+
+.clickable:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(17, 24, 39, 0.1);
+  border-color: #dbeafe;
+}
+
+.clickable:active {
+  transform: translateY(-1px) scale(0.99);
+  box-shadow: 0 6px 14px rgba(17, 24, 39, 0.08);
+}
+
+.clickable:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
+}
+
+/* ✅ Row만 클릭 가능하게 */
+.type-row--clickable {
+  cursor: pointer;
+  padding: 8px 10px;
+  border-radius: 10px;
+  transition: background 160ms ease, transform 160ms ease;
+}
+.type-row--clickable:hover {
+  background: #f9fafb;
+}
+.type-row--clickable:active {
+  transform: scale(0.99);
+}
+.type-row--clickable:focus-visible {
+  outline: 3px solid rgba(37, 99, 235, 0.25);
+  outline-offset: 2px;
 }
 </style>

@@ -14,7 +14,10 @@
     <!-- 사용자 정보 -->
     <div class="user-section" v-if="!isCollapsed">
       <div class="user-left">
-      <el-avatar size="large" src="https://via.placeholder.com/80" />
+      <el-avatar size="large" class="avatar">
+        <el-icon><Avatar /></el-icon>
+      </el-avatar>
+      
       <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
@@ -279,7 +282,8 @@ import {
   Headset,
   Ticket,
   ArrowLeft,
-  ArrowRight
+  ArrowRight,
+  Avatar,
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -537,6 +541,11 @@ const toggleSidebar = () => {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.avatar {
+  background-color: #2563eb; /* Tailwind blue-600 느낌 */
+  color: #ffffff;           /* 아이콘 흰색 */
 }
 
 .user-info {
