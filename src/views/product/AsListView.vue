@@ -1,186 +1,196 @@
 <template>
-    <div class="as-page">
+  <div class="page-container">
 
     <!-- 헤더 -->
-    <div class="page-header">
-        <div>
-            <h2>정기 점검 (AS)</h2>
-            <p class="desc">B2B 기업 자산 AS / 정기 점검 일정 관리 및 조회</p>
-        </div>
-        <el-button type="primary" icon="Calendar" @click="showCreate = true">
-            점검 일정 추가
-        </el-button>
+    <div class="header-row">
+      <div>
+        <h2 class="page-title">정기 점검 (AS)</h2>
+        <p class="page-desc">B2B 기업 자산 AS / 정기 점검 일정 관리 및 조회</p>
+      </div>
+      <el-button type="primary" @click="showCreate = true">
+        <el-icon><Calendar /></el-icon>
+        점검 일정 추가
+      </el-button>
+    </div>
+
+    <!-- 검색 영역 -->
+    <div class="search-area card-box">
+      <div class="filter-wrapper">
+        <el-select v-model="search.type" clearable placeholder="유형" style="width: 110px">
+          <el-option label="정기점검" value="R" />
+          <el-option label="AS" value="A" />
+        </el-select>
+
+        <el-select v-model="search.status" clearable placeholder="상태" style="width: 100px">
+          <el-option label="예정" value="P" />
+          <el-option label="완료" value="C" />
+        </el-select>
+
+        <el-input
+          v-model="search.keyword"
+          placeholder="기업명 / 자산 / 기사명 검색"
+          clearable
+          style="width: 260px"
+        />
+
+        <el-button type="primary" @click="fetchList">검색</el-button>
+        <el-button @click="resetSearch">초기화</el-button>
+      </div>
     </div>
 
     <!-- 요약 카드 -->
-    <el-row :gutter="16" class="summary-row">
-        <el-col :span="6">
-            <SummaryCard
-            title="예정된 점검"
-            :value="summary.thisMonthScheduleCount"
-            sub="이번 달"
-            type="SCHEDULED"
-            :active="activeSummaryType === 'SCHEDULED'"
-            @click="onSummaryClick" />
-        </el-col>
+    <el-row :gutter="16" class="kpi-wrapper">
+      <el-col :span="6">
+        <SummaryCard
+          title="예정된 점검"
+          :value="summary.thisMonthScheduleCount"
+          sub="이번 달"
+          type="SCHEDULED"
+          :active="activeSummaryType === 'SCHEDULED'"
+          @click="onSummaryClick" />
+      </el-col>
 
-        <el-col :span="6">
-            <SummaryCard
-            title="점검 임박"
-            :value="summary.imminent72hCount"
-            sub="72시간 이내"
-            type="IMMINENT"
-            :active="activeSummaryType === 'IMMINENT'"
-            @click="onSummaryClick" />
-        </el-col>
+      <el-col :span="6">
+        <SummaryCard
+          title="점검 임박"
+          :value="summary.imminent72hCount"
+          sub="72시간 이내"
+          type="IMMINENT"
+          :active="activeSummaryType === 'IMMINENT'"
+          @click="onSummaryClick" />
+      </el-col>
 
-        <el-col :span="6">
-            <SummaryCard
-            title="완료"
-            :value="summary.thisMonthCompletedCount"
-            sub="이번 달"
-            type="COMPLETED"
-            :active="activeSummaryType === 'COMPLETED'"
-            @click="onSummaryClick" />
-        </el-col>
+      <el-col :span="6">
+        <SummaryCard
+          title="완료"
+          :value="summary.thisMonthCompletedCount"
+          sub="이번 달"
+          type="COMPLETED"
+          :active="activeSummaryType === 'COMPLETED'"
+          @click="onSummaryClick" />
+      </el-col>
 
-        <el-col :span="6">
-            <SummaryCard
-            title="AS 진행 중"
-            :value="summary.todayInProgressCount"
-            sub="처리 중"
-            type="IN_PROGRESS"
-            :active="activeSummaryType === 'IN_PROGRESS'"
-            @click="onSummaryClick" />
-        </el-col>
+      <el-col :span="6">
+        <SummaryCard
+          title="AS 진행 중"
+          :value="summary.todayInProgressCount"
+          sub="처리 중"
+          type="IN_PROGRESS"
+          :active="activeSummaryType === 'IN_PROGRESS'"
+          @click="onSummaryClick" />
+      </el-col>
     </el-row>
 
-    <!-- 검색 바 -->
-    <el-card class="search-card">
-        <el-form :inline="true">
+    <!-- 테이블 -->
+    <el-card shadow="never" class="table-card">
+      <el-table
+        :data="list"
+        style="width: 100%"
+      >
+        <el-table-column prop="after_service_code" label="점검 ID" width="120" align="center" />
+        <el-table-column prop="customerName" label="기업명" />
+        <el-table-column prop="customerManager" label="담당자" width="100" align="center" />
+        <el-table-column prop="itemName" label="렌탈 자산" />
 
-            <el-form-item label="유형">
-            <el-select v-model="search.type" clearable placeholder="전체">
-                <el-option label="정기점검" value="R" />
-                <el-option label="AS" value="A" />
-            </el-select>
-            </el-form-item>
+        <el-table-column label="점검 유형" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag size="small">
+              {{ row.type === 'A' ? 'AS' : '정기점검' }}
+            </el-tag>
+          </template>
+        </el-table-column>
 
-            <el-form-item label="상태">
-            <el-select v-model="search.status" clearable placeholder="전체">
-                <el-option label="예정" value="P" />
-                <el-option label="완료" value="C" />
-            </el-select>
-            </el-form-item>
+        <el-table-column prop="dueDate" label="예정일" width="120" align="center" />
 
-            <el-form-item>
-            <el-input
-                v-model="search.keyword"
-                placeholder="기업명 / 자산 / 기사명 검색"
-                clearable
-                style="width: 260px"
-            />
-            </el-form-item>
+        <el-table-column prop="engineer" label="담당 기사" width="120" align="center" />
 
-            <el-button type="primary" @click="fetchList"> 검색 </el-button>
+        <el-table-column label="상태" width="100" align="center">
+          <template #default="{ row }">
+            <el-tag
+              size="small"
+              :type="row.status === 'C' ? 'success' : 'info'"
+            >
+              {{ row.status === 'C' ? '완료' : '예정' }}
+            </el-tag>
+          </template>
+        </el-table-column>
 
-            <el-button @click="resetSearch"> 초기화 </el-button>
+        <el-table-column label="관리" width="110" align="center">
+        <template #default="{ row }">
+            <el-button
+            size="small"
+            @click.stop="goDetail(row.id)"
+            >
+            상세보기
+            </el-button>
+        </template>
+        </el-table-column>
 
-        </el-form>
-    </el-card>
+      </el-table>
 
-    <!-- 목록 테이블 -->
-    <el-card>
-        <el-table :data="list" @row-click="openDetail">
-            <el-table-column prop="after_service_code" label="점검 ID" width="120" />
-            <el-table-column prop="customerName" label="기업명" />
-            <el-table-column prop="customerManager" label="담당자" />
-            <el-table-column prop="itemName" label="렌탈 자산" />
-
-            <el-table-column label="점검 유형">
-            <template #default="{ row }">
-                <el-tag>
-                {{ row.type === 'A' ? 'AS' : '정기점검' }}
-                </el-tag>
-            </template>
-            </el-table-column>
-
-            <el-table-column prop="dueDate" label="예정일" />
-
-            <el-table-column prop="engineer" label="담당 기사" />
-
-            <el-table-column label="상태">
-            <template #default="{ row }">
-                <el-tag :type="row.status === 'C' ? 'success' : 'info'">
-                {{ row.status === 'C' ? '완료' : '예정' }}
-                </el-tag>
-            </template>
-            </el-table-column>
-        </el-table>
-
-        <!-- 페이지네이션 -->
-        <div class="pagination">
-            <el-pagination
-            background
-            layout="prev, pager, next"
-            :total="total"
-            :page-size="page.size"
-            :current-page="page.current"
-            @current-change="changePage"
-            />
-        </div>
+      <div class="pagination-wrapper">
+        <el-pagination
+          layout="prev, pager, next"
+          :total="total"
+          :page-size="page.size"
+          v-model:current-page="page.current"
+          @current-change="changePage"
+        />
+      </div>
     </el-card>
 
     <!-- 하단 영역 -->
     <el-row :gutter="16" class="bottom-row equal-height-row">
+      <el-col :span="12">
+        <el-card class="equal-height-card">
+          <h4>다음 주 점검 예정 ({{ nextWeekCount }}건)</h4>
+          <el-timeline>
+        <el-timeline-item
+        v-for="n in nextWeekList"
+        :key="n.id"
+        type="primary"
+        class="timeline-clickable"
+        @click="openFromTimeline(n.id)" >
+        <strong>{{ n.scheduleDate }} ({{ n.dayOfWeek }})</strong>
+        <p>{{ n.summary }}</p>
+        </el-timeline-item>
 
-        <!-- 다음 주 점검 -->
-        <el-col :span="12">
-            <el-card class="equal-height-card">
-            <h4>다음 주 점검 예정 ({{ nextWeekCount }}건)</h4>
+          </el-timeline>
+        </el-card>
+      </el-col>
 
-            <el-timeline>
-                <el-timeline-item
-                v-for="n in nextWeekList"
-                :key="n.scheduleDate"
-                type="primary" >
-                <strong>
-                    {{ n.scheduleDate }} ({{ n.dayOfWeek }})
-                </strong>
-                <p>{{ n.summary }}</p>
-                </el-timeline-item>
-            </el-timeline>
-            </el-card>
-        </el-col>
-
-        <!-- 설명 영역 -->
-        <el-col :span="12">
-            <el-card class="info-card equal-height-card">
-            <h4>AS / 정기점검 관리 안내</h4>
-            <ul>
-                <li>기업별 렌탈 자산에 대한 정기 점검 및 AS 이력을 관리합니다.</li>
-                <li>점검 유형, 상태, 키워드 기반 검색을 지원합니다.</li>
-                <li>점검 예정·완료 현황을 한 눈에 확인할 수 있습니다.</li>
-                <li>다음 주 예정 점검을 미리 파악하여 운영 대응이 가능합니다.</li>
-                <li>제품목록에서 점검일 추가하면 점검주기가 자동으로 생성됩니다.</li>
-            </ul>
-            </el-card>
-        </el-col>
+      <el-col :span="12">
+        <el-card class="equal-height-card info-card">
+          <h4>AS / 정기점검 관리 안내</h4>
+          <small class="desc">※ 참고용 안내입니다</small>
+          <ul>
+            <li>기업별 렌탈 자산에 대한 정기 점검 및 AS 이력을 관리합니다.</li>
+            <li>점검 유형·상태·키워드 기반 검색을 지원합니다.</li>
+            <li>점검 예정·완료 현황을 한눈에 확인할 수 있습니다.</li>
+            <li>다음 주 예정 점검을 미리 파악하여 운영 대응이 가능합니다.</li>
+            <li>제품 목록에서 점검일 추가 시 자동 생성됩니다.</li>
+          </ul>
+        </el-card>
+      </el-col>
     </el-row>
 
     <AsDetailModal
-    v-model="showDetail"
-    :as-id="selectedAsId"
-    @closed="onDetailClosed" />
+      v-model="showDetail"
+      :as-id="selectedAsId"
+      @closed="onDetailClosed"
+    />
 
     <AsCreateModal
-    v-model="showCreate"
-    @created="onCreated" />
-    </div>
+      v-model="showCreate"
+      @created="onCreated"
+    />
+  </div>
 </template>
+
 
 <script setup>
 import { ref, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import axios from '@/api/axios'
 import dayjs from 'dayjs'
 import SummaryCard from '@/components/product/SummaryCard.vue'
@@ -193,6 +203,7 @@ const list = ref([])        // 화면에 보여줄 목록
 const rawList = ref([])     // 백엔드에서 받은 원본 목록
 const total = ref(0)
 const showCreate = ref(false)
+const router = useRouter()
 
 const page = ref({
     current: 1,
@@ -210,6 +221,11 @@ const nextWeekList = ref([])
 const nextWeekCount = ref(0)
 
 const activeSummaryType = ref(null)
+
+const goDetail = (id) => {
+  selectedAsId.value = id
+  showDetail.value = true
+}
 
 // API
 const fetchSummary = async () => {
@@ -312,62 +328,92 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.as-page { padding: 24px; }
-.page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.desc { color: #888; }
-.summary-row { margin-bottom: 20px; }
-.search-card { margin-bottom: 16px; }
-.pagination { display: flex; justify-content: center; margin-top: 16px; }
-.bottom-row { margin-top: 20px; }
-.info-card ul { padding-left: 18px; }
+.page-container {
+  padding: 20px;
+  max-width: 1400px;
+  margin: 0 auto;
+}
 
-/* el-select 선택값 텍스트 */
-:deep(.el-select .el-input__inner) { color: #333; }
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
 
-/* 드롭다운 옵션 텍스트 */
-:deep(.el-select-dropdown__item) { color: #333; }
+.page-title {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+}
 
-/* inline form 아이템 정렬 */
-:deep(.el-form--inline .el-form-item) { margin-bottom: 0; vertical-align: middle; }
+.page-desc {
+  margin-top: 4px;
+  color: #888;
+  font-size: 14px;
+}
 
-/* 버튼 높이 통일 */
-:deep(.el-button) { height: 32px; line-height: 32px; padding: 0 16px; }
+.search-area.card-box {
+  background: #fff;
+  padding: 20px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 20px;
+}
 
-:deep(.el-input__wrapper),
-:deep(.el-select__wrapper) { height: 32px; align-items: center; }
+.filter-wrapper {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: nowrap;
+}
 
-/* el-input / el-select 내부 텍스트 정렬 보정 */
-:deep(.el-input__inner) { height: 32px; line-height: 32px; padding-top: 0; padding-bottom: 0; display: flex; align-items: center; }
+/* 버튼 줄어들지 않게 */
+.filter-wrapper .el-button {
+  flex-shrink: 0;
+}
 
-/* select 화살표 아이콘 정렬 */
-:deep(.el-select__caret) { line-height: 32px; }
+.kpi-wrapper {
+  margin-bottom: 20px;
+}
 
-/* el-select / el-input 높이 완전 강제 리셋 */
-:deep(.el-input__wrapper) { height: 36px !important; min-height: 36px !important; padding: 0 11px !important; align-items: center !important; overflow: visible !important; }
+.table-card {
+  border-radius: 8px;
+}
 
-/* 실제 텍스트 영역 */
-:deep(.el-input__inner) { height: 36px !important; line-height: 36px !important; padding: 0 !important; display: flex; align-items: center; }
+.pagination-wrapper {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
 
-/* select caret(화살표) */
-:deep(.el-select__caret) { line-height: 36px !important; }
+.bottom-row {
+  margin-top: 20px;
+}
 
-/* clear 아이콘 정렬 */
-:deep(.el-input__suffix),
-:deep(.el-input__prefix) { height: 36px; display: flex; align-items: center; }
+.info-card ul {
+  padding-left: 18px;
+}
 
-/* 버튼도 동일 높이 */
-:deep(.el-button) { height: 36px !important; line-height: 36px !important; }
+@media (max-width: 1024px) {
+  .filter-wrapper {
+    flex-wrap: wrap;
+  }
 
-:deep(.el-select) { width: 140px; }
+  .filter-wrapper .el-input {
+    width: 100% !important;
+  }
+}
 
-:deep(.select-type) { width: 140px; }
+@media (max-width: 640px) {
+  .filter-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+  }
 
-/* 하단 row를 flex로 */
-.bottom-row.equal-height-row { display: flex; }
-
-.bottom-row.equal-height-row > .el-col { display: flex; }
-
-/* 카드가 부모 높이를 100% 따라가게 */
-.equal-height-card { flex: 1; display: flex; flex-direction: column; }
+  .filter-wrapper > * {
+    width: 100% !important;
+  }
+}
 
 </style>
