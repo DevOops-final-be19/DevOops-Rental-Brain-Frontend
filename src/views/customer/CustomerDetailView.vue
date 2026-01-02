@@ -345,6 +345,27 @@ const fetchData = async () => {
   try {
     const res = await getCustomerDetail(customerId);
     customer.value = res.data;
+
+    // [추가] 계약 내역을 히스토리에 병합
+    if (customer.value.contractList && customer.value.contractList.length > 0) {
+      const contractHistory = customer.value.contractList.map(c => ({
+        date: c.startDate ? c.startDate + ' 00:00:00' : null, // 시작일을 기준으로
+        type: '계약',
+        performer: c.empName || customer.value.inCharge || '-', // 계약 담당자(혹은 고객 담당자)
+        content: `계약 체결: ${c.conName} (월 ${formatMoneyMan(c.monthlyPayment)})`,
+        status: c.status // 계약 상태 코드 (P, C, T 등)
+      })).filter(item => item.date);
+
+      // 기존 히스토리에 병합
+      if (!customer.value.historyList) {
+        customer.value.historyList = [];
+      }
+      customer.value.historyList.push(...contractHistory);
+
+      // 날짜 최신순 정렬
+      customer.value.historyList.sort((a, b) => new Date(b.date) - new Date(a.date));
+    }
+
   } catch (error) {
     ElMessage.error('데이터 로드 실패');
   } finally {
@@ -352,10 +373,15 @@ const fetchData = async () => {
   }
 };
 
-/* [수정] 히스토리 상태 텍스트 로직 */
+/* 히스토리 상태 텍스트 로직 */
 const getHistoryStatusText = (item) => {
   const type = item.type || '';
   const status = item.status || '';
+
+  // [추가] 계약 타입 상태 텍스트
+  if (type === '계약') {
+    return formatContractStatus(status);
+  }
 
   // 1. 완료 고정 (견적, 피드백, 세그먼트)
   if (type.includes('견적') || type.includes('피드백') || type.includes('세그먼트')) {
@@ -372,21 +398,26 @@ const getHistoryStatusText = (item) => {
     return status === 'C' ? '완료' : '진행 중';
   }
 
-  // 기본값 (혹시 몰라 원본 status가 완료/C인 경우 처리)
+  // 기본값
   return (status === '완료' || status === 'C') ? '완료' : '진행 중';
 };
 
-/* [수정] 히스토리 태그 색상 (완료=success, 진행중=warning) */
+/* 히스토리 태그 색상 */
 const getHistoryStatusType = (item) => {
-  return getHistoryStatusText(item) === '완료' ? 'success' : 'warning';
+  const text = getHistoryStatusText(item);
+  // 계약인 경우 완료/진행중 외에도 상태가 다양하므로 별도 처리 혹은 텍스트 기반 처리
+  if (text === '완료' || text === '처리 완료') return 'success';
+  if (text === '해지') return 'info';
+  if (text === '반려') return 'danger';
+  return 'warning'; // 진행 중, 승인 대기 등
 };
 
-/* [수정] 타임라인 점 색상 */
+/* 타임라인 점 색상 */
 const getHistoryDotColor = (item) => {
-  return getHistoryStatusText(item) === '완료' ? '#0bbd87' : '#ff9900';
+  return getHistoryStatusType(item) === 'success' ? '#0bbd87' : '#ff9900';
 };
 
-// 히스토리 필터링 로직 (상태 필터링 시 수정된 getHistoryStatusText 활용)
+// 히스토리 필터링 로직
 const filteredHistoryList = computed(() => {
   let list = customer.value.historyList || [];
 
@@ -394,7 +425,6 @@ const filteredHistoryList = computed(() => {
   if (historyFilterDate.value && historyFilterDate.value.length === 2) {
     const startDate = new Date(historyFilterDate.value[0]);
     const endDate = new Date(historyFilterDate.value[1]);
-    // 종료일의 시간을 23:59:59로 설정하여 해당 일자 전체 포함
     endDate.setHours(23, 59, 59, 999);
 
     list = list.filter(item => {
@@ -404,12 +434,15 @@ const filteredHistoryList = computed(() => {
     });
   }
 
-  // 2. 상태 필터 (getHistoryStatusText 결과값으로 필터링)
+  // 2. 상태 필터
   if (historyFilterStatus.value !== 'ALL') {
     list = list.filter(item => {
       const statusText = getHistoryStatusText(item);
-      if (historyFilterStatus.value === 'DONE') return statusText === '완료';
-      if (historyFilterStatus.value === 'ING') return statusText === '진행 중';
+      // 완료 필터: 텍스트가 '완료'이거나 '처리 완료'인 경우
+      const isDone = statusText === '완료' || statusText === '처리 완료';
+      
+      if (historyFilterStatus.value === 'DONE') return isDone;
+      if (historyFilterStatus.value === 'ING') return !isDone; // 완료가 아닌 모든 것(진행중, 해지, 반려 등)
       return true;
     });
   }
@@ -428,14 +461,12 @@ const filteredHistoryList = computed(() => {
   return list;
 });
 
-// [추가] 검색어 하이라이트 함수 (선택 사항)
 const highlightKeyword = (text) => {
   if (!historySearchKeyword.value || !text) return text;
   const regex = new RegExp(`(${historySearchKeyword.value})`, 'gi');
   return text.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
 };
 
-// [추가] 빈 상태 설명 텍스트
 const getEmptyDescription = computed(() => {
   if (!customer.value.historyList || customer.value.historyList.length === 0) return '히스토리가 없습니다.';
   return '검색 결과가 없습니다.';
