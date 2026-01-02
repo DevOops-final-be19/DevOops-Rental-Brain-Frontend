@@ -112,12 +112,6 @@
         </template>
       </el-table-column>
 
-      <el-table-column label="혜택" min-width="200">
-        <template #default="{ row }">
-          {{ row.content }}
-        </template>
-      </el-table-column>
-
       <el-table-column label="액션" width="120" align="center">
         <template #default="{ row }">
           <el-button type="primary" style="font-size: 12px;" link @click="openDetailModal(row)">
@@ -148,12 +142,15 @@
 
     <PromotionCreateModal
       v-model:visible="createModalVisible"
+      :recommend-id="recommendId"
       @created="fetchPromotionList"
+      @close="handleModalClose"
     />
 </template>
 
 <script setup>
-import { ref, onMounted, computed } from 'vue';
+import { useRoute, useRouter } from 'vue-router'
+import { ref, onMounted, watch, computed } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
@@ -177,6 +174,10 @@ const authStore = useAuthStore();
 const canCreatePromotion = computed(() =>
   authStore.hasAuth('CAMPAIGN_MANAGE')
 )
+const route = useRoute()
+const router = useRouter()
+
+const recommendId = ref(null)
 
 
 // 상태 / 유형 라벨 매핑
@@ -315,9 +316,28 @@ const openCreateModal = () => {
   createModalVisible.value = true;
 };
 
+const handleModalClose = () => {
+  createModalVisible.value = false
+  recommendId.value = null
+  
+  router.replace({ 
+    query: {} 
+  })
+}
+
 onMounted(() => {
   fetchPromotionList();
 });
+
+watch(() => route.query.recommendId, async (newVal) => {
+  if (newVal) {
+    recommendId.value = Number(newVal)
+    createModalVisible.value = true  // 모달 자동 열기
+  } else {
+    recommendId.value = null
+    createModalVisible.value = false
+  }
+}, { immediate: true })  // mounted 시점에도 실행
 </script>
 
 

@@ -3,7 +3,7 @@
     <!-- Header -->
     <div class="wb-head">
       <div class="wb-title">캠페인 워크벤치</div>
-      <div class="wb-pill">승격 3건</div>
+      <div class="wb-pill">승격 2건</div>
     </div>
 
     <!-- List -->
@@ -14,9 +14,8 @@
           <span class="dot dot-high" aria-hidden="true"></span>
 
           <div class="wb-text">
-            <div class="wb-main">재계약 프로모션 생성</div>
-            <div class="wb-sub">대상: 만료 임박 계약 고객</div>
-            <div class="wb-meta">근거: 만료 14일 이내 계약 12건 감지</div>
+            <div class="wb-main">{{ promotion.name }}</div>
+            <div class="wb-sub">대상: {{ promotion.segmentName }}</div>
           </div>
         </div>
 
@@ -37,9 +36,8 @@
           <span class="dot dot-mid" aria-hidden="true"></span>
 
           <div class="wb-text">
-            <div class="wb-main">20% 할인 쿠폰 발급</div>
-            <div class="wb-sub">대상: 이탈 위험 고객 세그먼트</div>
-            <div class="wb-meta">근거: 저만족 고객 비중 1위 (전월 대비 증가)</div>
+            <div class="wb-main">{{ coupon.name }}</div>
+            <div class="wb-sub">대상: {{ coupon.segmentName }}</div>
           </div>
         </div>
 
@@ -48,30 +46,7 @@
           type="button"
           @click.stop="go('COUPON_CREATE')"
         >
-          쿠폰 발급
-        </button>
-      </div>
-
-      <div class="wb-divider"></div>
-
-      <!-- Row 3 (LOW) -->
-      <div class="wb-row">
-        <div class="wb-left">
-          <span class="dot dot-low" aria-hidden="true"></span>
-
-          <div class="wb-text">
-            <div class="wb-main">신규 고객 전환 캠페인 설정</div>
-            <div class="wb-sub">대상: 최근 문의 후 미전환 고객</div>
-            <div class="wb-meta">근거: 문의 후 7일 내 미계약 고객 9건</div>
-          </div>
-        </div>
-
-        <button
-          class="wb-btn"
-          type="button"
-          @click.stop="go('CAMPAIGN_SETTING')"
-        >
-          캠페인 설정
+          쿠폰 생성
         </button>
       </div>
     </div>
@@ -80,8 +55,45 @@
 
 <script setup>
 import { useRouter } from "vue-router";
+import { ref, onMounted } from "vue";
+import { ElMessage } from 'element-plus';
+import api from '@/api/axios';
 
 const router = useRouter();
+const loading = ref(false);
+const promotion = ref([]);
+const coupon = ref([]);
+
+const fetchPromotionList = async () => {
+  loading.value = true;
+  try {
+    const res = await api.get('/recommend/promotion/read-one');
+    promotion.value = res.data;
+  } catch (e) {
+    ElMessage.error('추천 프로모션 목록을 불러오지 못했습니다.');
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const fetchCouponList = async () => {
+  loading.value = true;
+  try {
+    const res = await api.get('/recommend/coupon/read-one');
+    coupon.value = res.data;
+  } catch (e) {
+    ElMessage.error('추천 쿠폰 목록을 불러오지 못했습니다.');
+    console.error(e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  fetchPromotionList(),
+  fetchCouponList();
+});
 
 /**
  * 캠페인 관련 라우팅 맵
@@ -147,8 +159,8 @@ const go = (key) => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 14px;
-  padding: 14px 14px;
+  gap: 30px;
+  padding: 20px 20px;
 }
 
 .wb-left {
