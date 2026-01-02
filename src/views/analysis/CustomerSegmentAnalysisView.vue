@@ -235,12 +235,6 @@ watch(
   { immediate: true }
 );
 
-// 클릭 모달 추가
-const openSegmentModal = (segmentId) => {
-  segModalSegmentId.value = Number(segmentId);
-  segModalOpen.value = true;
-};
-
 
 /* =========================
    API
