@@ -1,17 +1,24 @@
 <template>
-  <div class="sidebar">
+  <div class="sidebar-wrapper">
+    <!-- 사이드바 -->
+    <aside class="sidebar" :class="{ collapsed: isCollapsed }">
 
     <!-- 로고 영역 -->
-    <div class="logo" @click.stop="goToMain">
-      <h1>Rental Brain</h1>
-      <p>CRM · ERP Platform</p>
+    <div class="logo">
+      <div v-if="!isCollapsed">
+          <h1>Rental Brain</h1>
+          <p>CRM · ERP Platform</p>
+      </div>
     </div>
 
     <!-- 사용자 정보 -->
-    <div class="user-section">
+
+    <div class="user-section" v-if="!isCollapsed">
+      <div class="user-left">
       <el-avatar size="large" class="avatar">
         <el-icon><Avatar /></el-icon>
       </el-avatar>
+
       <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
@@ -79,19 +86,23 @@
         </div>
       </el-popover>
 
-
+      </div>
     </div>
 
+  <div class="sidebar-scroll">
     <!-- 메뉴 시작 -->
-    <el-menu class="menu" :default-active="$route.path" router background-color="transparent" text-color="#333"
+    <el-menu class="menu" :collapse="isCollapsed" :unique-opened="true" :default-active="$route.path" router background-color="transparent" text-color="#333"
       active-text-color="#4F46E5">
       <!-- 대시보드 -->
-      <el-menu-item index="/">
-        <el-icon>
-          <Grid />
-        </el-icon>
-        <span>대시보드</span>
-      </el-menu-item>
+  <el-menu-item
+    index="/"
+    @click="handleDashboardClick" >
+    <el-icon>
+      <Grid />
+    </el-icon>
+    <span>대시보드</span>
+  </el-menu-item>
+
 
       <!-- 고객 -->
       <el-sub-menu index="customer">
@@ -140,7 +151,7 @@
             <el-icon><Headset /></el-icon>고객 응대 분석
           </el-menu-item>
 
-           <el-menu-item index="/analysis/segment">
+          <el-menu-item index="/analysis/segment">
             <el-icon><UserFilled /></el-icon>고객 세그먼트 분석
           </el-menu-item>
           
@@ -216,7 +227,7 @@
       <!-- 결재관리 -->
       <el-menu-item index="/approvals">
         <el-icon><Notebook /></el-icon>
-        전자 결재
+        <span>전자 결재</span>
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
@@ -230,9 +241,18 @@
   관리자 메뉴
 </el-menu-item>
 
-    </el-menu>
+      </el-menu>
+    </div>
+  </aside>
 
+    <button class="sidebar-toggle" @click="toggleSidebar">
+      <el-icon>
+        <ArrowLeft v-if="!isCollapsed" />
+        <ArrowRight v-else />
+      </el-icon>
+    </button>
   </div>
+
 </template>
 
 <script setup>
@@ -266,6 +286,8 @@ import {
   Headset,
   Ticket,
   Avatar,
+  ArrowLeft,
+  ArrowRight
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
 import { useRouter } from "vue-router";
@@ -280,6 +302,12 @@ const notifications = computed(()=>noticeStore.unread);
 const unreadCount = computed(() => noticeStore.unreadCount);
 const vis = ref(false)
 const isExist = computed(() => notifications.value.length > 0);
+const emit = defineEmits(["close"]);
+
+const handleDashboardClick = () => {
+  emit("close");     // 사이드바 전체 닫기
+};
+
 
 const goToMain = ()=>{
   router.push('/')
@@ -359,21 +387,115 @@ const hasAdminPermission = computed(() => {
       : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
   );
 });
+const isCollapsed = ref(false);
+
+
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value;
+};
+
 </script>
 
 <style scoped>
+.sidebar-wrapper {
+  position: relative;
+  height: 100vh;
+  display: flex;
+}
+
 .sidebar {
   width: 260px;
-  min-width: 260px;
+  /* min-width: 260px; */
   height: 100vh;
 
   display: flex;          /* 추가 */
   flex-direction: column; /* 추가 */
-  overflow: hidden;       /* 추가: 바깥은 고정, 안쪽만 스크롤 */
+  /*overflow: hidden; */      /* 추가: 바깥은 고정, 안쪽만 스크롤 */
 
+  transition: width 0.25s ease;
   background: #fff;
   border-right: 1px solid #eee;
+  overflow: hidden;
+  /* padding: 20px; */
+}
+
+/* 접힘 상태 */
+.sidebar.collapsed {
+  width: 80px;
+}
+
+/* 토글 버튼 */
+.sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -14px;
+  transform: translateY(-50%);
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  background: #fff;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-toggle:hover {
+  background: #f5f7fa;
+}
+
+/* 상단 고정 영역 */
+.sidebar-fixed {
   padding: 20px;
+  flex-shrink: 0;
+}
+
+/* 🔥 스크롤 영역 */
+.sidebar-scroll {
+  flex: 1;
+  min-height: 0;        /* ⭐ 이게 핵심 */
+  overflow-y: auto;
+  padding: 0 12px 12px;
+}
+
+/* 접힘 상태 상단 정리 */
+.sidebar-fixed.collapsed {
+  display: flex;
+  justify-content: center;
+  padding: 16px 0;
+}
+
+/* 접힘 상태에서 메뉴 아이콘 중앙 */
+:deep(.el-menu--collapse .el-menu-item),
+:deep(.el-menu--collapse .el-sub-menu__title) {
+  justify-content: center;
+}
+
+
+/* collapse 상태에서 텍스트만 숨김 */
+:deep(.el-menu--collapse .el-menu-item span),
+:deep(.el-menu--collapse .el-sub-menu__title span) {
+  display: none;
+}
+
+/* collapse 상태에서도 아이콘은 반드시 보이게 */
+:deep(.el-menu--collapse .el-icon) {
+  display: inline-flex !important;
+  margin: 0 auto;
+}
+
+
+:deep(.el-menu-item.is-active::before) {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  background-color: #4F46E5;
+  border-radius: 2px;
 }
 
 :deep(.button.el-button--primary) {
@@ -420,6 +542,7 @@ const hasAdminPermission = computed(() => {
 .user-section {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   padding-top: 20px;
   padding-right: 7px;
   gap: 10px;
@@ -432,12 +555,33 @@ const hasAdminPermission = computed(() => {
 }
 
 
+/* 왼쪽 그룹 */
+.user-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
 .user-info {
   transition-duration: 0.2s;
   display: flex;
   flex-direction: column;
   color: #0F172A;
+  gap: 2px;
   cursor: pointer;
+}
+
+/* 사이드바 상단 공통 패딩 */
+.logo,
+.user-section {
+  padding-left: 24px;
+  padding-right: 24px;
+}
+
+/* 로그아웃 버튼 */
+.logout-btn {
+  margin-top: 6px;
+  align-self: flex-start;
 }
 
 .user-info:hover {
@@ -456,9 +600,9 @@ const hasAdminPermission = computed(() => {
 }
 
 .alert-icon {
-  margin-left: auto;
   font-size: 20px;
   cursor: pointer;
+  padding-left: 28px;
 }
 
 /* 메뉴 */
@@ -467,6 +611,8 @@ const hasAdminPermission = computed(() => {
   flex: 1;         /* 추가 */
   min-height: 0;   /* 추가: flex 자식이 스크롤되려면 중요 */
   overflow-y: auto;/* 추가 */
+
+  border-right: none;
 }
 
 .badge {
