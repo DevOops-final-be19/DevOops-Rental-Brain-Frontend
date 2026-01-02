@@ -393,6 +393,15 @@ const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
 };
 
+const hasAdminPermission = computed(() => {
+  const list = authStore.auth || [];
+
+  return list.some(p =>
+    typeof p === "string"
+      ? p === "ADMIN_READ" || p === "ADMIN_MANAGE"
+      : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
+  );
+});
 </script>
 
 <style scoped>
