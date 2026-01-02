@@ -149,7 +149,9 @@
   </el-card>
     <CouponCreateModal
       v-model:visible="createModalVisible"
+      :recommend-id="recommendId"
       @created="fetchCouponList"
+      @close="handleModalClose"
     />
 
     <CouponDetailModal
@@ -162,7 +164,8 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
@@ -183,6 +186,11 @@ const selectedCouponCode = ref(null);
 const totalCount = ref(0);
 const page = ref(1);
 const pageSize = ref(7);
+
+const route = useRoute();
+const router = useRouter();
+
+const recommendId = ref(null);
 
 // 금액 포맷 (만원 단위)
 const formatToManWon = (value) => {
@@ -329,9 +337,28 @@ const openCreateModal = () => {
   createModalVisible.value = true;
 };
 
+const handleModalClose = () => {
+  createModalVisible.value = false
+  recommendId.value = null
+  
+  router.replace({ 
+    query: {} 
+  })
+};
+
 onMounted(() => {
   fetchCouponList();
 });
+
+watch(() => route.query.recommendId, async (newVal) => {
+  if (newVal) {
+    recommendId.value = Number(newVal)
+    createModalVisible.value = true
+  } else {
+    recommendId.value = null
+    createModalVisible.value = false
+  }
+}, { immediate: true })
 </script>
 
 <style scoped>
