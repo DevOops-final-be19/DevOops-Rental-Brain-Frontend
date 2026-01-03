@@ -166,11 +166,6 @@ const totalCount = ref(0);
 const page = ref(1);
 const pageSize = ref(7);
 
-const authStore = useAuthStore();
-
-const canCreateCoupon = computed(() =>
-  authStore.hasAuth('CAMPAIGN_MANAGE')
-)
 const route = useRoute();
 const router = useRouter();
 

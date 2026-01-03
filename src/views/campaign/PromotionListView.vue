@@ -169,11 +169,6 @@ const createModalVisible = ref(false);
 const detailModalVisible = ref(false);
 const selectedPromotionCode = ref(null);
 
-const authStore = useAuthStore();
-
-const canCreatePromotion = computed(() =>
-  authStore.hasAuth('CAMPAIGN_MANAGE')
-)
 const route = useRoute()
 const router = useRouter()
 
