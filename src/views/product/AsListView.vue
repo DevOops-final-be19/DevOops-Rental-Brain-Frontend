@@ -7,10 +7,14 @@
         <h2 class="page-title">정기 점검 (AS)</h2>
         <p class="page-desc">B2B 기업 자산 AS / 정기 점검 일정 관리 및 조회</p>
       </div>
-      <el-button type="primary" @click="showCreate = true">
-        <el-icon><Calendar /></el-icon>
-        점검 일정 추가
-      </el-button>
+      <el-tooltip content="점검 일정 추가 권한이 없습니다" placement="top" :disabled="canCreateAs">
+        <el-button type="primary" :disabled="!canCreateAs" @click="canCreateAs && (showCreate = true)">
+          <el-icon>
+            <Calendar />
+          </el-icon>
+          점검 일정 추가
+        </el-button>
+      </el-tooltip>
     </div>
 
     <!-- 검색 영역 -->
@@ -26,12 +30,7 @@
           <el-option label="완료" value="C" />
         </el-select>
 
-        <el-input
-          v-model="search.keyword"
-          placeholder="기업명 / 자산 / 기사명 검색"
-          clearable
-          style="width: 260px"
-        />
+        <el-input v-model="search.keyword" placeholder="기업명 / 자산 / 기사명 검색" clearable style="width: 260px" />
 
         <el-button type="primary" @click="fetchList">검색</el-button>
         <el-button @click="resetSearch">초기화</el-button>
@@ -41,52 +40,29 @@
     <!-- 요약 카드 -->
     <el-row :gutter="16" class="kpi-wrapper">
       <el-col :span="6">
-        <SummaryCard
-          title="예정된 점검"
-          :value="summary.thisMonthScheduleCount"
-          sub="이번 달"
-          type="SCHEDULED"
-          :active="activeSummaryType === 'SCHEDULED'"
-          @click="onSummaryClick" />
+        <SummaryCard title="예정된 점검" :value="summary.thisMonthScheduleCount" sub="이번 달" type="SCHEDULED"
+          :active="activeSummaryType === 'SCHEDULED'" @click="onSummaryClick" />
       </el-col>
 
       <el-col :span="6">
-        <SummaryCard
-          title="점검 임박"
-          :value="summary.imminent72hCount"
-          sub="72시간 이내"
-          type="IMMINENT"
-          :active="activeSummaryType === 'IMMINENT'"
-          @click="onSummaryClick" />
+        <SummaryCard title="점검 임박" :value="summary.imminent72hCount" sub="72시간 이내" type="IMMINENT"
+          :active="activeSummaryType === 'IMMINENT'" @click="onSummaryClick" />
       </el-col>
 
       <el-col :span="6">
-        <SummaryCard
-          title="완료"
-          :value="summary.thisMonthCompletedCount"
-          sub="이번 달"
-          type="COMPLETED"
-          :active="activeSummaryType === 'COMPLETED'"
-          @click="onSummaryClick" />
+        <SummaryCard title="완료" :value="summary.thisMonthCompletedCount" sub="이번 달" type="COMPLETED"
+          :active="activeSummaryType === 'COMPLETED'" @click="onSummaryClick" />
       </el-col>
 
       <el-col :span="6">
-        <SummaryCard
-          title="AS 진행 중"
-          :value="summary.todayInProgressCount"
-          sub="처리 중"
-          type="IN_PROGRESS"
-          :active="activeSummaryType === 'IN_PROGRESS'"
-          @click="onSummaryClick" />
+        <SummaryCard title="AS 진행 중" :value="summary.todayInProgressCount" sub="처리 중" type="IN_PROGRESS"
+          :active="activeSummaryType === 'IN_PROGRESS'" @click="onSummaryClick" />
       </el-col>
     </el-row>
 
     <!-- 테이블 -->
     <el-card shadow="never" class="table-card">
-      <el-table
-        :data="list"
-        style="width: 100%"
-      >
+      <el-table :data="list" style="width: 100%">
         <el-table-column prop="after_service_code" label="점검 ID" width="120" align="center" />
         <el-table-column prop="customerName" label="기업명" />
         <el-table-column prop="customerManager" label="담당자" width="100" align="center" />
@@ -106,36 +82,25 @@
 
         <el-table-column label="상태" width="100" align="center">
           <template #default="{ row }">
-            <el-tag
-              size="small"
-              :type="row.status === 'C' ? 'success' : 'info'"
-            >
+            <el-tag size="small" :type="row.status === 'C' ? 'success' : 'info'">
               {{ row.status === 'C' ? '완료' : '예정' }}
             </el-tag>
           </template>
         </el-table-column>
 
         <el-table-column label="관리" width="110" align="center">
-        <template #default="{ row }">
-            <el-button
-            size="small"
-            @click.stop="goDetail(row.id)"
-            >
-            상세보기
+          <template #default="{ row }">
+            <el-button size="small" @click.stop="goDetail(row.id)">
+              상세보기
             </el-button>
-        </template>
+          </template>
         </el-table-column>
 
       </el-table>
 
       <div class="pagination-wrapper">
-        <el-pagination
-          layout="prev, pager, next"
-          :total="total"
-          :page-size="page.size"
-          v-model:current-page="page.current"
-          @current-change="changePage"
-        />
+        <el-pagination layout="prev, pager, next" :total="total" :page-size="page.size"
+          v-model:current-page="page.current" @current-change="changePage" />
       </div>
     </el-card>
 
@@ -145,15 +110,11 @@
         <el-card class="equal-height-card">
           <h4>다음 주 점검 예정 ({{ nextWeekCount }}건)</h4>
           <el-timeline>
-        <el-timeline-item
-        v-for="n in nextWeekList"
-        :key="n.id"
-        type="primary"
-        class="timeline-clickable"
-        @click="openFromTimeline(n.id)" >
-        <strong>{{ n.scheduleDate }} ({{ n.dayOfWeek }})</strong>
-        <p>{{ n.summary }}</p>
-        </el-timeline-item>
+            <el-timeline-item v-for="n in nextWeekList" :key="n.id" type="primary" class="timeline-clickable"
+              @click="openFromTimeline(n.id)">
+              <strong>{{ n.scheduleDate }} ({{ n.dayOfWeek }})</strong>
+              <p>{{ n.summary }}</p>
+            </el-timeline-item>
 
           </el-timeline>
         </el-card>
@@ -174,28 +135,22 @@
       </el-col>
     </el-row>
 
-    <AsDetailModal
-      v-model="showDetail"
-      :as-id="selectedAsId"
-      @closed="onDetailClosed"
-    />
+    <AsDetailModal v-model="showDetail" :as-id="selectedAsId" @closed="onDetailClosed" />
 
-    <AsCreateModal
-      v-model="showCreate"
-      @created="onCreated"
-    />
+    <AsCreateModal v-model="showCreate" @created="onCreated" />
   </div>
 </template>
 
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from '@/api/axios'
 import dayjs from 'dayjs'
 import SummaryCard from '@/components/product/SummaryCard.vue'
 import AsDetailModal from '@/components/product/AsDetailModal.vue'
 import AsCreateModal from '@/components/product/AsCreateModal.vue'
+import { useAuthStore } from '@/store/auth.store'
 
 // 상태
 const summary = ref({})
@@ -205,16 +160,22 @@ const total = ref(0)
 const showCreate = ref(false)
 const router = useRouter()
 
+const authStore = useAuthStore();
+
+const canCreateAs = computed(() =>
+  authStore.hasAuth('AS_SCHEDULE')
+)
+
 const page = ref({
-    current: 1,
-    size: 10
+  current: 1,
+  size: 10
 })
 
 const search = ref({
-    type: '',
-    status: '',
-    keyword: '',
-    summaryType: null
+  type: '',
+  status: '',
+  keyword: '',
+  summaryType: null
 })
 
 const nextWeekList = ref([])
@@ -229,101 +190,101 @@ const goDetail = (id) => {
 
 // API
 const fetchSummary = async () => {
-    const { data } = await axios.get('/as/summary')
-    summary.value = data
+  const { data } = await axios.get('/as/summary')
+  summary.value = data
 }
 
 const fetchList = async () => {
-    const { data } = await axios.get('/as', {
+  const { data } = await axios.get('/as', {
     params: {
-        page: page.value.current,
-        size: page.value.size,
-        type: search.value.type,
-        status: search.value.status,
-        keyword: search.value.keyword,
-        summaryType: activeSummaryType.value
-        }
-    })
+      page: page.value.current,
+      size: page.value.size,
+      type: search.value.type,
+      status: search.value.status,
+      keyword: search.value.keyword,
+      summaryType: activeSummaryType.value
+    }
+  })
 
-    list.value = data.content
-    total.value = data.totalCount
+  list.value = data.content
+  total.value = data.totalCount
 
 }
 
 const fetchNextWeek = async () => {
-    const { data: list } = await axios.get('/as/upcoming')
-    const { data: count } = await axios.get('/as/upcoming/count')
+  const { data: list } = await axios.get('/as/upcoming')
+  const { data: count } = await axios.get('/as/upcoming/count')
 
-    nextWeekList.value = list
-    nextWeekCount.value = count
+  nextWeekList.value = list
+  nextWeekCount.value = count
 }
 
 // SummaryCard 클릭
 const onSummaryClick = (type) => {
-    activeSummaryType.value = type
-    search.value.summaryType = type
-    page.value.current = 1
+  activeSummaryType.value = type
+  search.value.summaryType = type
+  page.value.current = 1
 
-    // 백엔드 1차 필터
-    search.value.type = ''
-    search.value.keyword = ''
+  // 백엔드 1차 필터
+  search.value.type = ''
+  search.value.keyword = ''
 
-    if (type === 'COMPLETED') {
-        search.value.status = 'C'
-    } else {
-        search.value.status = 'P'
-    }
+  if (type === 'COMPLETED') {
+    search.value.status = 'C'
+  } else {
+    search.value.status = 'P'
+  }
 
-    fetchList()
+  fetchList()
 }
 
 const resetSearch = () => {
   // 검색 조건 초기화
-    search.value.type = ''
-    search.value.status = ''
-    search.value.keyword = ''
-    search.value.summaryType = null
+  search.value.type = ''
+  search.value.status = ''
+  search.value.keyword = ''
+  search.value.summaryType = null
 
-    // SummaryCard 선택 해제
-    activeSummaryType.value = null
-    page.value.current = 1
+  // SummaryCard 선택 해제
+  activeSummaryType.value = null
+  page.value.current = 1
 
-    // 페이지 초기화
-    page.value.current = 1
+  // 페이지 초기화
+  page.value.current = 1
 
-    // 목록 재조회
-    fetchList()
+  // 목록 재조회
+  fetchList()
 }
 
 const showDetail = ref(false)
 const selectedAsId = ref(null)
 
 const openDetail = (row) => {
-    selectedAsId.value = row.id
-    showDetail.value = true
+  selectedAsId.value = row.id
+  showDetail.value = true
 }
 
 const onDetailClosed = () => {
-    selectedAsId.value = null
+  selectedAsId.value = null
 }
 
 const onCreated = () => {
-    fetchSummary()
-    fetchList()
-    fetchNextWeek()
+  fetchSummary()
+  fetchList()
+  fetchNextWeek()
 }
 
 // 이벤트
 const changePage = (p) => {
-    page.value.current = p
-    fetchList()
+  page.value.current = p
+  fetchList()
 }
 
 // 생명주기
 onMounted(() => {
-    fetchSummary()
-    fetchList()
-    fetchNextWeek()
+  fetchSummary()
+  fetchList()
+  fetchNextWeek()
 })
 </script>
 
@@ -411,9 +372,8 @@ onMounted(() => {
     align-items: stretch;
   }
 
-  .filter-wrapper > * {
+  .filter-wrapper>* {
     width: 100% !important;
   }
 }
-
 </style>
