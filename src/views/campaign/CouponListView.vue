@@ -119,25 +119,39 @@
           </template>
         </el-table-column>
 
-        <!-- 액션 -->
-        <el-table-column label="액션" width="120" align="center">
-          <template #default="{ row }">
-            <el-button type="primary" style="font-size: 13px;" link @click="openDetailModal(row)">
-              상세보기
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <!-- 페이지네이션 -->
-      <div class="pagination-area">
-        <el-pagination layout="prev, pager, next" :total="totalCount" v-model:current-page="page" :page-size="pageSize"
-          @current-change="fetchCouponList" />
-      </div>
-    </el-card>
-    <CouponCreateModal v-model:visible="createModalVisible" @created="fetchCouponList" />
+      <!-- 액션 -->
+      <el-table-column label="액션" width="120" align="center">
+        <template #default="{ row }">
+          <el-button type="primary" style="font-size: 13px;" link @click="openDetailModal(row)">
+            상세보기
+          </el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <!-- 페이지네이션 -->
+  <div class="pagination-area">
+    <el-pagination 
+        layout="prev, pager, next" 
+        :total="totalCount" 
+        v-model:current-page="page"
+        :page-size="pageSize"
+        @current-change="fetchCouponList"
+    />
+  </div>
+  </el-card>
+    <CouponCreateModal
+      v-model:visible="createModalVisible"
+      :recommend-id="recommendId"
+      @created="fetchCouponList"
+      @close="handleModalClose"
+    />
 
-    <CouponDetailModal v-model:visible="detailModalVisible" :coupon-code="selectedCouponCode" @updated="fetchCouponList"
-      @deleted="fetchCouponList" />
+    <CouponDetailModal
+      v-model:visible="detailModalVisible"
+      :coupon-code="selectedCouponCode"
+      @updated="fetchCouponList"
+      @deleted="fetchCouponList"
+    />
   </div>
 </template>
 

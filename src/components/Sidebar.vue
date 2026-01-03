@@ -18,6 +18,7 @@
       <el-avatar size="large" class="avatar">
         <el-icon><Avatar /></el-icon>
       </el-avatar>
+      
       <div class="user-info" @click="goToMyPage">
         <span class="name">{{ authStore.name }}</span>
         <span class="role">{{ authStore.dept }}</span>
@@ -284,6 +285,8 @@ import {
   PieChart,
   Headset,
   Ticket,
+  ArrowLeft,
+  ArrowRight,
   Avatar,
 } from "@element-plus/icons-vue";
 import { computed, onMounted, ref, watch } from "vue";
@@ -544,17 +547,16 @@ const hasAdminPermission = computed(() => {
   position: relative;
 }
 
-.avatar {
-  background-color: #2563eb; /* Tailwind blue-600 느낌 */
-  color: #ffffff;           /* 아이콘 흰색 */
-}
-
-
 /* 왼쪽 그룹 */
 .user-left {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.avatar {
+  background-color: #2563eb; /* Tailwind blue-600 느낌 */
+  color: #ffffff;           /* 아이콘 흰색 */
 }
 
 .user-info {
