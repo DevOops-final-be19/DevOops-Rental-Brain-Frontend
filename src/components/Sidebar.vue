@@ -12,6 +12,7 @@
     </div>
 
     <!-- 사용자 정보 -->
+
     <div class="user-section" v-if="!isCollapsed">
       <div class="user-left">
       <el-avatar size="large" class="avatar">
@@ -230,7 +231,10 @@
       </el-menu-item>
 
       <!-- 시스템메뉴 -->
-      <el-menu-item index="/admin/menus">
+      <el-menu-item
+  v-if="hasAdminPermission"
+  index="/admin/menus"
+>
         <el-icon>
           <Setting />
         </el-icon>
@@ -376,12 +380,19 @@ const getIcon = (type) => {
 
 const isCollapsed = ref(false);
 
-
-
 const toggleSidebar = () => {
   isCollapsed.value = !isCollapsed.value;
 };
 
+const hasAdminPermission = computed(() => {
+  const list = authStore.auth || [];
+
+  return list.some(p =>
+    typeof p === "string"
+      ? p === "ADMIN_READ" || p === "ADMIN_MANAGE"
+      : p.auth === "ADMIN_READ" || p.auth === "ADMIN_MANAGE"
+  );
+});
 </script>
 
 <style scoped>
