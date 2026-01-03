@@ -58,6 +58,7 @@
         </div>
         <div>
           <CampaignWorkbenchMock />
+          <CouponWorkbenchMock />
         </div>
 
       </section>
@@ -74,6 +75,7 @@ import SegmentAnalysisChart from "@/components/analysis/SegmentAnalysisChart.vue
 import QuarterCustomerChart from "@/components/dashboard/QuarterCustomerChart.vue";
 import SegmentDistribution from "@/components/analysis/SegmentDistribution.vue";
 import CampaignWorkbenchMock from "@/components/dashboard/CampaignWorkbenchMock.vue";
+import CouponWorkbenchMock from "@/components/dashboard/CouponWorkbenchMock.vue";
 
 const router = useRouter();
 
