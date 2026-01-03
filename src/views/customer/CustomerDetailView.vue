@@ -278,7 +278,7 @@
             <el-table :data="customer.couponList" border stripe class="mb-20">
               <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center">
                 <template #default="{ row }">
-                   <span class="clickable-link" @click="openCouponDetail(row.id)">
+                   <span class="clickable-link" @click="goCouponList(row.couponCode)">
                      {{ row.couponCode }}
                    </span>
                 </template>
@@ -300,7 +300,7 @@
             <el-table :data="customer.promotionList" border stripe>
               <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center">
                 <template #default="{ row }">
-                   <span class="clickable-link" @click="openPromotionDetail(row.id)">
+                   <span class="clickable-link" @click="goPromotionList(row.promotionCode)">
                      {{ row.promotionCode }}
                    </span>
                 </template>
@@ -318,7 +318,7 @@
             <el-table :data="customer.asList" border stripe>
               <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center">
                 <template #default="{ row }">
-                   <span class="clickable-link" @click="openAsDetail(row.id)">
+                   <span class="clickable-link" @click="goAsList">
                      {{ row.after_service_code }}
                    </span>
                 </template>
@@ -371,11 +371,6 @@
       </el-tab-pane>
 
     </el-tabs>
-
-    <AsDetailModal v-if="showAsModal" v-model="showAsModal" :asId="selectedAsId" />
-    <CouponDetailModal v-if="showCouponModal" v-model="showCouponModal" :couponId="selectedCouponId" />
-    <PromotionDetailModal v-if="showPromotionModal" v-model="showPromotionModal" :promotionId="selectedPromotionId" />
-
   </div>
 </template>
 
@@ -386,27 +381,12 @@ import { getCustomerDetail, updateCustomer, deleteCustomer, restoreCustomer } fr
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ArrowLeft, Edit, Delete, RefreshLeft, Right, Search } from '@element-plus/icons-vue';
 
-// [수정] 모달 Import 경로 수정 (components 폴더 확인)
-import AsDetailModal from '@/components/product/AsDetailModal.vue';
-import CouponDetailModal from '@/views/campaign/CouponDetailModal.vue';
-import PromotionDetailModal from '@/views/campaign/PromotionDetailModal.vue';
-
 const route = useRoute();
 const router = useRouter();
 const customerId = route.params.id;
 
 const loading = ref(false);
 const activeTab = ref(route.query.tab || 'general');
-
-// [수정] 모달 상태 변수 (견적 모달은 제거됨)
-const showAsModal = ref(false);
-const selectedAsId = ref(null);
-
-const showCouponModal = ref(false);
-const selectedCouponId = ref(null);
-
-const showPromotionModal = ref(false);
-const selectedPromotionId = ref(null);
 
 const isEditMode = ref(false);
 const customer = ref({
@@ -455,35 +435,36 @@ const activeBizTab = computed({
   set: (val) => updateUrlTab(val)
 });
 
-// [수정] 상세 이동 핸들러 (라우터 경로 및 파라미터 수정)
-// * 주의: row.id (숫자)를 넘겨받아 해당 ID 경로로 이동합니다.
-const goContractDetail = (id) => {
-  router.push(`/contracts/${id}`); 
-};
-const goSupportDetail = (id) => {
-  router.push(`/cs/supports/${id}`); 
-};
-const goFeedbackDetail = (id) => {
-  router.push(`/cs/feedbacks/${id}`);
-};
-const goQuoteDetail = (id) => {
-  router.push(`/quote/${id}`); 
+// 페이지 이동 핸들러
+const goContractDetail = (id) => { router.push(`/contracts/${id}`); };
+const goSupportDetail = (id) => { router.push(`/cs/supports/${id}`); };
+const goFeedbackDetail = (id) => { router.push(`/cs/feedbacks/${id}`); };
+const goQuoteDetail = (id) => { router.push(`/quote/${id}`); };
+
+// [수정] 목록 페이지로 이동하며 키워드 전달
+// 경로는 src/router/index.js 기준이며, keyword 쿼리를 넘깁니다.
+const goCouponList = (code) => {
+    router.push({ 
+        path: '/campaign/coupons', 
+        query: { keyword: code } 
+    });
 };
 
-// [수정] 모달 오픈 핸들러 (ID 사용)
-const openAsDetail = (id) => {
-  selectedAsId.value = id;
-  showAsModal.value = true;
-};
-const openCouponDetail = (id) => {
-  selectedCouponId.value = id;
-  showCouponModal.value = true;
-};
-const openPromotionDetail = (id) => {
-  selectedPromotionId.value = id;
-  showPromotionModal.value = true;
+const goPromotionList = (code) => {
+    router.push({ 
+        path: '/campaign/promotions', 
+        query: { keyword: code } 
+    });
 };
 
+const goAsList = () => {
+    // AS는 코드 대신 '고객사 이름'으로 검색한다고 가정
+    const companyName = customer.value.name;
+    router.push({ 
+        path: '/as', 
+        query: { keyword: companyName } 
+    });
+};
 
 const fetchData = async () => {
   loading.value = true;

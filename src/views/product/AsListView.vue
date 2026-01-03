@@ -187,6 +187,12 @@ import SummaryCard from '@/components/product/SummaryCard.vue'
 import AsDetailModal from '@/components/product/AsDetailModal.vue'
 import AsCreateModal from '@/components/product/AsCreateModal.vue'
 
+// [추가 1]
+import { useRoute } from 'vue-router';
+
+// [추가 2]
+const route = useRoute();
+
 // 상태
 const summary = ref({})
 const list = ref([])        // 화면에 보여줄 목록
@@ -306,6 +312,15 @@ const changePage = (p) => {
 // 생명주기
 onMounted(() => {
     fetchSummary()
+
+    // [추가] URL 쿼리 파라미터(keyword)가 있다면 검색창에 자동으로 입력
+    if (route.query.keyword) {
+        // 1. 검색 객체에 값 주입
+        search.value.keyword = route.query.keyword;
+        // 2. 페이지 초기화
+        page.value.current = 1;
+    }
+
     fetchList()
     fetchNextWeek()
 })

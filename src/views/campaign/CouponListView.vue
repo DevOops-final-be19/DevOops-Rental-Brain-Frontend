@@ -162,12 +162,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted,nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
 import CouponCreateModal from './CouponCreateModal.vue';
 import CouponDetailModal from './CouponDetailModal.vue';
+
+// [추가 1] useRoute import
+import { useRoute } from 'vue-router';
+
+// [추가 2] route 객체 생성
+const route = useRoute();
 
 const couponList = ref([]);
 const loading = ref(false);
@@ -329,7 +335,16 @@ const openCreateModal = () => {
   createModalVisible.value = true;
 };
 
-onMounted(() => {
+onMounted(async () => {
+// [추가 3] URL 파라미터(keyword)가 있으면 검색창에 입력하고 검색 실행
+  if (route.query.keyword) {
+    searchKeyword.value = route.query.keyword;
+    page.value = 1;
+  }
+  
+  // [핵심 변경] 데이터가 화면(검색창)에 반영될 시간을 줌
+  await nextTick();
+
   fetchCouponList();
 });
 </script>

@@ -134,12 +134,17 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
 import PromotionCreateModal from './PromotionCreateModal.vue';
 import PromotionDetailModal from './PromotionDetailModal.vue';
+// [추가 1]
+import { useRoute } from 'vue-router';
+
+// [추가 2]
+const route = useRoute();
 
 const promotionList = ref([]);
 const loading = ref(false);
@@ -289,7 +294,15 @@ const openCreateModal = () => {
   createModalVisible.value = true;
 };
 
-onMounted(() => {
+onMounted(async () => {
+  // [추가 3] 파라미터 자동 검색 로직
+  if (route.query.keyword) {
+    searchKeyword.value = route.query.keyword;
+    page.value = 1;
+  }
+
+  await nextTick();
+
   fetchPromotionList();
 });
 </script>
