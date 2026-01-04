@@ -212,11 +212,10 @@ const resetForm = () => {
   formRef.value && formRef.value.clearValidate();
 };
 
-watch(() => props.recommendId, async (newId) => {
-  if (newId) {
+watch([() => props.recommendId, () => props.visible], async ([newId, isVisible]) => {
+  if (newId && isVisible) {
     await fetchRecommendPromotion(newId)
-  } else {
-    // 모달 닫힐 때 폼 초기화
+  } else if (!isVisible) {
     resetForm()
   }
 }, { immediate: true })
@@ -276,8 +275,9 @@ const handleSubmit = () => {
         content: form.content,
         segmentName: form.segmentName,
       });
-      await api.put(`/recommend/promotion/update/${props.recommendId}`);
-      
+      if (props.recommendId) {
+        await api.put(`/recommend/promotion/update/${props.recommendId}`);
+      }
       ElMessage.success('프로모션이 등록되었습니다.');
       emit('created');           // 부모에서 목록 재조회
       emit('update:visible', false);
