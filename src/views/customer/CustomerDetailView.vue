@@ -409,6 +409,10 @@ const canUpdateCustomer = computed(() =>
   authStore.hasAuth('CUSTOMER_WRITE')
 )
 
+const canDeleteCustomer = computed(() =>
+  authStore.hasAuth('CUSTOMER_DELETE')
+)
+
 // URL 변경 감지
 watch(() => route.query.tab, (newTab) => {
   activeTab.value = newTab || 'general';
