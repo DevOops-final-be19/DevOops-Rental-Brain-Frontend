@@ -4,6 +4,19 @@
       <h1>쿠폰</h1>
       <p>금액 · 비율할인 쿠폰 통합 관리</p>
     </div>
+
+    <!-- 쿠폰 등록 버튼 -->
+      <el-tooltip v-if="!canCreateCoupon" content="쿠폰 등록 권한이 없습니다" placement="top">
+        <span style="margin-left: auto;">
+          <el-button type="primary" disabled>
+            + 쿠폰 등록
+          </el-button>
+        </span>
+      </el-tooltip>
+
+      <el-button v-else style="display: flex; margin-left: auto;" type="primary" @click="openCreateModal">
+        + 쿠폰 등록
+      </el-button>
   </div>
 
   <div class="coupon-page">
@@ -31,19 +44,7 @@
         <el-option label="시작 전" value="P" />
       </el-select>
 
-      <!-- 쿠폰 등록 버튼 -->
-      <el-tooltip v-if="!canCreateCoupon" content="쿠폰 등록 권한이 없습니다" placement="top">
-        <span style="margin-left: auto;">
-          <el-button type="primary" disabled>
-            + 쿠폰 등록
-          </el-button>
-        </span>
-      </el-tooltip>
-
-      <el-button v-else style="display: flex; margin-left: auto;" type="primary" @click="openCreateModal">
-        + 쿠폰 등록
-      </el-button>
-
+      <el-button type="primary" @click="handleSearch">검색</el-button>
     </div>
 
     <!-- 쿠폰 목록 테이블 -->
@@ -122,7 +123,7 @@
       <!-- 액션 -->
       <el-table-column label="액션" width="120" align="center">
         <template #default="{ row }">
-          <el-button type="primary" style="font-size: 13px;" link @click="openDetailModal(row)">
+          <el-button size="small" @click="openDetailModal(row)">
             상세보기
           </el-button>
         </template>
@@ -363,6 +364,7 @@ watch(() => route.query.recommendId, async (newVal) => {
 .header {
   display: flex;
   padding-left: 24px;
+  padding-right: 24px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 10px;
