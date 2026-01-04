@@ -165,12 +165,6 @@ import CouponCreateModal from './CouponCreateModal.vue';
 import CouponDetailModal from './CouponDetailModal.vue';
 import { useAuthStore } from '@/store/auth.store';
 
-// [추가 1] useRoute import
-import { useRoute } from 'vue-router';
-
-// [추가 2] route 객체 생성
-const route = useRoute();
-
 const couponList = ref([]);
 const loading = ref(false);
 
@@ -186,6 +180,7 @@ const totalCount = ref(0);
 const page = ref(1);
 const pageSize = ref(7);
 
+const route = useRoute();
 const router = useRouter();
 
 const recommendId = ref(null);

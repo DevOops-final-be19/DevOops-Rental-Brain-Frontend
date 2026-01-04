@@ -178,138 +178,6 @@
         </el-card>
       </el-tab-pane>
 
-<<<<<<< HEAD
-      <el-tab-pane label="문의 내역" name="support">
-        <el-table :data="customer.supportList" border stripe style="width: 100%">
-          <el-table-column prop="customerSupportCode" label="문의 번호" width="140" align="center" />
-          <el-table-column prop="createDate" label="접수일자" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
-          <el-table-column prop="title" label="제목" min-width="150" show-overflow-tooltip />
-<<<<<<< HEAD
-
-=======
->>>>>>> fa4daa9 (고객 대응 히스토리 검색, 필터 기능 추가)
-          <el-table-column prop="channelName" label="접수 채널" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag size="small" :style="getChannelTagStyle(row.channelName)">
-                {{ row.channelName || '-' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="empName" label="담당자" width="100" align="center" />
-          <el-table-column prop="status" label="진행 상태" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag :type="getSupportStatusTag(row.status)">{{ formatSupportStatus(row.status) }}</el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="견적 내역" name="quote">
-        <el-table :data="customer.quoteList" border stripe>
-          <el-table-column prop="quoteCode" label="견적 번호" width="140" align="center" />
-          <el-table-column prop="quoteCounselingDate" label="상담 일자" width="120" align="center"
-            :formatter="dateFormatter" />
-          <el-table-column prop="quoteSummary" label="견적 요약" min-width="200" />
-          <el-table-column prop="quoteCounselor" label="상담원" width="100" align="center" />
-          <el-table-column prop="channelName" label="채널" width="100" align="center" />
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="계약 내역" name="contract">
-        <el-table :data="customer.contractList" border stripe>
-          <el-table-column prop="contractCode" label="계약 번호" width="140" align="center" />
-          <el-table-column prop="conName" label="계약명" min-width="180" />
-          <el-table-column prop="startDate" label="계약 시작일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="contractPeriod" label="기간(개월)" width="100" align="center" />
-<<<<<<< HEAD
-
-=======
->>>>>>> fa4daa9 (고객 대응 히스토리 검색, 필터 기능 추가)
-          <el-table-column prop="monthlyPayment" label="월 납입금" width="150" align="right">
-            <template #default="{ row }">
-              {{ formatMoneyMan(row.monthlyPayment) }}
-            </template>
-          </el-table-column>
-<<<<<<< HEAD
-
-=======
->>>>>>> fa4daa9 (고객 대응 히스토리 검색, 필터 기능 추가)
-          <el-table-column prop="status" label="계약 상태" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag :type="getContractStatusTag(row.status)">{{ formatContractStatus(row.status) }}</el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="AS / 정기점검" name="as">
-        <el-table :data="customer.asList" border stripe>
-          <el-table-column prop="after_service_code" label="관리 번호" width="140" align="center" />
-          <el-table-column prop="dueDate" label="예정일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="type" label="유형" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag :type="row.type === 'R' ? 'success' : 'warning'" effect="plain">
-                {{ row.type === 'R' ? '정기 점검' : 'AS' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-          <el-table-column prop="contents" label="내용" min-width="200" show-overflow-tooltip />
-          <el-table-column prop="engineer" label="기사님" width="100" align="center" />
-          <el-table-column prop="status" label="처리 상태" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag :type="getAsStatusTag(row.status)">{{ formatAsStatus(row.status) }}</el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="피드백 내역" name="feedback">
-        <el-table :data="customer.feedbackList" border stripe>
-          <el-table-column prop="feedbackCode" label="피드백 번호" width="140" align="center" />
-          <el-table-column prop="createDate" label="등록일" width="120" align="center" :formatter="dateFormatter" />
-          <el-table-column prop="categoryName" label="카테고리" width="120" align="center" />
-          <el-table-column prop="title" label="제목" min-width="150" />
-          <el-table-column prop="empName" label="담당자" width="100" align="center" />
-          <el-table-column prop="star" label="만족도" width="140" align="center">
-            <template #default="{ row }">
-              <el-rate v-model="row.star" disabled show-score text-color="#ff9900" />
-            </template>
-          </el-table-column>
-          <el-table-column prop="action" label="조치 내용" min-width="150" />
-        </el-table>
-      </el-tab-pane>
-
-      <el-tab-pane label="캠페인 내역" name="campaign">
-        <h4>쿠폰 사용 이력</h4>
-        <el-table :data="customer.couponList" border stripe class="mb-20">
-          <el-table-column prop="couponCode" label="쿠폰 코드" width="140" align="center" />
-          <el-table-column prop="name" label="쿠폰명" />
-          <el-table-column prop="rate" label="할인율" width="100" align="center">
-            <template #default="{ row }">{{ row.rate }}%</template>
-          </el-table-column>
-          <el-table-column prop="status" label="사용 여부" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag :type="row.status === 'Y' ? 'info' : 'success'">
-                {{ row.status === 'Y' ? '사용 완료' : '사용 완료' }}
-              </el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-
-        <h4>프로모션 참여 이력</h4>
-        <el-table :data="customer.promotionList" border stripe>
-          <el-table-column prop="promotionCode" label="프로모션 코드" width="140" align="center" />
-          <el-table-column prop="name" label="프로모션명" />
-          <el-table-column prop="status" label="상태" width="100" align="center">
-            <template #default="{ row }">
-              <el-tag>{{ row.status === 'A' ? '진행중' : '종료' }}</el-tag>
-            </template>
-          </el-table-column>
-        </el-table>
-      </el-tab-pane>
-
-
       <el-tab-pane label="문의 / 피드백" name="main_cs">
         <el-tabs v-model="activeCsTab" class="sub-tabs">
           
@@ -481,7 +349,6 @@
       </el-tab-pane>
 
       <el-tab-pane label="세그먼트 변경 이력" name="main_segment">
->>>>>>> e0504e0 (고객 상세보기 번호 누르면 해당 상세보기로 이동)
         <el-timeline style="padding: 20px;">
           <el-timeline-item v-for="(item, index) in customer.segmentHistoryList" :key="index"
             :timestamp="formatDate(item.historyChangedAt)" placement="top"
@@ -516,6 +383,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { getCustomerDetail, updateCustomer, deleteCustomer, restoreCustomer } from '@/api/customerlist';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { ArrowLeft, Edit, Delete, RefreshLeft, Right, Search } from '@element-plus/icons-vue';
+import { useAuthStore } from '@/store/auth.store';
 
 const route = useRoute();
 const router = useRouter();
@@ -532,7 +400,11 @@ const customer = ref({
 });
 const editForm = ref({});
 
-<<<<<<< HEAD
+// 히스토리 필터 상태
+const historyFilterDate = ref(null);
+const historyFilterStatus = ref('ALL');
+const historySearchKeyword = ref('');
+
 const canUpdateCustomer = computed(() =>
   authStore.hasAuth('CUSTOMER_WRITE')
 )
@@ -540,15 +412,6 @@ const canUpdateCustomer = computed(() =>
 const canDeleteCustomer = computed(() =>
   authStore.hasAuth('CUSTOMER_DELETE')
 )
-// [추가] 히스토리 필터 상태 변수
-const historyFilterDate = ref(null); // [start, end]
-const historyFilterStatus = ref('ALL'); // ALL, ING, DONE
-=======
-// 히스토리 필터 상태
-const historyFilterDate = ref(null);
-const historyFilterStatus = ref('ALL');
->>>>>>> e0504e0 (고객 상세보기 번호 누르면 해당 상세보기로 이동)
-const historySearchKeyword = ref('');
 
 // URL 변경 감지
 watch(() => route.query.tab, (newTab) => {
@@ -733,9 +596,9 @@ const getEmptyDescription = computed(() => {
   return '검색 결과가 없습니다.';
 });
 
-const enableEditMode = () => { 
-    editForm.value = { ...customer.value }; 
-    isEditMode.value = true; 
+const enableEditMode = () => {
+  editForm.value = { ...customer.value };
+  isEditMode.value = true;
 };
 const cancelEdit = () => { isEditMode.value = false; editForm.value = {}; };
 const saveEdit = async () => {
@@ -819,39 +682,12 @@ onMounted(fetchData);
 </script>
 
 <style scoped>
-.page-container {
-  padding: 20px;
-  max-width: 1600px;
-  margin: 0 auto;
-}
-
-.detail-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.header-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.company-name {
-  margin: 0;
-  font-size: 24px;
-  font-weight: 700;
-  color: #333;
-}
-
-.ml-2 {
-  margin-left: 10px;
-}
-
-.segment-tag {
-  margin-left: 10px;
-}
+.page-container { padding: 20px; max-width: 1600px; margin: 0 auto; }
+.detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+.header-left { display: flex; align-items: center; gap: 10px; }
+.company-name { margin: 0; font-size: 24px; font-weight: 700; color: #333; }
+.ml-2 { margin-left: 10px; }
+.segment-tag { margin-left: 10px; }
 
 /* [추가] 클릭 가능한 ID 스타일 */
 .clickable-link {
@@ -906,6 +742,23 @@ onMounted(fetchData);
     resize: none; border: none; background-color: #f9f9f9; font-size: 14px; line-height: 1.6; padding: 15px;
 }
 
+.tip-text {
+  font-size: 12px;
+  color: #999;
+}
+
+.text-right {
+  text-align: right;
+}
+
+.mt-2 {
+  margin-top: 10px;
+}
+
+.mb-20 {
+  margin-bottom: 20px;
+}
+
 /* 히스토리 아이템 스타일 */
 .history-item-card { margin-bottom: 5px; transition: all 0.2s; } 
 .clickable-card:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); cursor: pointer; }
@@ -917,25 +770,10 @@ onMounted(fetchData);
 .history-item p { margin: 5px 0 0; }
 .history-reason { font-size: 13px; color: #666; }
 
-<<<<<<< HEAD
-
-
-.history-reason {
-  font-size: 13px;
-  color: #666;
-}
-
-.edit-buttons {
-  display: flex;
-  justify-content: flex-end;
-  margin-top: 20px;
-  gap: 10px;
-=======
 .edit-buttons { display: flex; justify-content: flex-end; margin-top: 20px; gap: 10px; }
 
 /* 중첩 탭 스타일 */
 .sub-tabs :deep(.el-tabs__content) {
   padding: 20px 0 0 0;
->>>>>>> e0504e0 (고객 상세보기 번호 누르면 해당 상세보기로 이동)
 }
 </style>
