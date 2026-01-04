@@ -104,7 +104,7 @@
 <script setup>
 import { ref, computed, onMounted, watch } from "vue";
 import { useRouter } from "vue-router";
-import { Bell, Check, Calendar, WarningFilled, DocumentCopy } from "@element-plus/icons-vue";
+import { Bell, Check, Calendar, WarningFilled, DocumentCopy, Close } from "@element-plus/icons-vue";
 import dayjs from "dayjs";
 import { ElMessageBox } from "element-plus";
 
@@ -247,6 +247,7 @@ const now = dayjs();
 const getIcon = (type) => {
   switch (type) {
     case "APPROVAL": return Check;
+    case "REJECT": return Close;
     case "AS_DUE": return WarningFilled;
     case "CONTRACT_EXPIRE": return Calendar;
     case "QUOTE_INSERT": return DocumentCopy;
@@ -344,6 +345,11 @@ const getIcon = (type) => {
 .icon.AS_DUE {
   background: #fee2e2;
   color: #ef4444;
+}
+
+.icon.REJECT {
+  background: #fee2e2;
+  color: #e85e5e;
 }
 
 .content .title-line {

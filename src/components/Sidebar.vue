@@ -373,6 +373,8 @@ const getIcon = (type) => {
       return Calendar;
     case "QUOTE_INSERT":
       return DocumentCopy;
+    case "REJECT":
+      return Close;
     default:
       return Bell;
   }
