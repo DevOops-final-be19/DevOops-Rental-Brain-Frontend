@@ -150,7 +150,7 @@
 
 <script setup>
 import { useRoute, useRouter } from 'vue-router'
-import { ref, onMounted, watch, computed } from 'vue';
+import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
 import api from '@/api/axios';
@@ -325,7 +325,15 @@ const handleModalClose = () => {
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // [추가 3] 파라미터 자동 검색 로직
+  if (route.query.keyword) {
+    searchKeyword.value = route.query.keyword;
+    page.value = 1;
+  }
+
+  await nextTick();
+
   fetchPromotionList();
 });
 
