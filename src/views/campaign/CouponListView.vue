@@ -156,7 +156,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, watch, computed,nextTick } from 'vue';
+import { ref, onMounted, watch, computed, nextTick } from 'vue';
 import { useRoute, useRouter } from 'vue-router'
 import { ElMessage } from 'element-plus';
 import { Search } from '@element-plus/icons-vue';
@@ -343,6 +343,7 @@ const handleModalClose = () => {
     query: {} 
   })
 };
+
 
 onMounted(async () => {
 // [추가 3] URL 파라미터(keyword)가 있으면 검색창에 입력하고 검색 실행

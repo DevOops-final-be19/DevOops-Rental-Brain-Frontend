@@ -158,6 +158,8 @@ import PromotionCreateModal from './PromotionCreateModal.vue';
 import PromotionDetailModal from './PromotionDetailModal.vue';
 import { useAuthStore } from '@/store/auth.store';
 
+
+
 const promotionList = ref([]);
 const loading = ref(false);
 
@@ -169,7 +171,7 @@ const createModalVisible = ref(false);
 const detailModalVisible = ref(false);
 const selectedPromotionCode = ref(null);
 
-const route = useRoute()
+const route = useRoute();
 const router = useRouter()
 
 const recommendId = ref(null)
