@@ -200,15 +200,6 @@ const rules = {
   ],
 };
 
-watch(() => props.recommendId, async (newId) => {
-  if (newId) {
-    await fetchRecommendPromotion(newId)
-  } else {
-    // 모달 닫힐 때 폼 초기화
-    resetForm()
-  }
-}, { immediate: true })
-
 const resetForm = () => {
   form.name = '';
   form.startDate = null;
@@ -220,6 +211,15 @@ const resetForm = () => {
   dateRange.value = [];
   formRef.value && formRef.value.clearValidate();
 };
+
+watch(() => props.recommendId, async (newId) => {
+  if (newId) {
+    await fetchRecommendPromotion(newId)
+  } else {
+    // 모달 닫힐 때 폼 초기화
+    resetForm()
+  }
+}, { immediate: true })
 
 const handleClose = () => {
   emit('update:visible', false);
