@@ -76,7 +76,20 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="dueDate" label="예정일" width="120" align="center" />
+        <el-table-column label="예정일" width="170" align="center">
+  <template #default="{ row }">
+    <div class="due-date">
+      <div class="date">
+        {{ formatDueDate(row.dueDate) }}
+      </div>
+      <div class="time">
+        {{ formatDueTime(row.dueDate) }}
+      </div>
+
+    </div>
+  </template>
+</el-table-column>
+
 
         <el-table-column prop="engineer" label="담당 기사" width="120" align="center" />
 
@@ -135,7 +148,11 @@
       </el-col>
     </el-row>
 
-    <AsDetailModal v-model="showDetail" :as-id="selectedAsId" @closed="onDetailClosed" />
+    <AsDetailModal
+        v-if="showDetail && selectedAsId !== null"
+        v-model="showDetail"
+        :as-id="selectedAsId"
+        @closed="onDetailClosed" />
 
     <AsCreateModal v-model="showCreate" @created="onCreated" />
   </div>
@@ -188,6 +205,17 @@ const nextWeekList = ref([])
 const nextWeekCount = ref(0)
 
 const activeSummaryType = ref(null)
+
+const formatDueDate = (date) => {
+  if (!date) return '-'
+  return dayjs(date).format('YYYY-MM-DD')
+}
+
+
+const formatDueTime = (date) => {
+  if (!date) return ''
+  return dayjs(date).format('HH:mm')
+}
 
 const goDetail = (id) => {
   selectedAsId.value = id
@@ -379,6 +407,25 @@ onMounted(() => {
   .filter-wrapper .el-input {
     width: 100% !important;
   }
+}
+
+.due-date {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  line-height: 1.2;
+}
+
+.due-date .date {
+  font-size: 13px;
+  font-weight: 500;
+  color: #333;
+}
+
+.due-date .time {
+  font-size: 12px;
+  color: #666;
 }
 
 @media (max-width: 640px) {
