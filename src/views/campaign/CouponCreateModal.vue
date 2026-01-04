@@ -282,11 +282,10 @@ const resetForm = () => {
   formRef.value && formRef.value.clearValidate();
 };
 
-// props.recommendId 변화 감지
-watch(() => props.recommendId, async (newId) => {
-  if (newId) {
+watch([() => props.recommendId, () => props.visible], async ([newId, isVisible]) => {
+  if (newId && isVisible) {
     await fetchRecommendCoupon(newId)
-  } else {
+  } else if (!isVisible) {
     resetForm()
   }
 }, { immediate: true })
@@ -338,7 +337,9 @@ const handleSubmit = () => {
         maxNum: form.maxNum,
         segmentName: form.segmentName,
       });
-      await api.put(`/recommend/coupon/update/${props.recommendId}`);
+      if (props.recommendId) {
+        await api.put(`/recommend/coupon/update/${props.recommendId}`);
+      }
       ElMessage.success('쿠폰이 등록되었습니다.');
       emit('created');
       emit('update:visible', false);
