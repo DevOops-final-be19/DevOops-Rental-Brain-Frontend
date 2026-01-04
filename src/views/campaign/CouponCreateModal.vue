@@ -265,14 +265,6 @@ const rules = {
   ],
 };
 
-// props.recommendId 변화 감지
-watch(() => props.recommendId, async (newId) => {
-  if (newId) {
-    await fetchRecommendCoupon(newId)
-  } else {
-    resetForm()
-  }
-}, { immediate: true })
 
 const resetForm = () => {
   form.name = '';
@@ -289,6 +281,15 @@ const resetForm = () => {
   dateRange.value = [null, null];
   formRef.value && formRef.value.clearValidate();
 };
+
+// props.recommendId 변화 감지
+watch(() => props.recommendId, async (newId) => {
+  if (newId) {
+    await fetchRecommendCoupon(newId)
+  } else {
+    resetForm()
+  }
+}, { immediate: true })
 
 const handleClose = () => {
   emit('update:visible', false);
