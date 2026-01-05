@@ -91,7 +91,7 @@ const submit = async () => {
 
         const loading = ElLoading.service({
             lock: true,
-            text: 'AI가 설문을 생성 중입니다...',
+            text: 'AI가 설문조사 결과를 분석하는 중입니다...',
             background: 'rgba(0,0,0,0.4)'
         })
 
@@ -112,7 +112,7 @@ const submit = async () => {
             console.log(form.value.aiResponse);
 
             /** 2️⃣ 설문 생성 JSON */
-            await api.post('/survey/start', {
+            const res = await api.post('/survey/start', {
                 name: form.value.name,
                 link: form.value.link,
                 status: form.value.status,
@@ -122,7 +122,38 @@ const submit = async () => {
                 categoryId: form.value.categoryId
             })
 
-            ElMessage.success('설문이 시작되었습니다')
+            const surveyId = res.data.surveyId;
+            const recs = analysisRes.data.recommendations || [];
+
+            const promotionPayloads = recs
+            .filter(r => r.rate === undefined || r.rate === null)   // rate 없음 → 프로모션
+            .map(r => ({
+                name: r.name,
+                content: r.content,
+                segmentName: r.segmentName,
+                surveyId,
+            }))
+
+            const couponPayloads = recs
+            .filter(r => r.rate !== undefined && r.rate !== null)   // rate 있음 → 쿠폰
+            .map(r => ({
+                name: r.name,
+                rate: r.rate,
+                content: r.content,
+                segmentName: r.segmentName,
+                surveyId,
+            }))
+
+            await Promise.all([
+            ...promotionPayloads.map(p =>
+                api.post('/recommend/promotion/insert', p)
+            ),
+            ...couponPayloads.map(c =>
+                api.post('/recommend/coupon/insert', c)
+            ),
+            ])
+
+            ElMessage.success('설문이 생성되었습니다')
             router.push('/cs/survey')
         } catch (e) {
             console.error(e)
