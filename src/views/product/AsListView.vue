@@ -76,7 +76,11 @@
           </template>
         </el-table-column>
 
-        <el-table-column prop="dueDate" label="예정일" width="120" align="center" />
+        <el-table-column label="예정일" width="120" align="center" >
+          <template #default="{ row }">
+            {{ formatDate(row.dueDate) }}
+          </template>
+        </el-table-column>
 
         <el-table-column prop="engineer" label="담당 기사" width="120" align="center" />
 
@@ -193,6 +197,11 @@ const goDetail = (id) => {
   selectedAsId.value = id
   showDetail.value = true
 }
+
+const formatDate = (iso) => {
+  if (!iso) return '';
+  return iso.slice(0, 10);
+};
 
 // API
 const fetchSummary = async () => {
