@@ -202,11 +202,6 @@ const goDetail = (id) => {
   showDetail.value = true
 }
 
-const formatDate = (iso) => {
-  if (!iso) return '';
-  return iso.slice(0, 10);
-};
-
 // API
 const fetchSummary = async () => {
   const { data } = await axios.get('/as/summary')
