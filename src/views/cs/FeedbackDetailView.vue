@@ -15,7 +15,11 @@
       <el-descriptions :column="2" border size="large">
         <el-descriptions-item label="피드백 번호">{{ feedbackInfo.feedbackCode }}</el-descriptions-item>
         <el-descriptions-item label="담당자">{{ feedbackInfo.empName || '미배정' }}</el-descriptions-item>
-        <el-descriptions-item label="기업명">{{ feedbackInfo.customerName || '-' }}</el-descriptions-item>
+        <el-descriptions-item label="기업명">
+          <a v-if="feedbackInfo.customerName" class="cusName" @click="goToCustomerPage">
+            {{ feedbackInfo.customerName || '-' }}
+          </a>
+        </el-descriptions-item>
         <el-descriptions-item label="카테고리">{{ feedbackInfo.categoryName }}</el-descriptions-item>
         <el-descriptions-item label="유입 채널">{{ feedbackInfo.channelName }}</el-descriptions-item>
 
@@ -140,6 +144,10 @@ const editForm = reactive({
 const canModifyFeedBack = computed(() =>
   authStore.hasAuth("CS_PROCESS")
 );
+
+const goToCustomerPage = ()=>{
+  router.push(`/customers/${feedbackInfo.value.cumId}`);
+}
 
 // 조치사항 유무 체크 함수 (빈 공백만 있는 경우도 미조치로 간주)
 const hasAction = (action) => {
@@ -268,6 +276,10 @@ onMounted(() => {
 
 .bg-gray {
   background-color: #f9fafb;
+}
+
+.cusName{
+  cursor: pointer;
 }
 
 /* 버튼 우측 정렬 */
