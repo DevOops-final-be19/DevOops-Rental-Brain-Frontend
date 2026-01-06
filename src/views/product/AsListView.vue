@@ -4,15 +4,12 @@
     <!-- 헤더 -->
     <div class="header-row">
       <div>
-        <h2 class="page-title">정기 점검 (AS)</h2>
+        <h2 class="page-title">AS / 정기점검</h2>
         <p class="page-desc">B2B 기업 자산 AS / 정기 점검 일정 관리 및 조회</p>
       </div>
       <el-tooltip content="점검 일정 추가 권한이 없습니다" placement="top" :disabled="canCreateAs">
         <el-button type="primary" :disabled="!canCreateAs" @click="canCreateAs && (showCreate = true)">
-          <el-icon>
-            <Calendar />
-          </el-icon>
-          점검 일정 추가
+          점검 일정 등록
         </el-button>
       </el-tooltip>
     </div>
@@ -313,9 +310,13 @@ onMounted(() => {
 
 <style scoped>
 .page-container {
-  padding: 20px;
-  max-width: 1400px;
+  padding: 24px;
+  max-width: 1440px;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .header-row {
@@ -328,13 +329,14 @@ onMounted(() => {
 .page-title {
   font-size: 24px;
   font-weight: 700;
+  color: #333;
   margin: 0;
 }
 
 .page-desc {
-  margin-top: 4px;
-  color: #888;
-  font-size: 14px;
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 .search-area.card-box {

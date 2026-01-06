@@ -510,10 +510,11 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.page-container { padding: 20px; max-width: 1400px; margin: 0 auto; }
+.page-container {padding: 24px;max-width: 1440px;margin: 0 auto;display: flex;flex-direction: column;gap: 10px;}
 
 .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
-.page-title { font-size: 24px; font-weight: 700; color: #333; margin: 0; }
+.page-title {font-size: 24px;font-weight: 700;color: #333;margin: 0;}
+.page-subtitle {margin: 6px 0 0;color: #6b7280;font-size: 13px;}
 
 .search-area { 
     display: flex; justify-content: space-between; align-items: center; 
