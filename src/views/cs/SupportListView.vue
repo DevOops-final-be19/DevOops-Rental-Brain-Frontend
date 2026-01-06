@@ -2,7 +2,12 @@
   <div class="page-container" v-loading="loading">
     
     <div class="header-row">
-      <h2 class="page-title">문의 관리</h2>
+      <div class="title-area">
+        <h2 class="page-title">문의 관리</h2>
+        <p class="page-subtitle">
+          렌탈 문의 현황과 처리 상태
+        </p>
+      </div>
 
       <el-tooltip v-if="!canCreateSupport" content="신규 문의 등록 권한이 없습니다" placement="bottom">
             <span>
