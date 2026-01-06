@@ -137,7 +137,7 @@
                   start-placeholder="시작일"
                   end-placeholder="종료일"
                   size="small"
-                  style="width: 240px;"
+                  style="width: 230px;"
                   value-format="YYYY-MM-DD"
                 />
                 
@@ -562,7 +562,7 @@ const getHistoryStatusText = (item) => {
   const status = item.status || '';
 
   if (type === '계약') return formatContractStatus(status);
-  if (type.includes('견적') || type.includes('피드백') || type.includes('세그먼트')) return '완료';
+  if (type.includes('견적') || type.includes('피드백') || type.includes('세그먼트') || type.includes('쿠폰') || type.includes('프로모션')) { return '완료'; }
   if (type.includes('문의')) return status === 'C' ? '완료' : '진행 중';
   if (type.includes('AS') || type.includes('점검')) return status === 'C' ? '완료' : '진행 중';
 
@@ -607,14 +607,15 @@ const toggleHistoryCategory = (val) => {
   }
 };
 
-// [수정] 필터링된 히스토리 리스트
+// 필터링된 히스토리 리스트
 const filteredHistoryList = computed(() => {
   // 1. 카테고리 선택이 아예 없으면 -> 빈 배열 반환 (초기 상태)
   if (selectedHistoryFilters.value.length === 0) {
     return [];
   }
 
-  let list = customer.value.historyList || [];
+  // [중요] 원본 배열이 변경되지 않도록 복사본(...)을 사용합니다.
+  let list = [...(customer.value.historyList || [])];
 
   // 2. 카테고리 필터 ('ALL'이 아닐 때만 필터링 수행)
   if (!selectedHistoryFilters.value.includes('ALL')) {
@@ -665,7 +666,14 @@ const filteredHistoryList = computed(() => {
       return content.includes(keyword) || type.includes(keyword) || performer.includes(keyword);
     });
   }
-  return list;
+
+  // 마지막에 날짜순 정렬 로직 추가
+  // 필터링된 결과(list)를 날짜(date) 기준으로 내림차순(최신순) 정렬합니다.
+  return list.sort((a, b) => {
+    const dateA = a.date ? new Date(a.date).getTime() : 0;
+    const dateB = b.date ? new Date(b.date).getTime() : 0;
+    return dateB - dateA; // 큰 날짜(최신)가 앞으로 오도록 함
+  });
 });
 
 const highlightKeyword = (text) => {
