@@ -157,7 +157,7 @@ const submit = async () => {
             router.push('/cs/survey')
         } catch (e) {
             console.error(e)
-            ElMessage.error('설문 생성 실패')
+            ElMessage.error('설문 등록 실패')
         } finally {
             loading.close()
         }

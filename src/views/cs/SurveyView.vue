@@ -4,7 +4,7 @@
     <div class="header">
       <div>
         <h2>설문조사 목록</h2>
-        <p>진행 중이거나 종료된 설문조사를 확인할 수 있습니다</p>
+        <p>완료된 설문조사를 확인할 수 있습니다</p>
       </div>
 
       <el-tooltip
@@ -27,7 +27,7 @@
   type="primary"
   @click.stop="goCreate"
 >
-  설문조사 생성
+  설문조사 등록
 </el-button>
     </div>
 
