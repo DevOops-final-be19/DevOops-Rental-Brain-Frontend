@@ -2,7 +2,12 @@
   <div class="page-container" v-loading="loading">
     
     <div class="header-row">
-      <h2 class="page-title">피드백 관리</h2>
+      <div class="title-area">
+        <h2 class="page-title">피드백 관리</h2>
+        <p class="page-subtitle">
+          고객 의견을 분석하여 개선 포인트를 도출
+        </p>
+      </div>
       <el-tooltip v-if="!canCreateFeedBack" content="신규 피드백 등록 권한이 없습니다" placement="bottom">
         <span>
           <el-button type="primary" class="btn-register" :disabled="true">

@@ -2,7 +2,12 @@
   <div class="page-container">
 
     <div class="header-row">
-      <h2 class="page-title">고객 목록</h2>
+      <div class="title-area">
+        <h2 class="page-title">고객 목록</h2>
+        <p class="page-subtitle">
+          계약·상담·이력 기반 고객 통합 관리
+        </p>
+      </div>
       <el-tooltip v-if="!canCreateCustomer" content="신규 기업 등록 권한이 없습니다" placement="bottom">
         <span>
           <el-button type="primary" class="btn-register" :disabled="true">
