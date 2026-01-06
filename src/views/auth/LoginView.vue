@@ -128,6 +128,8 @@ const login = async () => {
 </script>
 
 <style scoped>
+
+  
 .login-page {
   min-height: 100vh;
   background: linear-gradient(135deg, #eff6ff, #ffffff, #eef2ff);
@@ -135,6 +137,7 @@ const login = async () => {
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  
 }
 
 /* 브랜드 */

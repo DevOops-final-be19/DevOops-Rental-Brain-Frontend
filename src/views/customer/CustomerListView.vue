@@ -364,9 +364,13 @@ onMounted(fetchData);
 
 <style scoped>
 .page-container {
-  padding: 20px;
-  max-width: 1400px;
+  padding: 24px;
+  max-width: 1440px;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* 헤더 */
@@ -382,6 +386,12 @@ onMounted(fetchData);
   font-weight: 700;
   color: #333;
   margin: 0;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 /* 검색 & 필터 영역 */

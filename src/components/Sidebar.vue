@@ -443,13 +443,20 @@ const hasAdminPermission = computed(() => {
   background: #fff;
   border-right: 1px solid #eee;
   overflow: hidden;
-  padding-top: 40px;
+  padding-top: 50px;
+}
+
+.user-section{
+  margin-top: 25px;
+  margin-bottom: 8px;
 }
 
 /* 접힘 상태 */
 .sidebar.collapsed {
   width: 80px;
 }
+
+
 
 /* 토글 버튼 */
 .sidebar-toggle {
