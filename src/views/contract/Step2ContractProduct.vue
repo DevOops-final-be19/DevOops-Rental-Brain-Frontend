@@ -14,13 +14,23 @@
 
         <div>
           <label>계약 시작일</label>
-          <input type="date" v-model="startDate" :min="today"
+          <el-date-picker
+            v-model="startDate"
+            type="date"
+            placeholder="계약 시작일 선택"
+            style="width: 100%"
+            format="YYYY-MM-DD"
+            value-format="YYYY-MM-DD"
           />
         </div>
 
         <div>
           <label>계약 기간 (개월)</label>
-          <input type="number" min="1" v-model.number="duration" />
+          <el-input-number
+             v-model="duration"
+             :min="1"
+             style="width: 100%"
+          />
         </div>
 
         <div>
@@ -169,13 +179,6 @@ const selectedItems = ref([])
 const promotions = ref([])
 const selectedPromotion = ref(null)
 
-const today = computed(() => {
-  const now = new Date()
-  const yyyy = now.getFullYear()
-  const mm = String(now.getMonth() + 1).padStart(2, '0')
-  const dd = String(now.getDate()).padStart(2, '0')
-  return `${yyyy}-${mm}-${dd}`
-})
 
 const togglePromotion = (promotion) => {
   // 이미 선택된 항목이면 → 해제
@@ -186,16 +189,6 @@ const togglePromotion = (promotion) => {
     selectedPromotion.value = promotion
   }
 }
-
-
-watch(startDate, (val) => {
-  if (!val) return
-
-  if (val < today.value) {
-    alert('계약 시작일은 오늘 이후 날짜만 선택할 수 있습니다.')
-    startDate.value = today.value
-  }
-})
 
 watch(
   () => props.draft,
