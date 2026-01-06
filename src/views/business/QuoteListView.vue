@@ -17,7 +17,7 @@
       class="btn-register"
       :disabled="true"
     >
-       상담 추가
+       상담 등록
     </el-button>
   </span>
 </el-tooltip>
@@ -28,7 +28,7 @@
   class="btn-register"
   @click="handleCreate"
 >
-   상담 추가
+   상담 등록
 </el-button>
     </div>
 
