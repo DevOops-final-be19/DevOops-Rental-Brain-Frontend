@@ -59,33 +59,25 @@
           <el-tooltip v-if="!canModifyFeedBack" content="피드백 처리 권한이 없습니다" placement="bottom">
             <span>
               <el-button type="danger" plain class="mr-2" :disabled="true">
-                <el-icon>
-                  <Plus />
-                </el-icon> 삭제
+                삭제
               </el-button>
             </span>
           </el-tooltip>
 
           <el-button v-else type="danger" plain class="mr-2" @click="handleDelete">
-            <el-icon>
-              <Plus />
-            </el-icon> 삭제
+            삭제
           </el-button>
 
           <el-tooltip v-if="!canModifyFeedBack" content="피드백 처리 권한이 없습니다" placement="bottom">
             <span>
               <el-button type="primary" plain :disabled="true">
-                <el-icon>
-                  <Plus />
-                </el-icon> 수정
+                수정
               </el-button>
             </span>
           </el-tooltip>
 
           <el-button v-else type="primary" plain @click="openEditModal">
-            <el-icon>
-              <Plus />
-            </el-icon> 수정
+            수정
           </el-button>
 
         </div>
