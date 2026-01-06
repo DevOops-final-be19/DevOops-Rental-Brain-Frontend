@@ -403,8 +403,6 @@ const onClickNotice = async (item) => {
   opacity: 0.6;
 }
 
-
-
 .icon {
   width: 36px;
   height: 36px;
@@ -446,7 +444,7 @@ const onClickNotice = async (item) => {
 
 .icon.CUSTOMER_REGIST {
   background: #fdffe3;
-  color: #363636;
+  color: #646212;
 }
 
 .icon.PRODUCT_REGIST {
