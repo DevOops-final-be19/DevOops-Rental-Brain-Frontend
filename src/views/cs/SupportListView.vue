@@ -22,9 +22,7 @@
           </el-button>
 
 
-      <!-- <el-button type="primary" class="btn-register" @click="openCreateModal">
-        <el-icon><Plus /></el-icon> 신규 문의 등록
-      </el-button> -->
+
     </div>
 
     <div class="search-area card-box">

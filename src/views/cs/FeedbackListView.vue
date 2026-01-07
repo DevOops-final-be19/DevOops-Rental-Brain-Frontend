@@ -19,9 +19,7 @@
       <el-button v-else type="primary" class="btn-register" @click="openCreateModal">
         신규 피드백 등록
       </el-button>
-      <!-- <el-button type="primary" class="btn-register" @click="openCreateModal">
-        <el-icon><Plus /></el-icon> 신규 피드백 등록
-      </el-button> -->
+
     </div>
 
     <div class="search-area card-box">
