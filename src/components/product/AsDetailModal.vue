@@ -7,21 +7,6 @@
   <div class="header-left">
     <div class="title-row">
       <h2>점검 상세 정보</h2>
-
-      <!-- 수정 버튼: 제목 바로 옆 -->
-      <el-tooltip
-        content="점검 수정 권한이 없습니다"
-        placement="top"
-        :disabled="canUpdateAs"
-      >
-        <button
-          class="edit-btn"
-          :disabled="detail.status === 'C' || !canUpdateAs"
-          @click="canUpdateAs && (editMode = true)"
-        >
-          수정
-        </button>
-      </el-tooltip>
     </div>
 
     <!-- 서브 정보는 아래 줄 -->
@@ -128,28 +113,46 @@
 
       <!-- ===== Footer ===== -->
 <div class="detail-footer">
-  <!-- 조회 모드 -->
-  <el-button
-    v-if="!editMode"
-    class="primary-btn"
-    @click="emitClose"
-  >
-    확인
-  </el-button>
-
-  <!-- 수정 모드 -->
-  <template v-else>
-    <el-button @click="editMode = false">
-      취소
-    </el-button>
+  <!-- 좌측: 위험 행동 -->
+  <div class="footer-left">
     <el-button
-      type="primary"
-      @click="submit"
+      v-if="!editMode"
+      type="danger"
+      plain
+      :disabled="detail.status === 'C' || !canUpdateAs"
+      @click="onDelete"
     >
-      저장
+      삭제
     </el-button>
-  </template>
+  </div>
+
+  <!-- 우측: 주요 행동 -->
+  <div class="footer-right">
+    <!-- 조회 모드 -->
+    <template v-if="!editMode">
+      <el-button
+        :disabled="detail.status === 'C' || !canUpdateAs"
+        @click="editMode = true"
+      >
+        수정
+      </el-button>
+      <el-button type="primary" @click="emitClose">
+        확인
+      </el-button>
+    </template>
+
+    <!-- 수정 모드 -->
+    <template v-else>
+      <el-button @click="editMode = false">
+        취소
+      </el-button>
+      <el-button type="primary" @click="submit">
+        저장
+      </el-button>
+    </template>
+  </div>
 </div>
+
     </div>
   </div>
 </template>
@@ -285,7 +288,40 @@ const submit = async () => {
     editMode.value = false
 }
 
+// 삭제
+const onDelete = async () => {
+  try {
+    await ElMessageBox({
+      title: '점검 삭제 확인',
+      message: `
+        해당 점검 정보를 삭제하면 복구할 수 없습니다.<br/>
+        정말 삭제하시겠습니까?
+      `,
+      type: 'warning',
+      confirmButtonText: '삭제',
+      cancelButtonText: '취소',
+      showCancelButton: true,
+      dangerouslyUseHTMLString: true
+    })
 
+    await axios.delete(`/as/${props.asId}`)
+
+    ElMessage.success('점검 정보가 삭제되었습니다.')
+
+    // 부모 리스트 갱신 요청
+    emit('updated')
+
+    // 모달 닫기
+    emitClose()
+
+  } catch (e) {
+    // 취소 클릭 시 무시
+    if (e !== 'cancel') {
+      console.error(e)
+      ElMessage.error('삭제 중 오류가 발생했습니다.')
+    }
+  }
+}
 
 // ===== computed =====
 const typeLabel = computed(() =>
@@ -370,7 +406,17 @@ const formatDate = (d) =>
   padding: 12px 24px 16px;
   border-top: 1px solid #edf0f7;
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.footer-left {
+  display: flex;
+  gap: 8px;
+}
+
+.footer-right {
+  display: flex;
   gap: 8px;
 }
 
@@ -510,6 +556,19 @@ const formatDate = (d) =>
 
 .icon-btn:hover {
   color: #111827;
+}
+
+.delete-btn {
+  border: none;
+  background: transparent;
+  color: #ef4444;
+  font-size: 15px;
+  cursor: pointer;
+}
+
+.delete-btn:disabled {
+  color: #fca5a5;
+  cursor: default;
 }
 
 </style>
