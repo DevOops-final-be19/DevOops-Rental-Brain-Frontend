@@ -15,15 +15,15 @@
 
         <template v-if="isEditMode">
           <el-select v-model="editForm.segmentId" placeholder="세그먼트 선택" class="ml-2" style="width: 220px;">
-            <el-option label="잠재 고객" value="1" />
-            <el-option label="신규 고객" value="2" />
-            <el-option label="일반 고객" value="3" />
-            <el-option label="이탈 위험 고객" value="4" />
-            <el-option label="VIP 고객" value="5" />
-            <el-option label="블랙리스트 고객" value="6" />
-            <el-option label="확장 의사 고객" value="7" />
+            <el-option
+              v-for="opt in segmentOptions"
+              :key="opt.value"
+              :label="opt.label"
+              :value="opt.value"
+            />
           </el-select>
         </template>
+
         <template v-else>
           <el-tag :color="getSegmentHexColor(customer.segmentName)" effect="dark" class="segment-tag"
             style="border: none; color: #fff;">
@@ -66,6 +66,7 @@
       v-model="activeMainTab" 
       type="border-card" 
       class="detail-tabs main-tabs"
+      :before-leave="handleTabLeave"
     >
       
       <el-tab-pane label="종합 정보" name="main_general">
@@ -151,7 +152,7 @@
                   v-model="historySearchKeyword"
                   placeholder="내용, 유형, 담당자 검색"
                   size="small"
-                  style="width: 200px;"
+                  style="width: 600px;"
                   clearable
                 >
                   <template #prefix><el-icon><Search /></el-icon></template>
@@ -420,7 +421,7 @@ const historyFilterDate = ref(null);
 const historyFilterStatus = ref('ALL');
 const historySearchKeyword = ref('');
 
-// [신규] 히스토리 카테고리 정의
+// 히스토리 카테고리 정의
 const historyCategories = [
   { label: '전체', value: 'ALL' },
   { label: '문의', value: 'SUPPORT' },
@@ -431,8 +432,8 @@ const historyCategories = [
   { label: 'AS', value: 'AS' },
 ];
 
-// [신규] 선택된 히스토리 필터 (초기값: 선택 없음 -> 아무것도 안 보임)
-const selectedHistoryFilters = ref([]);
+// 선택된 히스토리 필터 (초기값: 전체)
+const selectedHistoryFilters = ref(['ALL']);
 
 const canUpdateCustomer = computed(() =>
   authStore.hasAuth('CUSTOMER_WRITE')
@@ -581,7 +582,7 @@ const getHistoryDotColor = (item) => {
   return getHistoryStatusType(item) === 'success' ? '#0bbd87' : '#ff9900';
 };
 
-// [신규] 카테고리 토글 함수
+// 카테고리 토글 함수
 const toggleHistoryCategory = (val) => {
   if (val === 'ALL') {
     // '전체' 클릭 시: 토글 로직 (이미 전체면 해제, 아니면 전체만 선택)
@@ -682,17 +683,23 @@ const highlightKeyword = (text) => {
   return text.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
 };
 
-// [수정] 안내 메시지
+// 안내 메시지
 const getEmptyDescription = computed(() => {
   if (selectedHistoryFilters.value.length === 0) return '보고 싶은 히스토리 항목을 선택해주세요.';
   if (!customer.value.historyList || customer.value.historyList.length === 0) return '히스토리가 없습니다.';
   return '검색 결과가 없습니다.';
 });
 
+// 수정 모드 활성화 함수
 const enableEditMode = () => {
+  // 1. 탭을 먼저 '종합 정보'로 변경
+  activeMainTab.value = 'main_general';
+  
+  // 2. 폼 데이터 복사 및 수정 모드 켜기
   editForm.value = { ...customer.value };
   isEditMode.value = true;
 };
+
 const cancelEdit = () => { isEditMode.value = false; editForm.value = {}; };
 const saveEdit = async () => {
   try {
@@ -770,6 +777,33 @@ const formatMoneyMan = (value) => {
   if (eok > 0 && man === 0) return `${eok}억`
   return `${man}만원`
 }
+
+// 탭 변경 감지 및 차단 함수
+const handleTabLeave = (activeName, oldActiveName) => {
+  // 수정 모드일 때 로직
+  if (isEditMode.value) {
+    // 목표 탭이 '종합 정보(main_general)'인 경우는 허용 
+    // (정보 수정 버튼 클릭 시 프로그램적으로 이동하는 것을 허용하기 위함)
+    if (activeName === 'main_general') {
+      return true;
+    }
+    // 그 외 다른 탭으로 이동하려고 하면 차단
+    ElMessage.warning('정보 수정 중에는 다른 탭으로 이동할 수 없습니다. 저장 또는 취소해주세요.');
+    return false; 
+  }
+  return true;
+};
+
+// 세그먼트 옵션 정의 (ID와 이름 매핑)
+const segmentOptions = [
+  { value: 1, label: '잠재 고객' },
+  { value: 2, label: '신규 고객' },
+  { value: 3, label: '일반 고객' },
+  { value: 4, label: '이탈 위험 고객' },
+  { value: 5, label: 'VIP 고객' },
+  { value: 6, label: '블랙리스트 고객' },
+  { value: 7, label: '확장 의사 고객' },
+];
 
 onMounted(fetchData);
 </script>
