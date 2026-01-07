@@ -66,6 +66,7 @@
       v-model="activeMainTab" 
       type="border-card" 
       class="detail-tabs main-tabs"
+      :before-leave="handleTabLeave"
     >
       
       <el-tab-pane label="종합 정보" name="main_general">
@@ -431,7 +432,7 @@ const historyCategories = [
   { label: 'AS', value: 'AS' },
 ];
 
-// [신규] 선택된 히스토리 필터 (초기값: 선택 없음 -> 아무것도 안 보임)
+// 선택된 히스토리 필터 (초기값: 선택 없음 -> 아무것도 안 보임)
 const selectedHistoryFilters = ref([]);
 
 const canUpdateCustomer = computed(() =>
@@ -581,7 +582,7 @@ const getHistoryDotColor = (item) => {
   return getHistoryStatusType(item) === 'success' ? '#0bbd87' : '#ff9900';
 };
 
-// [신규] 카테고리 토글 함수
+// 카테고리 토글 함수
 const toggleHistoryCategory = (val) => {
   if (val === 'ALL') {
     // '전체' 클릭 시: 토글 로직 (이미 전체면 해제, 아니면 전체만 선택)
@@ -682,19 +683,23 @@ const highlightKeyword = (text) => {
   return text.replace(regex, '<span style="background-color: yellow; font-weight: bold;">$1</span>');
 };
 
-// [수정] 안내 메시지
+// 안내 메시지
 const getEmptyDescription = computed(() => {
   if (selectedHistoryFilters.value.length === 0) return '보고 싶은 히스토리 항목을 선택해주세요.';
   if (!customer.value.historyList || customer.value.historyList.length === 0) return '히스토리가 없습니다.';
   return '검색 결과가 없습니다.';
 });
 
+// 수정 모드 활성화 함수
 const enableEditMode = () => {
+  // 1. 탭을 먼저 '종합 정보'로 변경
+  activeMainTab.value = 'main_general';
+  
+  // 2. 폼 데이터 복사 및 수정 모드 켜기
   editForm.value = { ...customer.value };
   isEditMode.value = true;
-  // 정보 수정 버튼 클릭 시 '종합 정보' 탭으로 강제 이동
-  activeMainTab.value = 'main_general';
 };
+
 const cancelEdit = () => { isEditMode.value = false; editForm.value = {}; };
 const saveEdit = async () => {
   try {
@@ -772,6 +777,22 @@ const formatMoneyMan = (value) => {
   if (eok > 0 && man === 0) return `${eok}억`
   return `${man}만원`
 }
+
+// 탭 변경 감지 및 차단 함수
+const handleTabLeave = (activeName, oldActiveName) => {
+  // 수정 모드일 때 로직
+  if (isEditMode.value) {
+    // 목표 탭이 '종합 정보(main_general)'인 경우는 허용 
+    // (정보 수정 버튼 클릭 시 프로그램적으로 이동하는 것을 허용하기 위함)
+    if (activeName === 'main_general') {
+      return true;
+    }
+    // 그 외 다른 탭으로 이동하려고 하면 차단
+    ElMessage.warning('정보 수정 중에는 다른 탭으로 이동할 수 없습니다. 저장 또는 취소해주세요.');
+    return false; 
+  }
+  return true;
+};
 
 onMounted(fetchData);
 </script>
