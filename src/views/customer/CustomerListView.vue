@@ -54,7 +54,7 @@
       <el-button class="btn-guide" @click="showSegmentGuideModal = true">
         <el-icon>
           <InfoFilled />
-        </el-icon> 세그먼트 기준표
+        </el-icon> &nbsp; 세그먼트 기준표
       </el-button>
     </div>
 

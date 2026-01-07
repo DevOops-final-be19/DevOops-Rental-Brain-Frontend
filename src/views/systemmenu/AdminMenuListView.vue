@@ -11,7 +11,7 @@
                     <el-icon>
                         <User />
                     </el-icon>
-                    사원 등록
+                   &nbsp; 사원 등록
                 </el-button>
             </div>
         </div>
