@@ -14,7 +14,6 @@
 >
   <span>
     <el-button type="primary" disabled>
-      <el-icon><Plus /></el-icon>
       계약 생성
     </el-button>
   </span>
@@ -25,7 +24,7 @@
   type="primary"
   @click="goToCreateContract"
 >
-  <el-icon><Plus /></el-icon>
+
   계약 생성
 </el-button>
     </div>
