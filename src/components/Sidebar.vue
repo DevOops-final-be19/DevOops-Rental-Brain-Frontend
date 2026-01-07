@@ -443,7 +443,12 @@ const hasAdminPermission = computed(() => {
   background: #fff;
   border-right: 1px solid #eee;
   overflow: hidden;
-  /* padding: 20px; */
+  padding-top: 50px;
+}
+
+.user-section{
+  margin-top: 25px;
+  margin-bottom: 8px;
 }
 
 /* 접힘 상태 */
@@ -451,14 +456,16 @@ const hasAdminPermission = computed(() => {
   width: 80px;
 }
 
+
+
 /* 토글 버튼 */
 .sidebar-toggle {
   position: absolute;
-  top: 50%;
+  top: 5%;
   right: -14px;
   transform: translateY(-50%);
-  width: 28px;
-  height: 28px;
+  width: 35px;
+  height: 35px;
   border-radius: 50%;
   border: 1px solid #ddd;
   background: #fff;

@@ -2,7 +2,12 @@
   <div class="page-container">
 
     <div class="header-row">
-      <h2 class="page-title">고객 목록</h2>
+      <div class="title-area">
+        <h2 class="page-title">고객 목록</h2>
+        <p class="page-subtitle">
+          계약·상담·이력 기반 고객 통합 관리
+        </p>
+      </div>
       <el-tooltip v-if="!canCreateCustomer" content="신규 기업 등록 권한이 없습니다" placement="bottom">
         <span>
           <el-button type="primary" class="btn-register" :disabled="true">
@@ -49,7 +54,7 @@
       <el-button class="btn-guide" @click="showSegmentGuideModal = true">
         <el-icon>
           <InfoFilled />
-        </el-icon> 세그먼트 기준표
+        </el-icon> &nbsp; 세그먼트 기준표
       </el-button>
     </div>
 
@@ -359,9 +364,13 @@ onMounted(fetchData);
 
 <style scoped>
 .page-container {
-  padding: 20px;
-  max-width: 1400px;
+  padding: 24px;
+  max-width: 1440px;
   margin: 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 /* 헤더 */
@@ -377,6 +386,12 @@ onMounted(fetchData);
   font-weight: 700;
   color: #333;
   margin: 0;
+}
+
+.page-subtitle {
+  margin: 6px 0 0;
+  color: #6b7280;
+  font-size: 13px;
 }
 
 /* 검색 & 필터 영역 */
