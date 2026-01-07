@@ -712,7 +712,16 @@ const saveEdit = async () => {
 };
 const handleDelete = () => { ElMessageBox.confirm('정말 삭제(비활성화) 하시겠습니까?', '경고', { type: 'warning' }).then(async () => { try { await deleteCustomer(customerId); ElMessage.success('비활성화 되었습니다.'); fetchData(); } catch (e) { ElMessage.error('삭제 실패'); } }); };
 const handleRestore = () => { ElMessageBox.confirm('고객을 다시 활성화 하시겠습니까?', '복구 확인', { type: 'success' }).then(async () => { try { await restoreCustomer(customerId); ElMessage.success('고객이 복구되었습니다.'); fetchData(); } catch (e) { ElMessage.error('복구 실패'); } }); };
-const goList = () => router.push('/customers');
+
+// 브라우저 히스토리를 이용해 뒤로가기 (이전 URL의 파라미터 보존)
+const goList = () => {
+  if (window.history.length > 1) {
+    router.back();
+  } else {
+    // 히스토리가 없는 경우(다이렉트 접속 등) 대비
+    router.push('/customers');
+  }
+};
 
 // 유틸 함수들
 const formatContractStatus = (status) => {

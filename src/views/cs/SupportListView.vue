@@ -244,9 +244,11 @@ import { Search, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
 import { getSupportList, getSupportKpi, createSupport, updateSupport, deleteSupport, getInChargeList } from '@/api/customersupport';
 import { getCustomerList } from '@/api/customerlist'; 
-import { useRouter } from 'vue-router'; // 추가
+import { useRouter, useRoute } from 'vue-router'; // 추가
 import { useAuthStore } from '@/store/auth.store';
+
 const router = useRouter(); // 추가
+const route = useRoute();
 
 // 상태 변수들
 const loading = ref(false);
@@ -265,18 +267,33 @@ const canCreateSupport = computed(() =>
 const isEditMode = ref(false);
 
 // 검색 조건
+// URL 쿼리 파라미터에서 초기값 읽어오기
 const search = reactive({
-  keyword: '',
-  category: '',
-  status: '' 
+  keyword: route.query.keyword || '',
+  category: route.query.category ? Number(route.query.category) : '', // 숫자형 변환 주의
+  status: route.query.status || '' 
 });
 
 // 페이지네이션
 const page = reactive({
-  currentPage: 1,
+  currentPage: Number(route.query.page) || 1, // URL에 없으면 1
   pageSize: 10,
   totalCount: 0
 });
+
+// URL 업데이트 헬퍼 함수
+const updateUrl = () => {
+  router.replace({
+    query: {
+      ...route.query,
+      page: page.currentPage,
+      keyword: search.keyword,
+      category: search.category || undefined,
+      status: search.status || undefined,
+      star: search.star || undefined
+    }
+  });
+};
 
 // 정렬 상태
 const sortState = reactive({
@@ -346,6 +363,7 @@ const fetchData = async () => {
 
 const handleSearch = () => {
   page.currentPage = 1;
+  updateUrl();
   fetchData();
 };
 
@@ -353,7 +371,11 @@ const resetSearch = () => {
   search.keyword = '';
   search.category = '';
   search.status = '';
-  handleSearch();
+  search.star = '';
+  page.currentPage = 1;
+  
+  router.replace({ query: {} }); // URL 초기화
+  fetchData();
 };
 
 const handleSortChange = ({ prop, order }) => {
@@ -373,6 +395,7 @@ const handleSortChange = ({ prop, order }) => {
 
 const handlePageChange = (val) => {
   page.currentPage = val;
+  updateUrl();
   fetchData();
 };
 
