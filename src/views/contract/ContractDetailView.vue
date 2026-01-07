@@ -4,7 +4,7 @@
     <!-- ===== Header ===== -->
     <div class="detail-header">
       <div class="header-left">
-        <el-button circle plain @click="goList">
+        <el-button circle plain @click="goBack">
           <el-icon><ArrowLeft /></el-icon>
         </el-button>
 
@@ -597,7 +597,13 @@ watch(
 /* =========================
    Utils
 ========================= */
-const goList = () => router.push({ name: 'contract-list' })
+const goBack = () => {
+  if (window.history.length > 1) {
+    router.back()
+  } else {
+    router.push({ name: 'contract-list' })
+  }
+}
 const money = v => {
   if (typeof v !== 'number') return '-'
   if (v >= 100000000) {
