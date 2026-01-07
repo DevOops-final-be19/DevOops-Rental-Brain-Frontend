@@ -151,7 +151,7 @@
                   v-model="historySearchKeyword"
                   placeholder="내용, 유형, 담당자 검색"
                   size="small"
-                  style="width: 200px;"
+                  style="width: 600px;"
                   clearable
                 >
                   <template #prefix><el-icon><Search /></el-icon></template>
@@ -692,6 +692,8 @@ const getEmptyDescription = computed(() => {
 const enableEditMode = () => {
   editForm.value = { ...customer.value };
   isEditMode.value = true;
+  // 정보 수정 버튼 클릭 시 '종합 정보' 탭으로 강제 이동
+  activeMainTab.value = 'main_general';
 };
 const cancelEdit = () => { isEditMode.value = false; editForm.value = {}; };
 const saveEdit = async () => {
