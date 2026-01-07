@@ -268,7 +268,7 @@
 <script setup>
 import { ref, onMounted, reactive, computed } from 'vue';
 
-import { useRouter } from 'vue-router'; 
+import { useRouter, useRoute } from 'vue-router'; 
 
 import { Search, Plus } from '@element-plus/icons-vue';
 import { ElMessage, ElMessageBox } from 'element-plus';
@@ -279,6 +279,7 @@ import { useAuthStore } from '@/store/auth.store';
 
 
 const router = useRouter();
+const route = useRoute();
 
 const loading = ref(false);
 const feedbackList = ref([]);
@@ -290,19 +291,33 @@ const authStore = useAuthStore();
 
 const isEditMode = ref(false);
 
-// [수정] 검색 상태에 star 추가 (필터 작동 핵심)
+// URL 쿼리 파라미터에서 초기값 읽어오기
 const search = reactive({
-  keyword: '',
-  category: '',
-  status: '',
-  star: '' 
+  keyword: route.query.keyword || '',
+  category: route.query.category ? Number(route.query.category) : '',
+  status: route.query.status || '',
+  star: route.query.star ? Number(route.query.star) : '' // [수정] 별점 추가
 });
 
 const page = reactive({
-  currentPage: 1,
+  currentPage: Number(route.query.page) || 1,
   pageSize: 10,
   totalCount: 0
 });
+
+// URL 업데이트 헬퍼 함수
+const updateUrl = () => {
+  router.replace({
+    query: {
+      ...route.query,
+      page: page.currentPage,
+      keyword: search.keyword,
+      category: search.category || undefined,
+      status: search.status || undefined,
+      star: search.star || undefined
+    }
+  });
+};
 
 const sortState = reactive({
   sortBy: 'id',
@@ -374,6 +389,7 @@ const fetchData = async () => {
 
 const handleSearch = () => {
   page.currentPage = 1;
+  updateUrl();
   fetchData();
 };
 
@@ -381,8 +397,11 @@ const resetSearch = () => {
   search.keyword = '';
   search.category = '';
   search.status = '';
-  search.star = ''; // [수정] 초기화 시 별점도 초기화
-  handleSearch();
+  search.star = '';
+  page.currentPage = 1;
+  
+  router.replace({ query: {} }); // URL 초기화
+  fetchData();
 };
 
 const handleSortChange = ({ prop, order }) => {
@@ -402,6 +421,7 @@ const handleSortChange = ({ prop, order }) => {
 
 const handlePageChange = (val) => {
   page.currentPage = val;
+  updateUrl();
   fetchData();
 };
 
