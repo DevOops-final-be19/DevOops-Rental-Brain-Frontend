@@ -505,6 +505,8 @@ const hasAdminPermission = computed(() => {
   width: 80px;
 }
 
+
+
 /* 토글 버튼 */
 .sidebar-toggle {
   position: absolute;

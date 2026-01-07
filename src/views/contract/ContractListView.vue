@@ -14,7 +14,7 @@
 >
   <span>
     <el-button type="primary" disabled>
-      계약 생성
+      계약 승인 요청
     </el-button>
   </span>
 </el-tooltip>
@@ -24,8 +24,7 @@
   type="primary"
   @click="goToCreateContract"
 >
-
-  계약 생성
+  계약 승인 요청
 </el-button>
     </div>
 

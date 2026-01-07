@@ -11,7 +11,7 @@
                     <el-icon>
                         <User />
                     </el-icon>
-                    사원 등록
+                   사원 등록
                 </el-button>
             </div>
         </div>
@@ -188,11 +188,7 @@ const syncEmployee = (payload) => {
     margin-bottom: 20px;
 }
 
-.title-left {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-}
+
 
 .title-left h2 {
     font-size: 24px;
@@ -200,6 +196,7 @@ const syncEmployee = (payload) => {
   color: #333;
   margin: 0;
 }
+
 .title-left p {
     margin: 6px 0 0;
   color: #6b7280;
@@ -211,6 +208,8 @@ const syncEmployee = (payload) => {
     align-items: center;
     padding-right: 20px;
 }
+
+
 
 .content {
     display: flex;
