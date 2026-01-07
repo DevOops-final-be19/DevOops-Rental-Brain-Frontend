@@ -200,13 +200,9 @@ const submitContract = async () => {
   
   /* ⭐ 핵심: 좌우 여백 + 최대 너비 */
   .page-container {
-    padding: 24px;
-  max-width: 1440px;
-  margin: 0 auto;
-
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
+    max-width: 1280px;      /* 너무 넓지 않게 */
+    margin: 0 auto;         /* 가운데 정렬 */
+    padding: 24px 32px;
   }
   
   /* 반응형 (태블릿/모바일) */
