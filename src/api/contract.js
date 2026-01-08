@@ -67,3 +67,8 @@ export const patchTerminateContract = (contractId) => {
 export const patchDeleteContract = (contractId) => {
   return api.patch(`/contract/${contractId}/delete`)
 }
+
+// 계약 강제 삭제
+export const deleteContract = (contractId) => {
+  return api.delete(`/contract/${contractId}/delete/hard`)
+}
