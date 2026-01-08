@@ -330,7 +330,8 @@ import { getContractBasic,
   getContractPayments, 
   patchCompletePayment, 
   patchTerminateContract,
-  patchDeleteContract} from '@/api/contract'
+  patchDeleteContract,
+  deleteContract} from '@/api/contract'
 import { useAuthStore } from '@/store/auth.store'
 import { ElMessage } from 'element-plus'
 
@@ -389,8 +390,8 @@ function openDeleteModal() {
 async function confirmDelete() {
   try {
     deleteLoading.value = true
-
-    await patchDeleteContract(route.params.id)
+    
+    await deleteContract(route.params.id)
 
     ElMessage.success('계약이 삭제되었습니다.')
 
